@@ -295,7 +295,7 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
 
   return (
     <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexShrink: 0 }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Risk distribution trend · {rangeLabel}</div>
         </div>
@@ -676,7 +676,7 @@ function RiskDistributionCard({ dist, total }) {
 
   return (
     <div style={cardStyle}>
-      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Distribution snapshot</div>
+      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>Distribution snapshot</div>
 
       {/* Stacked bar */}
       <div style={{ display: 'flex', height: 12, borderRadius: 4, overflow: 'hidden', marginBottom: 16 }}>
@@ -838,7 +838,7 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
   return (
     <div style={cardStyle}>
       {/* Header + risk filter tabs */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 12 }}>
         <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, flexShrink: 0 }}>Deposit activity · {rangeLabel}</div>
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
           {[['all','Overview',null],['high','High risk','#DC2626'],['med','Medium','#D97706'],['low','Low risk','#16A34A']].map(([v, lbl, dot]) => (
@@ -887,7 +887,7 @@ function TopMoversCard({ movers, brand, country, onPlayerClick }) {
   const filtered = movers.filter((m) => (brand === 'all' || m.brand === brand) && (country === 'ALL' || m.country === country)).slice(0, 5);
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Top risk movers</div>
         </div>
@@ -925,7 +925,7 @@ function TopMoversCard({ movers, brand, country, onPlayerClick }) {
 function AttentionCard({ players, onPlayerClick }) {
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Requires attention</div>
         </div>
@@ -962,7 +962,7 @@ function AttentionCard({ players, onPlayerClick }) {
 function RGAdoptionCard({ items, rangeLabel }) {
   return (
     <div style={cardStyle}>
-      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>RG tool adoption</div>
+      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>RG tool adoption</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         {items.map((i) =>
         <div key={i.tool} style={{ padding: 12, background: '#F8FAFC', borderRadius: 6, border: '1px solid #F1F5F9' }}>
@@ -982,7 +982,7 @@ function SignalsBreakdownCard({ signals, rangeLabel }) {
   const max = Math.max(...signals.map((s) => s.count));
   return (
     <div style={cardStyle}>
-      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Active risk signals · {rangeLabel}</div>
+      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>Active risk signals · {rangeLabel}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {signals.map((s) =>
         <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
