@@ -70,6 +70,8 @@ window.claude = {
 <script type="text/babel" src="home.jsx"></script>
 <script type="text/babel" src="player-list.jsx"></script>
 <script type="text/babel" src="player-detail.jsx"></script>
+<script type="text/babel" src="population-risk.jsx"></script>
+<script type="text/babel" src="interaction-log.jsx"></script>
 <script type="text/babel" src="tweaks-panel.jsx"></script>
 
 <script type="text/babel">
@@ -107,6 +109,10 @@ function App() {
     body = <PlayerList brand={brand} country={country} range={dateRange} onPlayerClick={handlePlayerClick} />;
   } else if (activeView === 'player-detail') {
     body = <PlayerDetail playerId={selectedPlayer} onBack={() => setActiveView('players')} />;
+  } else if (activeView === 'population') {
+    body = <PopulationRisk brand={brand} country={country} dateRange={dateRange} />;
+  } else if (activeView === 'log') {
+    body = <InteractionLog brand={brand} country={country} onPlayerClick={handlePlayerClick} />;
   } else {
     body = (
       <div style={{ padding: 24 }}>
