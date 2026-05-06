@@ -5077,7 +5077,7 @@ Object.assign(window, {
 
 
 // -- App --
-const { useState, useEffect } = React;
+const { useState: useStateApp, useEffect: useEffectApp } = React;
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "density": "comfortable",
@@ -5085,16 +5085,16 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 function App() {
-  const [brand, setBrand] = useState('betking');
-  const [country, setCountry] = useState('NG');
-  const [dateRange, setDateRange] = useState('7d');
-  const [customRange, setCustomRange] = useState(null);
-  const [activeView, setActiveView] = useState('home');
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [brand, setBrand] = useStateApp('betking');
+  const [country, setCountry] = useStateApp('NG');
+  const [dateRange, setDateRange] = useStateApp('7d');
+  const [customRange, setCustomRange] = useStateApp(null);
+  const [activeView, setActiveView] = useStateApp('home');
+  const [selectedPlayer, setSelectedPlayer] = useStateApp(null);
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
 
   // Sync country with brand
-  useEffect(() => {
+  useEffectApp(() => {
     if (brand === 'betking' && country !== 'NG' && country !== 'ALL') setCountry('NG');
     if (brand === 'supersportbet' && country === 'NG') setCountry('ZA');
   }, [brand]);

@@ -1,0 +1,16 @@
+{
+  "name": "kings-guardian",
+  "private": true,
+  "version": "1.0.0",
+  "description": "King's Guard prototype dashboard",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.4.19"
+  }
+}
+
