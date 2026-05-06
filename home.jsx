@@ -263,8 +263,8 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
               <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="3" fill={color} stroke="#fff" strokeWidth="1.5"/>
               {(() => {
                 const n = data.length;
-                const maxL = Math.min(n, 7);
-                const idxs = new Set(Array.from({ length: maxL }, (_, k) => Math.round(k * (n - 1) / Math.max(1, maxL - 1))));
+                const step = Math.max(1, Math.ceil((n - 1) / 6));
+                const idxs = new Set(Array.from({ length: n }, (_, i) => i).filter(i => i % step === 0));
                 return data.map((d, i) => {
                   if (!idxs.has(i)) return null;
                   return <text key={i} x={pts[i][0]} y={SH-4} fontSize="12"
@@ -367,8 +367,8 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
             })}
             {(() => {
               const n = data.length;
-              const maxL = Math.min(n, 7);
-              const idxs = new Set(Array.from({ length: maxL }, (_, k) => Math.round(k * (n - 1) / Math.max(1, maxL - 1))));
+              const step = Math.max(1, Math.ceil((n - 1) / 6));
+              const idxs = new Set(Array.from({ length: n }, (_, i) => i).filter(i => i % step === 0));
               return data.map((d, i) => {
                 if (!idxs.has(i)) return null;
                 return <text key={i} x={PAD_L + i * xStep} y={H - 8} fontSize="12"
@@ -765,13 +765,9 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
   };
 
   const fmtY = v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : `${v}`;
-  // Pick up to 7 evenly-spaced label positions — always first + last, no overlap
-  const MAX_X_LABELS = Math.min(numPts, 7);
-  const labelIndices = new Set(
-    Array.from({ length: MAX_X_LABELS }, (_, k) =>
-      Math.round(k * (numPts - 1) / Math.max(1, MAX_X_LABELS - 1))
-    )
-  );
+  // Pick label positions at a fixed step so every gap is equal
+  const xLabelStep = Math.max(1, Math.ceil((numPts - 1) / 6));
+  const labelIndices = new Set(Array.from({ length: numPts }, (_, i) => i).filter(i => i % xLabelStep === 0));
 
   // Build the SVG chart
   let chartEl;
