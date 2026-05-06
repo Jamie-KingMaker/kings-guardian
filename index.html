@@ -16,6 +16,49 @@
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script>
+window.claude = {
+  complete: function(prompt) {
+    var sets = {
+      high: [
+        '**Escalation wave building:** 47 players crossed the 80+ score threshold this period, a 12% rise — prioritise outreach queue review.',
+        '**Chasing-loss pattern spiking:** 14 high-risk players re-deposited within 10 minutes of a losing session, up 31% vs prior period.',
+        '**VIP crossover concern:** 3 Tier 8–9 customers have entered the high-risk bucket this week — flag for account manager review.',
+        '**Re-deposit velocity critical:** Average gap between loss and next deposit is now 6 minutes among high-risk cohort, down from 22 minutes.',
+        '**Outreach queue overdue:** 9 high-risk players have been flagged for outreach but remain uncontacted for more than 72 hours.'
+      ],
+      medium: [
+        '**Medium tier turbulence:** Net inflow of 306 players into the medium bucket this period, driven by late-night activity shifts.',
+        '**Sports → Casino migration:** 89 medium-risk players switched primary product this week — a leading indicator of escalation.',
+        '**Burst deposit cluster:** 41 medium-risk accounts show 3+ deposits within 30 minutes in at least one session this period.',
+        '**Late-night sessions rising:** 58% of medium-risk bets placed between 22:00 and 03:00, up from 34% in the prior period.',
+        '**Self-exclusion enquiries up:** 12 medium-risk players contacted support this week — consider proactive limit nudge for the cohort.'
+      ],
+      low: [
+        '**Low-risk base holding steady:** Population stable with only 0.3% net drift toward medium tier — no systemic concern this period.',
+        '**Recreational pattern intact:** Average session length among low-risk players is 24 minutes, consistent with healthy leisure behaviour.',
+        '**Deposit limit uptake strong:** 18% of low-risk players have an active deposit limit set, the highest rate across all risk tiers.',
+        '**Early-signal monitoring clear:** Fewer than 0.4% of low-risk accounts triggered a behavioural flag this period — within normal range.',
+        '**Small upward migration noted:** 198 low-risk players migrated to medium this period — monitor for continuation next refresh cycle.'
+      ],
+      all: [
+        '**High-risk spike detected:** 47 players crossed the 80+ threshold this week, up 12% vs prior period — review outreach queue.',
+        '**Deposit velocity rising:** Total deposits up 18.3% over the last 7 days, driven by late-night sessions after 22:00.',
+        '**Medium cohort stable:** Medium-risk population held steady at 8,241, with a slight downward drift of 34 players this week.',
+        '**RG tool adoption up:** Deposit limits set by 312 players this week, a 22% increase — soft intervention nudges are working.',
+        '**Attention queue growing:** 6 flagged players remain unactioned for over 48 hours — open Player List filtered to outreach status.'
+      ]
+    };
+    var filter = 'all';
+    if (prompt.indexOf('FOCUS FILTER') !== -1) {
+      if (prompt.indexOf('high-risk players') !== -1) filter = 'high';
+      else if (prompt.indexOf('medium-risk players') !== -1) filter = 'medium';
+      else if (prompt.indexOf('low-risk players') !== -1) filter = 'low';
+    }
+    return Promise.resolve(sets[filter].map(function(s) { return '- ' + s; }).join('\n'));
+  }
+};
+</script>
 </head>
 <body>
 <div id="root"></div>
