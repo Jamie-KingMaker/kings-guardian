@@ -298,7 +298,6 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexShrink: 0 }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Risk distribution trend · {rangeLabel}</div>
-          <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600 }}>How risk is moving across the player base</div>
         </div>
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
           {[
@@ -678,7 +677,6 @@ function RiskDistributionCard({ dist, total }) {
   return (
     <div style={cardStyle}>
       <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Distribution snapshot</div>
-      <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginBottom: 16 }}>Current player population</div>
 
       {/* Stacked bar */}
       <div style={{ display: 'flex', height: 12, borderRadius: 4, overflow: 'hidden', marginBottom: 16 }}>
@@ -892,7 +890,6 @@ function TopMoversCard({ movers, brand, country, onPlayerClick }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Top risk movers</div>
-          <div style={{ fontSize: 14, color: '#94A3B8' }}>Largest score increases since last refresh</div>
         </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -931,7 +928,6 @@ function AttentionCard({ players, onPlayerClick }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Requires attention</div>
-          <div style={{ fontSize: 14, color: '#94A3B8' }}>Flagged but not yet actioned</div>
         </div>
         <span style={{ fontSize: 13, padding: '3px 8px', background: 'rgba(217, 119, 6, 0.1)', color: '#D97706', borderRadius: 10, fontWeight: 700 }}>{players.length} open</span>
       </div>
@@ -967,7 +963,6 @@ function RGAdoptionCard({ items, rangeLabel }) {
   return (
     <div style={cardStyle}>
       <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>RG tool adoption</div>
-      <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginBottom: 16 }}>Responsible Gaming tools used by players · {rangeLabel}</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         {items.map((i) =>
         <div key={i.tool} style={{ padding: 12, background: '#F8FAFC', borderRadius: 6, border: '1px solid #F1F5F9' }}>
@@ -988,7 +983,6 @@ function SignalsBreakdownCard({ signals, rangeLabel }) {
   return (
     <div style={cardStyle}>
       <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Active risk signals · {rangeLabel}</div>
-      <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginBottom: 16 }}>What's triggering flags right now</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {signals.map((s) =>
         <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
