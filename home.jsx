@@ -261,7 +261,16 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
               <path d={area} fill={color} fillOpacity="0.10"/>
               <path d={line} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="3" fill={color} stroke="#fff" strokeWidth="1.5"/>
-              {data.map((d, i) => <text key={i} x={pts[i][0]} y={SH-4} fontSize="12" textAnchor="middle" fill="#94A3B8">{d.d}</text>)}
+              {(() => {
+                const n = data.length;
+                const maxL = Math.min(n, 7);
+                const idxs = new Set(Array.from({ length: maxL }, (_, k) => Math.round(k * (n - 1) / Math.max(1, maxL - 1))));
+                return data.map((d, i) => {
+                  if (!idxs.has(i)) return null;
+                  return <text key={i} x={pts[i][0]} y={SH-4} fontSize="12"
+                    textAnchor={i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'} fill="#94A3B8">{d.d}</text>;
+                });
+              })()}
             </svg>
           </div>
         ) : (
@@ -356,11 +365,16 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
                 </g>
               );
             })}
-            {data.map((d, i) =>
-              <text key={i} x={PAD_L + i * xStep} y={H - 8} fontSize="12" textAnchor="middle" fill="#94A3B8">
-                {d.d}
-              </text>
-            )}
+            {(() => {
+              const n = data.length;
+              const maxL = Math.min(n, 7);
+              const idxs = new Set(Array.from({ length: maxL }, (_, k) => Math.round(k * (n - 1) / Math.max(1, maxL - 1))));
+              return data.map((d, i) => {
+                if (!idxs.has(i)) return null;
+                return <text key={i} x={PAD_L + i * xStep} y={H - 8} fontSize="12"
+                  textAnchor={i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'} fill="#94A3B8">{d.d}</text>;
+              });
+            })()}
           </svg>
         </div>
       </>}
