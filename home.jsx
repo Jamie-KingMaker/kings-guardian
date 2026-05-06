@@ -751,7 +751,13 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
   };
 
   const fmtY = v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : `${v}`;
-  const labelStep = Math.max(1, Math.floor(numPts / 7));
+  // Pick up to 7 evenly-spaced label positions — always first + last, no overlap
+  const MAX_X_LABELS = Math.min(numPts, 7);
+  const labelIndices = new Set(
+    Array.from({ length: MAX_X_LABELS }, (_, k) =>
+      Math.round(k * (numPts - 1) / Math.max(1, MAX_X_LABELS - 1))
+    )
+  );
 
   // Build the SVG chart
   let chartEl;
@@ -778,7 +784,7 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
           return <circle key={t+'d'} cx={last[0]} cy={last[1]} r="3" fill={TIER_COLORS[t]} stroke="#fff" strokeWidth="1.5"/>;
         })}
         {dateLabels.map((lbl, i) => {
-          if (i % labelStep !== 0 && i !== numPts - 1) return null;
+          if (!labelIndices.has(i)) return null;
           const x = PAD_L + (i / (numPts - 1)) * innerW;
           return <text key={i} x={x} y={H-4} fontSize="11" textAnchor={i === 0 ? 'start' : i === numPts-1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}</text>;
         })}
@@ -805,7 +811,7 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
         <path d={line} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
         <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="3" fill={color} stroke="#fff" strokeWidth="1.5"/>
         {dateLabels.map((lbl, i) => {
-          if (i % labelStep !== 0 && i !== numPts - 1) return null;
+          if (!labelIndices.has(i)) return null;
           const x = PAD_L + (i / (numPts - 1)) * innerW;
           return <text key={i} x={x} y={H-4} fontSize="11" textAnchor={i === 0 ? 'start' : i === numPts-1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}</text>;
         })}
