@@ -345,15 +345,33 @@ function buildRangeData(rangeKey, brandKey) {
     high: endHigh, med: endMed, low: endLow,
   };
 
-  // Deposit bars — one per day in range
+  // Deposit bars — one per day in range, with realistic sports-betting cadence.
+  // Weekend pattern: Sat (busiest, all-day football) > Fri > Sun > Thu > Wed > Tue > Mon.
+  // UCL knockout-round match nights spike Tue/Wed above the weekend floor.
+  //
+  // Today in data = May 5 2026 = Tuesday (dow 2).
+  // UCL 2025-26 knockout nights (days ago from May 5):
+  //   SF 2nd legs  : May 5 Tue (0)
+  //   SF 1st legs  : Apr 29 Wed (6),  Apr 28 Tue (7)
+  //   QF 2nd legs  : Apr 8  Wed (27), Apr 7  Tue (28)
+  //   QF 1st legs  : Apr 1  Wed (34), Mar 31 Tue (35)
+  //   R16 2nd legs : Mar 11 Wed (55), Mar 10 Tue (56)
+  //   R16 1st legs : Mar 4  Wed (62), Mar 3  Tue (63)
+  const DOW_MUL     = [1.20, 0.65, 0.75, 0.78, 0.88, 1.35, 1.60]; // Sun Mon Tue Wed Thu Fri Sat
+  const TODAY_DOW   = 2; // Tuesday
+  const UCL_DAYS    = new Set([0, 6, 7, 27, 28, 34, 35, 55, 56, 62, 63]);
   const numBars = cfg.days;
   const deposits = [];
   for (let i = 0; i < numBars; i++) {
-    const t = i / (numBars - 1);
-    const base = 35 + t * 70;
-    const wobble = Math.sin(i * 0.5) * 8 + (rnd() - 0.5) * 12;
-    const spike = i >= numBars - 7 ? 12 : 0;
-    deposits.push(Math.max(20, Math.round(base + wobble + spike)));
+    const daysAgo  = numBars - 1 - i;
+    const dow      = ((TODAY_DOW - daysAgo) % 7 + 7) % 7;
+    const t        = i / (numBars - 1 || 1);
+    const base     = 38 + t * 65;                                          // gentle upward trend
+    const shaped   = base * DOW_MUL[dow];                                  // day-of-week shape
+    const uclBoost = UCL_DAYS.has(daysAgo) && (dow === 2 || dow === 3)     // UCL match-night spike
+                     ? base * 0.55 : 0;
+    const wobble   = (rnd() - 0.5) * 6;                                    // small deterministic noise
+    deposits.push(Math.max(15, Math.round(shaped + uclBoost + wobble)));
   }
 
   // Top movers — pulled directly from PLAYERS list so the dashboard
