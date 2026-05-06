@@ -572,11 +572,8 @@ Tone: calm, professional, operational. No emojis. No preamble. No closing summar
             boxShadow: '0 2px 6px rgba(67,56,202,0.25)', flexShrink: 0
           }}>★</div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, marginBottom: 1 }}>
+            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
               King's Guard AI
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#0F172A', letterSpacing: '-0.005em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Key callouts · {rangeLabel}
             </div>
           </div>
         </div>
