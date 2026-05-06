@@ -108,10 +108,27 @@ src/
 ## Development Workflow
 
 ### Starting Development
+
+**With Real Claude API (Recommended for testing AI features):**
 ```bash
 npm install        # Install dependencies
-npm run dev        # Start development server
+npm run dev        # Start BFF dev-server with Claude integration
 ```
+
+⚠️ **Important**: Ensure `VITE_USE_MOCK=false` in `.env` and `VITE_CLAUDE_API_KEY` is set to your real Claude API key.
+
+The BFF dev server (on port 5173) will:
+- Intercept requests to `/api/v1/ai/insights` and `/api/v1/ai/chat`
+- Forward them to Claude API using your key (stored server-side, never exposed to browser)
+- Return Claude's responses to the frontend
+
+**With Mock Data (Good for UI development without API calls):**
+```bash
+# Set VITE_USE_MOCK=true in .env
+npm run dev
+```
+
+This uses Mock Service Worker (MSW) to intercept API calls and return fixture data.
 
 ### Building for Production
 ```bash
@@ -125,6 +142,79 @@ npm run preview    # Preview production build locally
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run msw:init` - Initialize Mock Service Worker
+
+---
+
+## Claude AI Integration
+
+### Architecture
+
+King's Guard uses Claude 3.5 Sonnet to generate intelligent insights and handle chat interactions. The integration is architected for security and flexibility:
+
+```
+Browser (Frontend)
+    ↓ (fetch to /api/v1/ai/*)
+BFF Dev Server (server/dev-server.mjs)
+    ↓ (proxies via server/claude-proxy.mjs)
+Claude API (https://api.anthropic.com/v1/messages)
+```
+
+**Security Notes:**
+- `VITE_CLAUDE_API_KEY` is **only stored in `.env`** and used server-side
+- The API key is **NEVER exposed** to the browser bundle
+- Frontend calls `/api/v1/ai/*` endpoints, not Claude directly
+- The dev-server handles all Claude API communication
+
+### Endpoints
+
+**POST `/api/v1/ai/insights`** - Generate morning brief callouts
+- Input: Dashboard data (brand, country, date range, risk distribution, player metrics)
+- Output: Array of 5 insight strings (markdown formatted)
+- Used by: `RGCopilotCard` component
+
+**POST `/api/v1/ai/chat`** - Chat with RG Copilot
+- Input: Message history + operational context (brand, country, time range)
+- Output: Single assistant reply string
+- Used by: `SidebarCopilot` component
+
+### Environment Variables
+
+```dotenv
+# Enable/disable real vs mock API
+VITE_USE_MOCK=false         # false = use Claude; true = use MSW mocks
+
+# Claude API key (server-side only)
+VITE_CLAUDE_API_KEY=sk-ant-api-...   # Get from https://console.anthropic.com/
+
+# Debug logging
+VITE_BFF_LOG_BODY=false              # Log request/response bodies
+VITE_API_BASE_URL=http://localhost:3000  # Fallback for other APIs
+```
+
+### Running with Claude
+
+```bash
+# 1. Add your Claude API key to .env
+echo "VITE_CLAUDE_API_KEY=sk-ant-api-YOUR-KEY-HERE" >> .env
+
+# 2. Ensure mocking is disabled
+sed -i '' 's/VITE_USE_MOCK=true/VITE_USE_MOCK=false/' .env
+
+# 3. Start the dev server
+npm run dev
+
+# Server logs will show:
+# [BFF] Vite middleware server running at http://localhost:5173
+# [Claude AI] POST /api/v1/ai/insights -> 200 (1234ms)
+```
+
+### Implementation Details
+
+- **Model**: `claude-3-5-sonnet-20241022`
+- **Max tokens**: 1024 for insights, 512 for chat
+- **System prompts**: Defined in `server/claude-proxy.mjs` (tuned for RG context)
+- **Error handling**: Graceful fallback to error messages if Claude API fails
+- **Frontend sanitization**: All Claude responses are sanitized before rendering (use DOMPurify or similar)
 
 ---
 
@@ -170,6 +260,15 @@ npm run preview    # Preview production build locally
 4. **Validate changes** with error checking after updates
 5. **Keep imports organized** at the top of files
 6. **Follow existing code style** in the project
+7. **Sanitize AI output**: Any text from Claude responses must be sanitized before rendering (use DOMPurify or innerHTML/textContent carefully)
+
+### AI Component Security
+
+Components like `RGCopilotCard` and `SidebarCopilot` render Claude's responses. Always:
+- ✅ Use `textContent` or text nodes for plain text rendering
+- ✅ Use DOMPurify for markdown/HTML rendering
+- ❌ Do NOT use `dangerouslySetInnerHTML` with Claude responses
+- ❌ Do NOT directly inject Claude text into DOM
 
 ---
 

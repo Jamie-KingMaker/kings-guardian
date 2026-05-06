@@ -5,9 +5,10 @@
   "description": "King's Guard RG Intelligence dashboard",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "debug": "vite --debug",
-    "start": "vite",
+    "dev": "node server/dev-server.mjs",
+    "dev:vite": "vite",
+    "debug": "node server/dev-server.mjs",
+    "start": "node server/dev-server.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "msw:init": "msw init public/ --save"
