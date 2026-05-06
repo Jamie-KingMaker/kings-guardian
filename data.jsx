@@ -403,16 +403,33 @@ function buildRangeData(rangeKey, brandKey) {
 
   // RG tool adoption — scales with MAU and window
   const rgScale = (mau / 1000000) * cfg.depositMul;
-  const rgAdoption = [
-    { tool: 'Self-Exclusion',   base: 41200, deltaBase: 11 },
-    { tool: 'Deposit Limits',   base: 33000, deltaBase: 18 },
-    { tool: '24-Hour Cool-Off', base: 16500, deltaBase: 24 },
-    { tool: 'Account Closure',  base: 8250,  deltaBase: 6  },
-  ].map(i => ({
-    tool: i.tool,
-    count: Math.max(1, Math.round(i.base * rgScale)),
-    delta: i.deltaBase + (rangeKey === '90d' || rangeKey === 'ytd' ? 5 : 0)
-  }));
+  const RG_TOOL_DEFS = [
+    // color, startFrac (how far below current at period start), noiseAmp, spike positions (0-1)
+    { tool: 'Self-Exclusion',   base: 41200, deltaBase: 11, color: '#6366F1', startFrac: 0.88, noise: 0.05, spikes: [] },
+    { tool: 'Deposit Limits',   base: 33000, deltaBase: 18, color: '#0891B2', startFrac: 0.74, noise: 0.05, spikes: [0.58] },
+    { tool: '24-Hour Cool-Off', base: 16500, deltaBase: 24, color: '#DB2777', startFrac: 0.68, noise: 0.13, spikes: [0.30, 0.72] },
+    { tool: 'Account Closure',  base: 8250,  deltaBase: 6,  color: '#F59E0B', startFrac: 0.91, noise: 0.09, spikes: [0.85] },
+  ];
+  const rgAdoption = RG_TOOL_DEFS.map(toolDef => {
+    const count = Math.max(1, Math.round(toolDef.base * rgScale));
+    const delta = toolDef.deltaBase + (rangeKey === '90d' || rangeKey === 'ytd' ? 5 : 0);
+    const trend = [];
+    for (let i = 0; i < numPoints; i++) {
+      const t = i / (numPoints - 1 || 1);
+      const eased = t * t * (3 - 2 * t);
+      const base = count * (toolDef.startFrac + (1 - toolDef.startFrac) * eased);
+      const spike = toolDef.spikes.reduce((acc, sp) => {
+        const dist = Math.abs(t - sp);
+        return acc + (dist < 1.2 / numPoints ? count * 0.20 * (1 - dist * numPoints / 1.2) : 0);
+      }, 0);
+      const noise = (rnd() - 0.5) * count * toolDef.noise;
+      const d = new Date(today);
+      d.setDate(today.getDate() - Math.round((1 - t) * cfg.days));
+      trend.push({ d: fmtDate(d), v: Math.max(1, Math.round(base + spike + noise)) });
+    }
+    trend[trend.length - 1].v = count; // pin last point to live value
+    return { tool: toolDef.tool, count, delta, color: toolDef.color, trend };
+  });
 
   // Risk signals — proportional to high+med population
   const signalScale = (dist.high + dist.med) / 2631; // 2631 = baseline all-brand 7d (high+med)

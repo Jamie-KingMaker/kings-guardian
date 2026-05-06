@@ -976,22 +976,101 @@ function AttentionCard({ players, onPlayerClick }) {
 }
 
 function RGAdoptionCard({ items, rangeLabel }) {
+  const W = 720, H = 170;
+  const PAD_L = 44, PAD_B = 26, PAD_T = 10, PAD_R = 12;
+  const innerW = W - PAD_L - PAD_R;
+  const innerH = H - PAD_T - PAD_B;
+
+  const numPts = items[0]?.trend?.length || 1;
+  const allVals = items.flatMap(i => (i.trend || []).map(p => p.v));
+  const mn = Math.min(...allVals);
+  const mx = Math.max(...allVals);
+  const rng = mx - mn || 1;
+  const xStep = innerW / (numPts - 1 || 1);
+  const fmtY = v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`;
+
+  const buildPath = (vals) => {
+    const pts = vals.map((v, i) => [
+      PAD_L + i * xStep,
+      PAD_T + innerH - ((v - mn) / rng) * innerH,
+    ]);
+    const line = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+    const area = line + ` L${pts[pts.length-1][0].toFixed(1)},${PAD_T+innerH} L${PAD_L},${PAD_T+innerH} Z`;
+    return { pts, line, area };
+  };
+
+  const gridVals = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(mn + (mx - mn) * (1 - t)));
+  const labels = items[0]?.trend?.map(p => p.d) || [];
+  const xLabelStep = Math.max(1, Math.ceil((numPts - 1) / 6));
+  const labelSet = new Set(Array.from({ length: numPts }, (_, i) => i).filter(i => i % xLabelStep === 0));
+
   return (
     <div style={cardStyle}>
-      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>RG tool adoption</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-        {items.map((i) =>
-        <div key={i.tool} style={{ padding: 12, background: '#F8FAFC', borderRadius: 6, border: '1px solid #F1F5F9' }}>
-            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 6 }}>{i.tool}</div>
-            <div style={{ fontSize: 22, fontWeight: 600, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", letterSpacing: '-0.01em', marginBottom: 4 }}>
+      {/* Header */}
+      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>
+        Responsible Gaming tools used by players · {rangeLabel}
+      </div>
+
+      {/* Stat mini-cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
+        {items.map(i => (
+          <div key={i.tool} style={{ padding: '10px 12px', background: `${i.color}09`, borderRadius: 6, border: `1px solid ${i.color}28` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: i.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 10.5, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1.2 }}>{i.tool}</span>
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", letterSpacing: '-0.02em', lineHeight: 1 }}>
               {i.count.toLocaleString()}
             </div>
-            <div style={{ fontSize: 13, color: '#16A34A', fontWeight: 600 }}>↑ {i.delta}%</div>
+            <div style={{ fontSize: 11.5, color: '#16A34A', fontWeight: 700, marginTop: 3 }}>↑ {i.delta}%</div>
           </div>
-        )}
+        ))}
       </div>
-    </div>);
 
+      {/* Multi-line trend chart */}
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+        {/* Grid lines + y-axis labels */}
+        {gridVals.map((v, i) => {
+          const y = PAD_T + innerH - ((v - mn) / rng) * innerH;
+          return (
+            <g key={i}>
+              <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#F1F5F9" strokeWidth="1" />
+              <text x={PAD_L - 4} y={y + 4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(v)}</text>
+            </g>
+          );
+        })}
+
+        {/* Area fills */}
+        {items.map(item => {
+          const { area } = buildPath((item.trend || []).map(p => p.v));
+          return <path key={item.tool + 'a'} d={area} fill={item.color} fillOpacity="0.07" />;
+        })}
+
+        {/* Lines + end dots */}
+        {items.map(item => {
+          const { pts, line } = buildPath((item.trend || []).map(p => p.v));
+          const last = pts[pts.length - 1];
+          return (
+            <g key={item.tool}>
+              <path d={line} fill="none" stroke={item.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx={last[0]} cy={last[1]} r="3" fill={item.color} stroke="#fff" strokeWidth="1.5" />
+            </g>
+          );
+        })}
+
+        {/* X-axis date labels */}
+        {labels.map((lbl, i) => {
+          if (!labelSet.has(i)) return null;
+          const x = PAD_L + i * xStep;
+          return (
+            <text key={i} x={x} y={H - 4} fontSize="11"
+              textAnchor={i === 0 ? 'start' : i === numPts - 1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
 }
 
 function SignalsBreakdownCard({ signals, rangeLabel }) {
