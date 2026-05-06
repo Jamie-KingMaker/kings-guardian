@@ -67,7 +67,7 @@ window.claude = {
 <script type="text/babel" src="components.jsx"></script>
 <script type="text/babel" src="date-range-picker.jsx"></script>
 <script type="text/babel" src="shell.jsx"></script>
-<script type="text/babel" src="home.jsx?v=3"></script>
+<script type="text/babel" src="home.jsx?v=4"></script>
 <script type="text/babel" src="player-list.jsx"></script>
 <script type="text/babel" src="player-detail.jsx"></script>
 <script type="text/babel" src="population-risk.jsx"></script>
@@ -104,7 +104,7 @@ function App() {
 
   let body;
   if (activeView === 'home') {
-    body = <HomeDashboard brand={brand} country={country} dateRange={dateRange} customRange={customRange} onPlayerClick={handlePlayerClick} />;
+    body = <HomeDashboard brand={brand} country={country} dateRange={dateRange} setDateRange={setDateRange} customRange={customRange} setCustomRange={setCustomRange} onPlayerClick={handlePlayerClick} />;
   } else if (activeView === 'players') {
     body = <PlayerList brand={brand} country={country} range={dateRange} onPlayerClick={handlePlayerClick} />;
   } else if (activeView === 'player-detail') {
