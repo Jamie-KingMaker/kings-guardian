@@ -128,10 +128,9 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
         
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
         <DepositActivityCard data={rangeData.deposits} brand={brand} total={brand === 'supersportbet' ? rangeData.depositTotalSS : rangeData.depositTotal} growth={rangeData.depositGrowth} rangeLabel={rangeData.rangeLabel} deltaLabel={rangeData.deltaLabel} rangeKey={effectiveRange} dist={dist} mau={mau} />
         <TopMoversCard movers={rangeData.movers} brand={brand} country={country} onPlayerClick={onPlayerClick} />
-        <AttentionCard players={filtered.filter((p) => p.status).slice(0, 6)} onPlayerClick={onPlayerClick} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -714,23 +713,105 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
   const fmtSpeed  = m => m < 60 ? `${Math.round(m)}m` : m < 1440 ? `${(m/60).toFixed(1)}h` : `${(m/1440).toFixed(1)}d`;
   const speedSub  = m => m < 60 ? 'minutes avg' : m < 1440 ? 'hours avg' : 'days avg';
 
-  // Scale bars by tier share with a stable per-tier shape (no Math.random)
-  const scaledBars = data.map((v, i) => {
-    const shape = filter === 'high' ? 1 + Math.sin(i * 0.7) * 0.15
-                : filter === 'med'  ? 1 + Math.sin(i * 0.4) * 0.08
-                : filter === 'low'  ? 1 - Math.sin(i * 0.3) * 0.05 : 1;
-    return Math.max(3, Math.round(v * DEPOSIT_SHARES[filter] * shape));
-  });
-  const maxBar      = Math.max(...scaledBars);
-  const spikeWindow = Math.min(7, Math.floor(scaledBars.length / 4));
+  const TIER_COLORS = { high: '#DC2626', med: '#D97706', low: '#16A34A' };
 
-  const COLORS = {
-    all:  { bar: '#CBD5E1', spike: '#DC2626', accent: '#DC2626' },
-    high: { bar: '#FECACA', spike: '#DC2626', accent: '#DC2626' },
-    med:  { bar: '#FDE68A', spike: '#D97706', accent: '#D97706' },
-    low:  { bar: '#BBF7D0', spike: '#16A34A', accent: '#16A34A' },
+  // Generate date labels counting back from today
+  const numPts = data.length;
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateLabels = data.map((_, i) => {
+    const d = new Date(2026, 4, 6);
+    d.setDate(d.getDate() - (numPts - 1 - i));
+    return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+  });
+
+  // Build per-tier series with stable shape variation
+  const buildSeries = (tier) => data.map((v, i) => {
+    const shape = tier === 'high' ? 1 + Math.sin(i * 0.7) * 0.15
+                : tier === 'med'  ? 1 + Math.sin(i * 0.4) * 0.08
+                :                   1 - Math.sin(i * 0.3) * 0.05;
+    return Math.max(3, Math.round(v * DEPOSIT_SHARES[tier] * shape));
+  });
+
+  const tierSeries = { high: buildSeries('high'), med: buildSeries('med'), low: buildSeries('low') };
+
+  // SVG dimensions — match RiskTrendCard
+  const W = 720, H = 180;
+  const PAD_L = 44, PAD_B = 28, PAD_T = 12, PAD_R = 12;
+  const innerW = W - PAD_L - PAD_R;
+  const innerH = H - PAD_T - PAD_B;
+
+  const buildPath = (vals, mn, rng) => {
+    const pts = vals.map((v, i) => [
+      PAD_L + (i / (vals.length - 1)) * innerW,
+      PAD_T + innerH - ((v - mn) / rng) * innerH,
+    ]);
+    const line = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+    const area = line + ` L${pts[pts.length-1][0].toFixed(1)},${PAD_T+innerH} L${PAD_L},${PAD_T+innerH} Z`;
+    return { pts, line, area };
   };
-  const { bar: barColor, spike: spikeColor, accent } = COLORS[filter];
+
+  const fmtY = v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : `${v}`;
+  const labelStep = Math.max(1, Math.floor(numPts / 7));
+
+  // Build the SVG chart
+  let chartEl;
+  if (filter === 'all') {
+    // Overview — all 3 tiers as overlaid lines
+    const allVals = [...tierSeries.high, ...tierSeries.med, ...tierSeries.low];
+    const mn = Math.min(...allVals), mx = Math.max(...allVals), rng = mx - mn || 1;
+    const paths = { high: buildPath(tierSeries.high, mn, rng), med: buildPath(tierSeries.med, mn, rng), low: buildPath(tierSeries.low, mn, rng) };
+    const gridVals = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(mn + (mx - mn) * (1 - t)));
+
+    chartEl = (
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+        {gridVals.map((v, i) => {
+          const y = PAD_T + innerH - ((v - mn) / rng) * innerH;
+          return <g key={i}>
+            <line x1={PAD_L} y1={y} x2={W-PAD_R} y2={y} stroke="#E2E8F0" strokeWidth="1"/>
+            <text x={PAD_L-4} y={y+4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(v)}</text>
+          </g>;
+        })}
+        {['low','med','high'].map(t => <path key={t+'a'} d={paths[t].area} fill={TIER_COLORS[t]} fillOpacity="0.07"/>)}
+        {['low','med','high'].map(t => <path key={t+'l'} d={paths[t].line} fill="none" stroke={TIER_COLORS[t]} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>)}
+        {['low','med','high'].map(t => {
+          const last = paths[t].pts[paths[t].pts.length - 1];
+          return <circle key={t+'d'} cx={last[0]} cy={last[1]} r="3" fill={TIER_COLORS[t]} stroke="#fff" strokeWidth="1.5"/>;
+        })}
+        {dateLabels.map((lbl, i) => {
+          if (i % labelStep !== 0 && i !== numPts - 1) return null;
+          const x = PAD_L + (i / (numPts - 1)) * innerW;
+          return <text key={i} x={x} y={H-4} fontSize="11" textAnchor={i === 0 ? 'start' : i === numPts-1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}</text>;
+        })}
+      </svg>
+    );
+  } else {
+    // Single-tier full-width sparkline
+    const vals = tierSeries[filter];
+    const mn = Math.min(...vals), mx = Math.max(...vals), rng = mx - mn || 1;
+    const { pts, line, area } = buildPath(vals, mn, rng);
+    const color = TIER_COLORS[filter];
+    const gridVals = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(mn + (mx - mn) * (1 - t)));
+
+    chartEl = (
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+        {gridVals.map((v, i) => {
+          const y = PAD_T + innerH - ((v - mn) / rng) * innerH;
+          return <g key={i}>
+            <line x1={PAD_L} y1={y} x2={W-PAD_R} y2={y} stroke={`${color}20`} strokeWidth="1"/>
+            <text x={PAD_L-4} y={y+4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(v)}</text>
+          </g>;
+        })}
+        <path d={area} fill={color} fillOpacity="0.10"/>
+        <path d={line} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="3" fill={color} stroke="#fff" strokeWidth="1.5"/>
+        {dateLabels.map((lbl, i) => {
+          if (i % labelStep !== 0 && i !== numPts - 1) return null;
+          const x = PAD_L + (i / (numPts - 1)) * innerW;
+          return <text key={i} x={x} y={H-4} fontSize="11" textAnchor={i === 0 ? 'start' : i === numPts-1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}</text>;
+        })}
+      </svg>
+    );
+  }
 
   const miniCard = (label, value, sub, accentColor) => (
     <div style={{ padding: '10px 12px', borderRadius: 6, background: accentColor ? `${accentColor}08` : '#F8FAFC', border: `1px solid ${accentColor ? accentColor + '20' : '#F1F5F9'}` }}>
@@ -746,7 +827,7 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12 }}>
         <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, flexShrink: 0 }}>Deposit activity · {rangeLabel}</div>
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
-          {[['all','All players',null],['high','High risk','#DC2626'],['med','Medium','#D97706'],['low','Low risk','#16A34A']].map(([v, lbl, dot]) => (
+          {[['all','Overview',null],['high','High risk','#DC2626'],['med','Medium','#D97706'],['low','Low risk','#16A34A']].map(([v, lbl, dot]) => (
             <button key={v} onClick={() => setFilter(v)} style={{
               flex: 1, padding: '4px 10px', borderRadius: 4, border: 'none', cursor: 'pointer',
               fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
@@ -767,24 +848,23 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
         {miniCard('Total value',      fmtCompact(Math.round(filteredTotal), brand), filter === 'all' ? 'all players' : `${filter} risk tier`)}
         {miniCard('Avg / player',     fmtCompact(Math.round(avgPerPlayer), brand),  `${filteredCount.toLocaleString()} players`)}
-        {miniCard('Re-deposit speed', fmtSpeed(speedMins), speedSub(speedMins), filter !== 'all' ? accent : null)}
+        {miniCard('Re-deposit speed', fmtSpeed(speedMins), speedSub(speedMins), filter !== 'all' ? TIER_COLORS[filter] : null)}
       </div>
 
-      {/* Bar chart */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 64, marginBottom: 6 }}>
-        {scaledBars.map((v, i) => (
-          <div key={i} style={{
-            flex: 1, minHeight: 2, borderRadius: 1,
-            height: `${(v / maxBar) * 100}%`,
-            background: i >= scaledBars.length - spikeWindow ? spikeColor : barColor,
-            transition: 'background 0.2s, height 0.2s',
-          }} />
-        ))}
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#94A3B8' }}>
-        <span>{rangeLabel} ago</span>
-        <span style={{ color: spikeColor, fontWeight: 600 }}>Last {spikeWindow}d (spike)</span>
-      </div>
+      {/* Legend (overview only) */}
+      {filter === 'all' && (
+        <div style={{ display: 'flex', gap: 14, marginBottom: 8 }}>
+          {[['high','High risk','#DC2626'],['med','Medium risk','#D97706'],['low','Low risk','#16A34A']].map(([t, lbl, c]) => (
+            <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ width: 18, height: 2, background: c, borderRadius: 1 }}/>
+              <span style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>{lbl}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Line chart */}
+      {chartEl}
     </div>
   );
 }
