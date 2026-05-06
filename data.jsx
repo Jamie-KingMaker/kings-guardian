@@ -377,16 +377,27 @@ function buildRangeData(rangeKey, brandKey) {
   // Top movers — pulled directly from PLAYERS list so the dashboard
   // and player list reference the exact same records.
   const moverScale = rangeKey === '7d' ? 1 : rangeKey === '14d' ? 1.2 : rangeKey === '30d' ? 1.5 : rangeKey === '90d' ? 1.9 : 2.2;
-  const movers = ['BK-4827193', 'SS-7283910', 'BK-3918274', 'BK-5621847', 'SS-9012384']
+  // fromScore overrides for players missing a riskFrom on their record
+  const MOVER_FROM = {
+    'BK-4827193': 62, 'SS-7283910': 71, 'BK-3918274': 58,
+    'BK-9374821': 65, 'BK-5621847': 41, 'SS-2647193': 55,
+    'BK-1738294': 52, 'SS-9012384': 38, 'BK-2847362': 33,
+  };
+  const movers = [
+    'BK-4827193', 'SS-7283910', 'BK-3918274',
+    'BK-9374821', 'BK-5621847', 'SS-2647193',
+    'BK-1738294', 'SS-9012384', 'BK-2847362',
+  ]
     .map(id => PLAYERS.find(p => p.id === id))
     .filter(Boolean)
     .map(p => {
-      const baseDelta = (p.riskScore || 0) - (p.riskFrom || 0);
+      const from = MOVER_FROM[p.id] ?? (p.riskFrom || 0);
+      const baseDelta = (p.riskScore || 0) - from;
       const delta = Math.round(baseDelta * moverScale);
       return {
-        id: p.id, brand: p.brand, country: p.country,
-        from: p.riskFrom, to: Math.min(99, (p.riskFrom || 0) + delta),
-        delta,
+        id: p.id, brand: p.brand, country: p.country, risk: p.risk,
+        from, to: Math.min(99, from + delta),
+        delta, signals: p.signals || [],
       };
     });
 
