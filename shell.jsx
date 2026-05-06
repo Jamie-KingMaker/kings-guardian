@@ -163,9 +163,9 @@ function Sidebar({ activeView, setActiveView, brand, country, dateRange }) {
     { id: 'home', label: 'Dashboard', icon: 'home' },
     { id: 'players', label: 'Player List', icon: 'list' },
     { id: 'population', label: 'Player Behaviours & Trends', icon: 'chart' },
-    { id: 'monitoring', label: 'Monitoring & Flags', icon: 'flag', count: 12 },
+    { id: 'monitoring', label: 'Monitoring & Flags', icon: 'flag', disabled: true },
     { id: 'log', label: 'Interaction Log', icon: 'log' },
-    { id: 'reporting', label: 'Reporting', icon: 'export' },
+    { id: 'reporting', label: 'Reporting', icon: 'export', disabled: true },
   ];
   return (
     <div style={{
@@ -178,23 +178,28 @@ function Sidebar({ activeView, setActiveView, brand, country, dateRange }) {
     }}>
       <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', color: '#64748B', textTransform: 'uppercase', padding: '8px 8px 12px' }}>Workspace</div>
       {items.map(item => (
-        <button key={item.id} onClick={() => setActiveView(item.id)}
+        <button key={item.id}
+          onClick={() => !item.disabled && setActiveView(item.id)}
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '9px 10px', borderRadius: 6, border: 'none',
             background: activeView === item.id ? theme.accentBg : 'transparent',
-            color: activeView === item.id ? theme.accentText : '#CBD5E1',
-            fontSize: 15, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit',
+            color: item.disabled ? '#475569' : activeView === item.id ? theme.accentText : '#CBD5E1',
+            fontSize: 15, fontWeight: 500, cursor: item.disabled ? 'default' : 'pointer', fontFamily: 'inherit',
             textAlign: 'left', marginBottom: 2,
             borderLeft: activeView === item.id ? `2px solid ${theme.accent}` : '2px solid transparent',
             paddingLeft: activeView === item.id ? 12 : 14,
+            opacity: item.disabled ? 0.45 : 1,
           }}
-          onMouseEnter={e => { if (activeView !== item.id) e.currentTarget.style.background = 'rgba(148,163,184,0.06)'; }}
-          onMouseLeave={e => { if (activeView !== item.id) e.currentTarget.style.background = 'transparent'; }}
+          onMouseEnter={e => { if (!item.disabled && activeView !== item.id) e.currentTarget.style.background = 'rgba(148,163,184,0.06)'; }}
+          onMouseLeave={e => { if (!item.disabled && activeView !== item.id) e.currentTarget.style.background = 'transparent'; }}
         >
           <Icon name={item.icon} size={16} />
           <span style={{ flex: 1 }}>{item.label}</span>
-          {item.count && (
+          {item.disabled && (
+            <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 5px', borderRadius: 4, background: 'rgba(148,163,184,0.1)', color: '#475569', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Soon</span>
+          )}
+          {item.count && !item.disabled && (
             <span style={{
               fontSize: 12, fontWeight: 700, padding: '2px 6px', borderRadius: 10,
               background: activeView === item.id ? theme.accentBg : 'rgba(148,163,184,0.12)',
