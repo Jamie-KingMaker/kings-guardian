@@ -881,39 +881,58 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
 }
 
 function TopMoversCard({ movers, brand, country, onPlayerClick }) {
-  const filtered = movers.filter((m) => (brand === 'all' || m.brand === brand) && (country === 'ALL' || m.country === country)).slice(0, 5);
+  const filtered = movers.filter((m) => (brand === 'all' || m.brand === brand) && (country === 'ALL' || m.country === country)).slice(0, 8);
+  const riskColor = { high: '#DC2626', medium: '#D97706', med: '#D97706', low: '#16A34A', unrated: '#94A3B8' };
+
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div>
-          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Top risk movers</div>
-        </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {filtered.map((m) =>
-        <button key={m.id} onClick={() => onPlayerClick && onPlayerClick(m.id)} style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '10px 8px', borderRadius: 6, background: 'transparent',
-          border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.background = '#F8FAFC'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-          
-            <div style={{ flex: 1, fontFamily: "'Roboto Mono', monospace", fontSize: 14, color: '#0F172A', fontWeight: 500 }}>
-              {m.id}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748B', fontFamily: "'Roboto Mono', monospace" }}>
-              <span>{m.from}</span>
-              <Icon name="arrow-right" size={10} color="#94A3B8" />
-              <span style={{ color: '#0F172A', fontWeight: 600 }}>{m.to}</span>
-            </div>
-            <div style={{
-            padding: '2px 7px', borderRadius: 4,
-            background: 'rgba(220, 38, 38, 0.1)', color: '#DC2626',
-            fontSize: 13, fontWeight: 700, fontFamily: "'Roboto Mono', monospace"
-          }}>+{m.delta}</div>
-          </button>
-        )}
+      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 16 }}>Top risk movers</div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {filtered.map((m, idx) => {
+          const rc = riskColor[m.risk] || '#94A3B8';
+          const isLast = idx === filtered.length - 1;
+          return (
+            <button key={m.id} onClick={() => onPlayerClick && onPlayerClick(m.id)}
+              style={{
+                display: 'flex', flexDirection: 'column',
+                padding: '8px 8px', borderRadius: 6, background: 'transparent',
+                border: 'none', borderBottom: isLast ? 'none' : '1px solid #F8FAFC',
+                cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#F8FAFC'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+              {/* Score row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, width: '100%' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: rc, flexShrink: 0 }} />
+                <span style={{ flex: 1, fontFamily: "'Roboto Mono', monospace", fontSize: 12.5, color: '#0F172A', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {m.id}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, color: '#64748B', fontFamily: "'Roboto Mono', monospace", flexShrink: 0 }}>
+                  <span>{m.from}</span>
+                  <Icon name="arrow-right" size={9} color="#94A3B8" />
+                  <span style={{ color: '#0F172A', fontWeight: 600 }}>{m.to}</span>
+                </span>
+                <span style={{
+                  padding: '2px 5px', borderRadius: 3,
+                  background: 'rgba(220,38,38,0.10)', color: '#DC2626',
+                  fontSize: 11, fontWeight: 700, fontFamily: "'Roboto Mono', monospace", flexShrink: 0,
+                }}>+{m.delta}</span>
+              </div>
+              {/* Signal chips */}
+              {m.signals && m.signals.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 4, paddingLeft: 13 }}>
+                  {m.signals.map((s, si) => (
+                    <span key={si} style={{
+                      fontSize: 9.5, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
+                      background: '#F1F5F9', color: '#475569',
+                      textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap',
+                    }}>{s}</span>
+                  ))}
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>);
 
