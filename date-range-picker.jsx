@@ -76,7 +76,7 @@ function DateRangePicker({ value, onChange, custom, onCustom, pageMode }) {
       return `${fmtShort(custom.start)} – ${fmtShort(custom.end)}, ${custom.end.getFullYear()}`;
     }
     const p = presets.find(p => p.v === value);
-    return p ? p.label : 'Last 7 days';
+    return p ? p.label : KGConstants.getDateRangeLabel(value);
   })();
 
   const handlePreset = (v) => {
