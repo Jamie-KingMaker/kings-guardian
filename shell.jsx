@@ -18,10 +18,49 @@ function TopBar({ brand, setBrand, country, setCountry, lastRefresh, onCustomerS
   const [customerSearchFeedback, setCustomerSearchFeedback] = useState(CUSTOMER_SEARCH_FEEDBACK.IDLE);
   const [customerSearchFlashSeq, setCustomerSearchFlashSeq] = useState(0);
   const clearCustomerSearchRef = React.useRef(null);
+  const autoSearchTimeoutRef = React.useRef(null);
 
   React.useEffect(() => () => {
     if (clearCustomerSearchRef.current) clearTimeout(clearCustomerSearchRef.current);
+    if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
   }, []);
+
+  React.useEffect(() => {
+    if (!customerSearchQuery.trim()) {
+      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
+      return;
+    }
+    if (customerSearchFeedback !== CUSTOMER_SEARCH_FEEDBACK.IDLE) {
+      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
+      return;
+    }
+
+    const trimmedQuery = customerSearchQuery.trim().toUpperCase();
+    const isExactMatch = customerIdSuggestions.includes(trimmedQuery);
+
+    if (isExactMatch && onCustomerSearch) {
+      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
+      autoSearchTimeoutRef.current = setTimeout(() => {
+        const didOpenCustomer = onCustomerSearch(customerSearchQuery);
+        if (didOpenCustomer) {
+          setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.HIT);
+          setCustomerSearchFlashSeq(seq => seq + 1);
+          clearCustomerSearchRef.current = setTimeout(() => {
+            setCustomerSearchQuery('');
+          }, 620);
+        } else {
+          setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.MISS);
+          setCustomerSearchFlashSeq(seq => seq + 1);
+        }
+      }, 300);
+    } else {
+      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
+    }
+
+    return () => {
+      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
+    };
+  }, [customerSearchQuery, customerIdSuggestions, customerSearchFeedback, onCustomerSearch]);
 
   const customerIdSuggestions = React.useMemo(() => {
     const query = (customerSearchQuery || '').trim().toUpperCase();
