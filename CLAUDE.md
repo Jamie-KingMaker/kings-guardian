@@ -10,3 +10,8 @@
 
 [//]: # (TODO: Add more details about the workflow, e.g. how to run tests, how to deploy, etc.)
 
+# Secret management
+
+- all secrets like CLAUDE_AI_API_TOKEN are stored in the GitHub repository secrets and accessed via environment variables in the code
+- never hardcode secrets in the code or commit them to the repository
+- in the git ignore file, add any files that may contain secrets or sensitive information to prevent them from being committed to the repository (files like ex: .env)
