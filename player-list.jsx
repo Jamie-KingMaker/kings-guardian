@@ -249,7 +249,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, marginBottom: 4 }}>
-            Player monitoring · {data.rangeLabel} · {data.activeUnit} {data.mau.toLocaleString()}
+            Player monitoring
           </div>
           <h1 style={{ fontSize: 25, fontWeight: 600, color: '#0F172A', margin: 0, letterSpacing: '-0.01em' }}>Player List</h1>
           <p style={{ fontSize: 15, color: '#64748B', margin: '4px 0 0' }}>{fmtBase(baseCounts.all)} active base</p>
