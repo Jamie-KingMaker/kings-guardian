@@ -722,10 +722,17 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
 
   const TIER_COLORS = { high: '#DC2626', med: '#D97706', low: '#16A34A' };
 
-  // Generate date labels counting back from today
+  // Generate x-axis labels from the selected window granularity.
   const numPts = data.length;
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const isHourlyRange = rangeKey === KGConstants.DATE_RANGE_24H;
   const dateLabels = data.map((_, i) => {
+    if (isHourlyRange) {
+      const d = new Date(2026, 4, 6, 23, 0, 0, 0);
+      d.setHours(d.getHours() - (numPts - 1 - i));
+      return `${String(d.getHours()).padStart(2, '0')}:00`;
+    }
+
     const d = new Date(2026, 4, 6);
     d.setDate(d.getDate() - (numPts - 1 - i));
     return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
@@ -762,6 +769,7 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
   // Pick label positions at a fixed step so every gap is equal
   const xLabelStep = Math.max(1, Math.ceil((numPts - 1) / 6));
   const labelIndices = new Set(Array.from({ length: numPts }, (_, i) => i).filter(i => i % xLabelStep === 0));
+  labelIndices.add(numPts - 1);
 
   // Build the SVG chart
   let chartEl;

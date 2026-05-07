@@ -479,18 +479,36 @@ function buildRangeData(rangeKey, brandKey) {
   const DOW_MUL     = [1.20, 0.65, 0.75, 0.78, 0.88, 1.35, 1.60]; // Sun Mon Tue Wed Thu Fri Sat
   const TODAY_DOW   = 2; // Tuesday
   const UCL_DAYS    = new Set([0, 6, 7, 27, 28, 34, 35, 55, 56, 62, 63]);
-  const numBars = cfg.days;
+  const isHourlyDepositsRange = rangeKey === RANGE_24H;
+  const numBars = isHourlyDepositsRange ? 24 : cfg.days;
   const deposits = [];
-  for (let i = 0; i < numBars; i++) {
-    const daysAgo  = numBars - 1 - i;
-    const dow      = ((TODAY_DOW - daysAgo) % 7 + 7) % 7;
-    const t        = i / (numBars - 1 || 1);
-    const base     = 38 + t * 65;                                          // gentle upward trend
-    const shaped   = base * DOW_MUL[dow];                                  // day-of-week shape
-    const uclBoost = UCL_DAYS.has(daysAgo) && (dow === 2 || dow === 3)     // UCL match-night spike
-                     ? base * 0.55 : 0;
-    const wobble   = (rnd() - 0.5) * 6;                                    // small deterministic noise
-    deposits.push(Math.max(15, Math.round(shaped + uclBoost + wobble)));
+
+  if (isHourlyDepositsRange) {
+    // Hourly shape for 24h: overnight lull, daytime build, evening peak.
+    const HOUR_MUL = [0.44, 0.40, 0.37, 0.34, 0.33, 0.35, 0.42, 0.56, 0.72, 0.84, 0.92, 0.97, 1.00, 1.02, 1.04, 1.08, 1.14, 1.24, 1.36, 1.58, 1.72, 1.66, 1.38, 1.04];
+    const TODAY_HOUR = 23;
+    for (let i = 0; i < numBars; i++) {
+      const hoursAgo = numBars - 1 - i;
+      const hour = ((TODAY_HOUR - hoursAgo) % 24 + 24) % 24;
+      const t = i / (numBars - 1 || 1);
+      const base = 54 + t * 18;
+      const shaped = base * HOUR_MUL[hour];
+      const matchNightBoost = hour >= 19 && hour <= 22 ? base * 0.35 : 0;
+      const wobble = (rnd() - 0.5) * 5;
+      deposits.push(Math.max(8, Math.round(shaped + matchNightBoost + wobble)));
+    }
+  } else {
+    for (let i = 0; i < numBars; i++) {
+      const daysAgo  = numBars - 1 - i;
+      const dow      = ((TODAY_DOW - daysAgo) % 7 + 7) % 7;
+      const t        = i / (numBars - 1 || 1);
+      const base     = 38 + t * 65;                                          // gentle upward trend
+      const shaped   = base * DOW_MUL[dow];                                  // day-of-week shape
+      const uclBoost = UCL_DAYS.has(daysAgo) && (dow === 2 || dow === 3)     // UCL match-night spike
+                       ? base * 0.55 : 0;
+      const wobble   = (rnd() - 0.5) * 6;                                    // small deterministic noise
+      deposits.push(Math.max(15, Math.round(shaped + uclBoost + wobble)));
+    }
   }
 
    // Top movers — pulled directly from PLAYERS list so the dashboard
