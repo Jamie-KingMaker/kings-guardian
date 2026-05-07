@@ -964,8 +964,8 @@ function AttentionCard({ players, onPlayerClick }) {
             </div>
             <span style={{
             fontSize: 12, padding: '2px 6px', borderRadius: 3,
-            background: p.status === 'outreach' ? 'rgba(220, 38, 38, 0.1)' : 'rgba(217, 119, 6, 0.1)',
-            color: p.status === 'outreach' ? '#DC2626' : '#D97706',
+            background: p.status === KGEnums.PLAYER_STATUS.OUTREACH ? 'rgba(220, 38, 38, 0.1)' : 'rgba(217, 119, 6, 0.1)',
+            color: p.status === KGEnums.PLAYER_STATUS.OUTREACH ? '#DC2626' : '#D97706',
             fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em'
           }}>{p.status}</span>
           </button>
