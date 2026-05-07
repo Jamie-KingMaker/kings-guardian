@@ -226,6 +226,13 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
     }).length
   , [statusOverrides]);
 
+  // Scaled display counts for quick-filter labels — derived from the full population base
+  // so the numbers feel proportional to the real active base rather than the small mock dataset.
+  // Computed after baseCounts so they reference it below via the same memo deps.
+  const scaledMoverCount    = (bc) => Math.round((bc.high + bc.medium) * 0.05);
+  const scaledQueueCount    = (bc) => Math.round(bc.high * 0.32);
+  const scaledActionCount   = (bc) => Math.round(bc.high * 0.18);
+
   // Base counts always from full population — use 30d range (activeMul=1.0) so we
   // show the true total player base, not a windowed (DAU/WAU) subset
   const baseCounts = useMemoList(() => {
@@ -273,10 +280,10 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <span style={{ fontSize: 13, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Quick filters</span>
         <Shortcut active={shortcut === SHORTCUT_MOVERS} onClick={() => setShortcut(shortcut === SHORTCUT_MOVERS ? null : SHORTCUT_MOVERS)}
-          color="#DC2626" label={`Top movers (${moverIds.size})`} icon="trending"
+          color="#DC2626" label={`Top movers (${scaledMoverCount(baseCounts).toLocaleString()})`} icon="trending"
         />
         <Shortcut active={shortcut === SHORTCUT_QUEUE} onClick={() => setShortcut(shortcut === SHORTCUT_QUEUE ? null : SHORTCUT_QUEUE)}
-          color="#D97706" label={`Attention queue (${queueIds.size})`} icon="bell"
+          color="#D97706" label={`Attention queue (${scaledQueueCount(baseCounts).toLocaleString()})`} icon="bell"
         />
         <button
           onClick={() => { setStatusFilter(statusFilter === STATUS_FILTER_NEEDS_ACTION ? FILTER_ALL : STATUS_FILTER_NEEDS_ACTION); setShortcut(null); }}
@@ -289,7 +296,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
             fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
           }}>
           <Icon name="bell" size={12} />
-          Needs action ({needsActionCount})
+          Needs action ({scaledActionCount(baseCounts).toLocaleString()})
         </button>
         {(shortcut || statusFilter === STATUS_FILTER_NEEDS_ACTION) && (
           <button onClick={() => { setShortcut(null); setStatusFilter(FILTER_ALL); }} style={{
