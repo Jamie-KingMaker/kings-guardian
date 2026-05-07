@@ -8,8 +8,13 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
   // Map 'custom' to nearest preset based on day count
   const effectiveRange = useMemoHome(() => {
     if (dateRange !== KGEnums.DATE_RANGE.CUSTOM || !customRange?.start || !customRange?.end) return dateRange || KGConstants.DATE_RANGE_24H;
-    const days = Math.round((customRange.end - customRange.start) / 86400000) + 1;
-    if (days <= 1) return KGConstants.DATE_RANGE_24H;
+    const start = new Date(customRange.start);
+    const end = new Date(customRange.end);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    const days = Math.floor((end - start) / 86400000) + 1;
+    // Treat one-day span (same day or adjacent day) as 24h-equivalent for hourly charts.
+    if (days <= 2) return KGConstants.DATE_RANGE_24H;
     if (days <= 7) return KGConstants.DATE_RANGE_7D;
     return KGConstants.DATE_RANGE_30D;
   }, [dateRange, customRange]);
@@ -264,6 +269,7 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
                 const n = data.length;
                 const step = Math.max(1, Math.ceil((n - 1) / 6));
                 const idxs = new Set(Array.from({ length: n }, (_, i) => i).filter(i => i % step === 0));
+                idxs.add(n - 1);
                 return data.map((d, i) => {
                   if (!idxs.has(i)) return null;
                   return <text key={i} x={pts[i][0]} y={SH-4} fontSize="12"
@@ -367,6 +373,7 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
               const n = data.length;
               const step = Math.max(1, Math.ceil((n - 1) / 6));
               const idxs = new Set(Array.from({ length: n }, (_, i) => i).filter(i => i % step === 0));
+              idxs.add(n - 1);
               return data.map((d, i) => {
                 if (!idxs.has(i)) return null;
                 return <text key={i} x={PAD_L + i * xStep} y={H - 8} fontSize="12"
@@ -1028,6 +1035,7 @@ function RGAdoptionCard({ items, rangeLabel }) {
   const labels = scaledItems[0]?.trend?.map(p => p.d) || [];
   const xLabelStep = Math.max(1, Math.ceil((numPts - 1) / 6));
   const labelSet = new Set(Array.from({ length: numPts }, (_, i) => i).filter(i => i % xLabelStep === 0));
+  labelSet.add(numPts - 1);
 
   return (
     <div style={cardStyle}>

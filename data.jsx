@@ -384,11 +384,13 @@ function buildRangeData(rangeKey, brandKey) {
   const depositTotal   = Math.round(MAU_TOTALS[KGEnums.BRAND.BETKING]       * MONTHLY_ARPU[KGEnums.BRAND.BETKING]       * cfg.depositMul);
   const depositTotalSS = Math.round(MAU_TOTALS[KGEnums.BRAND.SUPERSPORTBET] * MONTHLY_ARPU[KGEnums.BRAND.SUPERSPORTBET] * cfg.depositMul);
 
-  // Risk-distribution trend, sized to range with ~8 points
-  const numPoints = Math.min(Math.max(Math.ceil(cfg.days / cfg.pointStep), 6), 14);
+  // Risk-distribution trend: 24h uses hourly points; longer windows stay day-based.
+  const isHourlyTrendRange = rangeKey === RANGE_24H;
+  const numPoints = isHourlyTrendRange ? 24 : Math.min(Math.max(Math.ceil(cfg.days / cfg.pointStep), 6), 14);
   const today = new Date(2026, 4, 5); // May 5
   const monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const fmtDate = (d) => `${monthShort[d.getMonth()]} ${String(d.getDate()).padStart(2,'0')}`;
+  const fmtHour = (d) => `${String(d.getHours()).padStart(2, '0')}:00`;
 
   // Risk-distribution trend with real customer migration between buckets.
   // High-risk grows over the period (the headline story). Medium oscillates
@@ -455,8 +457,14 @@ function buildRangeData(rangeKey, brandKey) {
   for (let i = 0; i < numPoints; i++) {
     const t = i / (numPoints - 1);
     const d = new Date(today);
-    d.setDate(today.getDate() - Math.round((1 - t) * cfg.days));
-    trend.push({ d: fmtDate(d), ...evalPoint(t) });
+    if (isHourlyTrendRange) {
+      d.setHours(23, 0, 0, 0);
+      d.setHours(d.getHours() - (numPoints - 1 - i));
+      trend.push({ d: fmtHour(d), ...evalPoint(t) });
+    } else {
+      d.setDate(today.getDate() - Math.round((1 - t) * cfg.days));
+      trend.push({ d: fmtDate(d), ...evalPoint(t) });
+    }
   }
   // Force final point to land exactly on the live distribution
   trend[trend.length - 1] = {
@@ -558,7 +566,12 @@ function buildRangeData(rangeKey, brandKey) {
   for (let i = 0; i < numPoints; i++) {
     const t = i / (numPoints - 1 || 1);
     const d = new Date(today);
-    d.setDate(today.getDate() - Math.round((1 - t) * cfg.days));
+    if (isHourlyTrendRange) {
+      d.setHours(23, 0, 0, 0);
+      d.setHours(d.getHours() - (numPoints - 1 - i));
+    } else {
+      d.setDate(today.getDate() - Math.round((1 - t) * cfg.days));
+    }
     let v;
     if (tSpike <= 0) {
       // Whole range is post-spike — show slightly elevated plateau rising to count
@@ -572,7 +585,7 @@ function buildRangeData(rangeKey, brandKey) {
       v = selfExCount * (0.82 + 0.18 * postT);
     }
     const noise = (rnd() - 0.5) * selfExCount * 0.03;
-    selfExTrend.push({ d: fmtDate(d), v: Math.max(1, Math.round(v + noise)) });
+    selfExTrend.push({ d: isHourlyTrendRange ? fmtHour(d) : fmtDate(d), v: Math.max(1, Math.round(v + noise)) });
   }
   selfExTrend[selfExTrend.length - 1].v = selfExCount;
 
@@ -592,8 +605,13 @@ function buildRangeData(rangeKey, brandKey) {
         }, 0);
         const noise = (rnd() - 0.5) * count * toolDef.noise;
         const d = new Date(today);
-        d.setDate(today.getDate() - Math.round((1 - t) * cfg.days));
-        trend.push({ d: fmtDate(d), v: Math.max(1, Math.round(base + spike + noise)) });
+        if (isHourlyTrendRange) {
+          d.setHours(23, 0, 0, 0);
+          d.setHours(d.getHours() - (numPoints - 1 - i));
+        } else {
+          d.setDate(today.getDate() - Math.round((1 - t) * cfg.days));
+        }
+        trend.push({ d: isHourlyTrendRange ? fmtHour(d) : fmtDate(d), v: Math.max(1, Math.round(base + spike + noise)) });
       }
       trend[trend.length - 1].v = count;
       return { tool: toolDef.tool, count, delta, color: toolDef.color, trend };
