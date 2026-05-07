@@ -306,54 +306,91 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
         )}
       </div>
 
-      {/* Filter bar */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 10, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 13, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', paddingLeft: 4 }}>Filter</span>
-        <Segment value={riskFilter} setValue={setRiskFilter} options={[[FILTER_ALL, 'Active base'], [KGEnums.RISK.HIGH, 'High risk'], [KGEnums.RISK.MEDIUM, 'Medium risk'], [KGEnums.RISK.LOW, 'Low risk'], [KGEnums.RISK.UNRATED, 'Insufficient data']]} colors={{ [KGEnums.RISK.HIGH]: '#DC2626', [KGEnums.RISK.MEDIUM]: '#D97706', [KGEnums.RISK.LOW]: '#16A34A' }} />
-        <div style={{ width: 1, height: 20, background: '#E2E8F0' }}></div>
-        <Segment value={productFilter} setValue={setProductFilter} options={KGConstants.PRODUCT_OPTIONS.map(option => [option.value, option.label])} />
-        <div style={{ width: 1, height: 20, background: '#E2E8F0' }}></div>
-        {/* Status filter — full list */}
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{
-          padding: '5px 8px', borderRadius: 5, border: '1px solid #E2E8F0', background: '#FFFFFF',
-          fontSize: 13, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
-        }}>
-          <option value={FILTER_ALL}>Any status</option>
-          <option value={STATUS_FILTER_NEEDS_ACTION}>— Needs action</option>
-          <option value={STATUS_FILTER_ANY_SET}>— Any status set</option>
-          {KGConstants.PLAYER_STATUS_FILTER_GROUPS.map(group => (
-            <optgroup key={group.label} label={group.label}>
-              {group.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </optgroup>
-          ))}
-        </select>
-        <div style={{ width: 1, height: 20, background: '#E2E8F0' }}></div>
-        <select value={signalFilter} onChange={e => setSignalFilter(e.target.value)} style={{
-          padding: '5px 8px', borderRadius: 5, border: '1px solid #E2E8F0', background: '#FFFFFF',
-          fontSize: 13, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
-        }}>
-          <option value={FILTER_ALL}>Any signal</option>
-          {signalOptions.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-        </select>
-        <div style={{ width: 1, height: 20, background: '#E2E8F0' }}></div>
-        <select value={tierFilter} onChange={e => setTierFilter(e.target.value)} style={{
-          padding: '5px 8px', borderRadius: 5, border: '1px solid #E2E8F0', background: '#FFFFFF',
-          fontSize: 13, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
-        }}>
-          <option value={FILTER_ALL}>Any tier</option>
-          <option value="9">Tier 9 — VIP</option>
-          <option value="8">Tier 8</option>
-          <option value="7">Tier 7</option>
-          <option value="6">Tier 6</option>
-          <option value="5">Tier 5</option>
-          <option value="4">Tier 4</option>
-          <option value="3">Tier 3</option>
-          <option value="2">Tier 2</option>
-          <option value="1">Tier 1 — Low stake</option>
-        </select>
-        <div style={{ flex: 1 }}></div>
-        <span style={{ fontSize: 13, color: '#64748B', marginRight: 4 }}>Sort</span>
-        <Segment value={sortKey} setValue={setSortKey} options={[[SORT_PRIORITY, 'Priority'], [SORT_RISK_SCORE, 'Score'], [SORT_RISK, 'Bucket'], [SORT_SPEND, 'Spend'], [SORT_SPEND_DELTA, '% Δ']]} compact />
+      {/* Filter panel — two-row structured layout */}
+      <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
+
+        {/* Row 1 — Primary: risk filter + sort */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>Risk</span>
+            <Segment value={riskFilter} setValue={setRiskFilter} options={[[FILTER_ALL, 'Active base'], [KGEnums.RISK.HIGH, 'High risk'], [KGEnums.RISK.MEDIUM, 'Medium risk'], [KGEnums.RISK.LOW, 'Low risk'], [KGEnums.RISK.UNRATED, 'Insufficient data']]} colors={{ [KGEnums.RISK.HIGH]: '#DC2626', [KGEnums.RISK.MEDIUM]: '#D97706', [KGEnums.RISK.LOW]: '#16A34A' }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>Sort by</span>
+            <Segment value={sortKey} setValue={setSortKey} options={[[SORT_PRIORITY, 'Priority'], [SORT_RISK_SCORE, 'Score'], [SORT_RISK, 'Bucket'], [SORT_SPEND, 'Spend'], [SORT_SPEND_DELTA, '% Δ']]} compact />
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: '#F1F5F9' }} />
+
+        {/* Row 2 — Secondary: product / status / signal / tier */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '8px 14px', background: '#F8FAFC' }}>
+
+          {/* Product */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingRight: 16, borderRight: '1px solid #E2E8F0' }}>
+            <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>Product</span>
+            <Segment value={productFilter} setValue={setProductFilter} options={KGConstants.PRODUCT_OPTIONS.map(o => [o.value, o.label])} compact />
+          </div>
+
+          {/* Status */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 16px', borderRight: '1px solid #E2E8F0' }}>
+            <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>Status</span>
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{
+              padding: '4px 8px', borderRadius: 5, border: '1px solid #E2E8F0', background: '#FFFFFF',
+              fontSize: 12, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
+            }}>
+              <option value={FILTER_ALL}>Any</option>
+              <option value={STATUS_FILTER_NEEDS_ACTION}>— Needs action</option>
+              <option value={STATUS_FILTER_ANY_SET}>— Any set</option>
+              {KGConstants.PLAYER_STATUS_FILTER_GROUPS.map(group => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+
+          {/* Signal */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 16px', borderRight: '1px solid #E2E8F0' }}>
+            <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>Signal</span>
+            <select value={signalFilter} onChange={e => setSignalFilter(e.target.value)} style={{
+              padding: '4px 8px', borderRadius: 5, border: '1px solid #E2E8F0', background: '#FFFFFF',
+              fontSize: 12, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
+            }}>
+              <option value={FILTER_ALL}>Any</option>
+              {signalOptions.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </div>
+
+          {/* Tier */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 16 }}>
+            <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>Tier</span>
+            <select value={tierFilter} onChange={e => setTierFilter(e.target.value)} style={{
+              padding: '4px 8px', borderRadius: 5, border: '1px solid #E2E8F0', background: '#FFFFFF',
+              fontSize: 12, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
+            }}>
+              <option value={FILTER_ALL}>Any</option>
+              <option value="9">Tier 9 — VIP</option>
+              <option value="8">Tier 8</option>
+              <option value="7">Tier 7</option>
+              <option value="6">Tier 6</option>
+              <option value="5">Tier 5</option>
+              <option value="4">Tier 4</option>
+              <option value="3">Tier 3</option>
+              <option value="2">Tier 2</option>
+              <option value="1">Tier 1 — Low stake</option>
+            </select>
+          </div>
+
+          {/* Clear secondary filters */}
+          {(productFilter !== FILTER_ALL || statusFilter !== FILTER_ALL || signalFilter !== FILTER_ALL || tierFilter !== FILTER_ALL) && (
+            <button onClick={() => { setProductFilter(FILTER_ALL); setStatusFilter(FILTER_ALL); setSignalFilter(FILTER_ALL); setTierFilter(FILTER_ALL); }} style={{
+              marginLeft: 'auto', fontSize: 12, color: '#64748B', background: 'transparent',
+              border: 'none', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit',
+            }}>Clear filters</button>
+          )}
+        </div>
       </div>
 
       {/* Table */}
