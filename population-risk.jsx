@@ -137,9 +137,9 @@ function PopulationRisk({ brand, dateRange: dateRangeProp = KGConstants.DATE_RAN
 
   // ── Product cohorts ────────────────────────────────────────────────────────
   const productCohorts = useMemoRR(() => [
-    { label: 'Sports',   pct: 63, highPct: 0.4, medPct: 2.8, players: Math.round(total * 0.63) },
-    { label: 'Casino',   pct: 29, highPct: 1.2, medPct: 6.4, players: Math.round(total * 0.29) },
-    { label: 'Virtuals', pct:  8, highPct: 0.6, medPct: 3.1, players: Math.round(total * 0.08) },
+    { label: KGEnums.PRODUCT.SPORTS,   pct: 63, highPct: 0.4, medPct: 2.8, players: Math.round(total * 0.63) },
+    { label: KGEnums.PRODUCT.CASINO,   pct: 29, highPct: 1.2, medPct: 6.4, players: Math.round(total * 0.29) },
+    { label: KGEnums.PRODUCT.VIRTUALS, pct:  8, highPct: 0.6, medPct: 3.1, players: Math.round(total * 0.08) },
   ], [total]);
 
   // ── RG outcomes ───────────────────────────────────────────────────────────

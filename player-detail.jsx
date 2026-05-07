@@ -289,9 +289,9 @@ function ProductDistribution({ player }) {
   // Generate a plausible 8-week product-share trend from the player's current products
   // and risk profile. Uses seeded RNG so the chart is stable across renders.
   const rnd    = pdSeeded(playerSeed(player.id) + 1);
-  const prods  = player.products || ['Sports'];
-  const hasCasino   = prods.includes('Casino');
-  const hasVirtuals = prods.includes('Virtuals');
+  const prods  = player.products || [KGEnums.PRODUCT.SPORTS];
+  const hasCasino   = prods.includes(KGEnums.PRODUCT.CASINO);
+  const hasVirtuals = prods.includes(KGEnums.PRODUCT.VIRTUALS);
   const hasShift    = (player.signals || []).includes('Sports → Casino shift');
 
   // End-state shares driven by the player's current products
@@ -311,7 +311,7 @@ function ProductDistribution({ player }) {
     return { day, sports, casino, virtuals };
   });
 
-  const productColors = { Sports: '#3B82F6', Casino: '#A855F7', Virtuals: '#06B6D4' };
+  const productColors = { [KGEnums.PRODUCT.SPORTS]: '#3B82F6', [KGEnums.PRODUCT.CASINO]: '#A855F7', [KGEnums.PRODUCT.VIRTUALS]: '#06B6D4' };
   const latestSports   = data[data.length - 1].sports;
   const latestCasino   = data[data.length - 1].casino;
   const latestVirtuals = data[data.length - 1].virtuals;
@@ -321,9 +321,9 @@ function ProductDistribution({ player }) {
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 90, marginBottom: 8 }}>
         {data.map(d => (
           <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column-reverse', height: '100%', borderRadius: 2, overflow: 'hidden' }}>
-            {d.sports   > 0 && <div style={{ height: `${d.sports}%`,   background: productColors.Sports   }}></div>}
-            {d.casino   > 0 && <div style={{ height: `${d.casino}%`,   background: productColors.Casino   }}></div>}
-            {d.virtuals > 0 && <div style={{ height: `${d.virtuals}%`, background: productColors.Virtuals }}></div>}
+            {d.sports   > 0 && <div style={{ height: `${d.sports}%`,   background: productColors[KGEnums.PRODUCT.SPORTS]   }}></div>}
+            {d.casino   > 0 && <div style={{ height: `${d.casino}%`,   background: productColors[KGEnums.PRODUCT.CASINO]   }}></div>}
+            {d.virtuals > 0 && <div style={{ height: `${d.virtuals}%`, background: productColors[KGEnums.PRODUCT.VIRTUALS] }}></div>}
           </div>
         ))}
       </div>
@@ -332,9 +332,9 @@ function ProductDistribution({ player }) {
       </div>
       <div style={{ display: 'flex', gap: 16, fontSize: 13 }}>
         {[
-          ['Sports',   productColors.Sports,   `${latestSports}%`],
-          hasCasino   ? ['Casino',   productColors.Casino,   `${latestCasino}%`]   : null,
-          hasVirtuals ? ['Virtuals', productColors.Virtuals, `${latestVirtuals}%`] : null,
+          [KGEnums.PRODUCT.SPORTS,   productColors[KGEnums.PRODUCT.SPORTS],   `${latestSports}%`],
+          hasCasino   ? [KGEnums.PRODUCT.CASINO,   productColors[KGEnums.PRODUCT.CASINO],   `${latestCasino}%`]   : null,
+          hasVirtuals ? [KGEnums.PRODUCT.VIRTUALS, productColors[KGEnums.PRODUCT.VIRTUALS], `${latestVirtuals}%`] : null,
         ].filter(Boolean).map(([l, c, v]) => (
           <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 8, height: 8, background: c, borderRadius: 2 }}></span>
