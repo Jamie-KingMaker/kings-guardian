@@ -148,9 +148,20 @@ function App() {
   const [country, setCountry] = useState(KGEnums.COUNTRY.NG);
   const [dateRange, setDateRange] = useState(KGEnums.DATE_RANGE.LAST_7_DAYS);
   const [customRange, setCustomRange] = useState(null);
-  const [activeView, setActiveView] = useState(KGEnums.VIEW.HOME);
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  // Restore last view from sessionStorage so refresh keeps the user on the same page
+  const validViews = Object.values(KGEnums.VIEW);
+  const savedView   = sessionStorage.getItem('kg_activeView');
+  const savedPlayer = sessionStorage.getItem('kg_selectedPlayer');
+  const [activeView, setActiveView]       = useState(savedView && validViews.includes(savedView) ? savedView : KGEnums.VIEW.HOME);
+  const [selectedPlayer, setSelectedPlayer] = useState(savedPlayer || null);
+
+  useEffect(() => { sessionStorage.setItem('kg_activeView', activeView); }, [activeView]);
+  useEffect(() => {
+    if (selectedPlayer) sessionStorage.setItem('kg_selectedPlayer', selectedPlayer);
+    else sessionStorage.removeItem('kg_selectedPlayer');
+  }, [selectedPlayer]);
 
   // Sync country with brand
   useEffect(() => {
