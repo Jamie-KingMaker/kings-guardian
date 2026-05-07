@@ -25,43 +25,6 @@ function TopBar({ brand, setBrand, country, setCountry, lastRefresh, onCustomerS
     if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
   }, []);
 
-  React.useEffect(() => {
-    if (!customerSearchQuery.trim()) {
-      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
-      return;
-    }
-    if (customerSearchFeedback !== CUSTOMER_SEARCH_FEEDBACK.IDLE) {
-      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
-      return;
-    }
-
-    const trimmedQuery = customerSearchQuery.trim().toUpperCase();
-    const isExactMatch = customerIdSuggestions.includes(trimmedQuery);
-
-    if (isExactMatch && onCustomerSearch) {
-      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
-      autoSearchTimeoutRef.current = setTimeout(() => {
-        const didOpenCustomer = onCustomerSearch(customerSearchQuery);
-        if (didOpenCustomer) {
-          setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.HIT);
-          setCustomerSearchFlashSeq(seq => seq + 1);
-          clearCustomerSearchRef.current = setTimeout(() => {
-            setCustomerSearchQuery('');
-          }, 620);
-        } else {
-          setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.MISS);
-          setCustomerSearchFlashSeq(seq => seq + 1);
-        }
-      }, 300);
-    } else {
-      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
-    }
-
-    return () => {
-      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
-    };
-  }, [customerSearchQuery, customerIdSuggestions, customerSearchFeedback, onCustomerSearch]);
-
   const customerIdSuggestions = React.useMemo(() => {
     const query = (customerSearchQuery || '').trim().toUpperCase();
     if (!query) return [];
@@ -92,6 +55,48 @@ function TopBar({ brand, setBrand, country, setCountry, lastRefresh, onCustomerS
     return suggestions;
   }, [brand, country, customerSearchQuery]);
 
+  const handleCustomerSearchResponse = React.useCallback((didOpenCustomer) => {
+    if (didOpenCustomer) {
+      setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.HIT);
+      setCustomerSearchFlashSeq(seq => seq + 1);
+      clearCustomerSearchRef.current = setTimeout(() => {
+        setCustomerSearchQuery('');
+      }, 620);
+    } else {
+      setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.MISS);
+      setCustomerSearchFlashSeq(seq => seq + 1);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!customerSearchQuery.trim()) {
+      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
+      return;
+    }
+    if (customerSearchFeedback !== CUSTOMER_SEARCH_FEEDBACK.IDLE) {
+      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
+      return;
+    }
+
+    const trimmedQuery = customerSearchQuery.trim().toUpperCase();
+    const isExactMatch = customerIdSuggestions.includes(trimmedQuery);
+
+    if (isExactMatch && onCustomerSearch) {
+      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
+      autoSearchTimeoutRef.current = setTimeout(() => {
+        const didOpenCustomer = onCustomerSearch(customerSearchQuery);
+        handleCustomerSearchResponse(didOpenCustomer);
+      }, 300);
+    } else {
+      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
+    }
+
+    return () => {
+      if (autoSearchTimeoutRef.current) clearTimeout(autoSearchTimeoutRef.current);
+    };
+  }, [customerSearchQuery, customerIdSuggestions, customerSearchFeedback, onCustomerSearch, handleCustomerSearchResponse]);
+
+
   const handleCustomerSearchSubmit = (event) => {
     event.preventDefault();
     if (clearCustomerSearchRef.current) clearTimeout(clearCustomerSearchRef.current);
@@ -103,17 +108,7 @@ function TopBar({ brand, setBrand, country, setCountry, lastRefresh, onCustomerS
 
     if (!onCustomerSearch) return;
     const didOpenCustomer = onCustomerSearch(customerSearchQuery);
-
-    if (didOpenCustomer) {
-      setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.HIT);
-      setCustomerSearchFlashSeq(seq => seq + 1);
-      clearCustomerSearchRef.current = setTimeout(() => {
-        setCustomerSearchQuery('');
-      }, 620);
-    } else {
-      setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.MISS);
-      setCustomerSearchFlashSeq(seq => seq + 1);
-    }
+    handleCustomerSearchResponse(didOpenCustomer);
   };
 
   return (
