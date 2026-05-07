@@ -1107,23 +1107,68 @@ function RGAdoptionCard({ items, rangeLabel }) {
 }
 
 function SignalsBreakdownCard({ signals, rangeLabel }) {
-  const max = Math.max(...signals.map((s) => s.count));
+  const SIGNAL_META = window.KGConstants.SIGNAL_META || {};
+
+  // Deterministic WoW change per signal using label hash
+  const hash = (str) => str.split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) & 0xFFFF, 0);
+  const wowChange = (label) => {
+    const h = hash(label);
+    return { pct: 5 + (h % 28), up: (h & 1) === 1 };
+  };
+
   return (
     <div style={cardStyle}>
-      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>Active risk signals · {rangeLabel}</div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {signals.map((s) =>
-        <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 14, color: '#334155', flex: '0 0 200px' }}>{s.label}</span>
-            <div style={{ flex: 1, height: 6, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
-              <div style={{ width: `${s.count / max * 100}%`, height: '100%', background: s.color, borderRadius: 3 }}></div>
-            </div>
-            <span style={{ fontSize: 14, fontWeight: 600, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", width: 36, textAlign: 'right' }}>{s.count}</span>
-          </div>
-        )}
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+          Active risk signals · {rangeLabel}
+        </div>
+        <div style={{ display: 'flex', gap: 0, paddingRight: 2 }}>
+          {[['Customers', 96], ['vs prior', 72]].map(([h, w]) => (
+            <div key={h} style={{ width: w, textAlign: 'right', fontSize: 11, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</div>
+          ))}
+        </div>
       </div>
-    </div>);
 
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {signals.map((s, i) => {
+          const meta = SIGNAL_META[s.label] || { desc: '' };
+          const { pct, up } = wowChange(s.label);
+          const changeColor = up ? '#DC2626' : '#16A34A';
+          return (
+            <div key={s.label} style={{
+              display: 'flex', alignItems: 'center',
+              padding: '10px 0',
+              borderBottom: i < signals.length - 1 ? '1px solid #F8FAFC' : 'none',
+            }}>
+              {/* Rank */}
+              <div style={{ width: 36, flexShrink: 0 }}>
+                <span style={{ fontFamily: "'Roboto Mono', monospace", fontSize: 18, fontWeight: 700, color: i < 2 ? s.color : '#CBD5E1' }}>
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+              </div>
+              {/* Name + description */}
+              <div style={{ flex: 1, minWidth: 0, paddingRight: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', marginBottom: 1 }}>{s.label}</div>
+                {meta.desc && <div style={{ fontSize: 11.5, color: '#94A3B8', lineHeight: 1.4 }}>{meta.desc}</div>}
+              </div>
+              {/* Count */}
+              <div style={{ width: 96, textAlign: 'right', flexShrink: 0 }}>
+                <span style={{ fontFamily: "'Roboto Mono', monospace", fontSize: 16, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.01em' }}>
+                  {s.count.toLocaleString()}
+                </span>
+              </div>
+              {/* WoW change */}
+              <div style={{ width: 72, textAlign: 'right', flexShrink: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: changeColor }}>
+                  {up ? '↑' : '↓'} {pct}%
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 Object.assign(window, { HomeDashboard, btnPrimary, btnSecondary, cardStyle });
