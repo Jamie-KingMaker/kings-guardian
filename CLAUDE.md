@@ -3,7 +3,7 @@
 - always aim to use the SOLID principles when writing code to ensure that the code is maintainable, scalable, and easy to understand
 - on most components we need to add an ID which is a unique identifier for the component, this is important for tracking and debugging purposes. We will have to use an enum for these ID's to ensure that they are consistent across the codebase and to avoid any potential issues with hardcoded string literals. The ID should be descriptive and meaningful, and should follow a consistent naming convention to make it easy to understand what the component is and what it does.
 - on the injected scripts which already have a query string ?v=* increment the version by one every time something changes in those scripts
-
+- when it comes to data we always try to use the same single source of truth for that data, for example if we have a list of players we should always use the same list of players across the codebase to avoid any potential issues with data inconsistency. This can be achieved by creating a separate file or module that contains the list of players and importing it wherever it is needed in the codebase.
 [//]: # (TODO: Add more details about code style, e.g. naming conventions, formatting, using SOLID Principles, etc.)
 
 # Workflow
