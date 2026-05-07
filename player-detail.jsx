@@ -208,51 +208,41 @@ function PlayerDetail({ playerId, onBack }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Risk score card — full width */}
       <div style={{ ...cardStyle, padding: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24 }}>
-          {/* Score number */}
-          <div style={{ flexShrink: 0 }}>
-            <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 4 }}>Risk score</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span style={{ fontSize: 40, fontWeight: 700, color: scoreColor, fontFamily: "'Roboto Mono', monospace", lineHeight: 1 }}>{score}</span>
-              <span style={{ fontSize: 14, color: '#94A3B8' }}>/ 100</span>
-            </div>
+        {/* 2-row grid: labels row 1, values row 2. Dividers explicitly placed to span both rows. */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1px auto 1px 1fr', gridTemplateRows: 'auto auto', columnGap: 24, rowGap: 8 }}>
+          {/* Dividers — placed first with explicit coords so they span both rows */}
+          <div style={{ gridColumn: 2, gridRow: '1 / 3', background: '#E2E8F0' }} />
+          <div style={{ gridColumn: 4, gridRow: '1 / 3', background: '#E2E8F0' }} />
+
+          {/* Row 1 — labels */}
+          <div style={{ gridColumn: 1, gridRow: 1, fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Risk score</div>
+          <div style={{ gridColumn: 3, gridRow: 1, fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Current zone</div>
+          <div style={{ gridColumn: 5, gridRow: 1, fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Score position</div>
+
+          {/* Row 2 — values */}
+          <div style={{ gridColumn: 1, gridRow: 2, display: 'flex', alignItems: 'baseline', gap: 6 }}>
+            <span style={{ fontSize: 40, fontWeight: 700, color: scoreColor, fontFamily: "'Roboto Mono', monospace", lineHeight: 1 }}>{score}</span>
+            <span style={{ fontSize: 14, color: '#94A3B8' }}>/ 100</span>
           </div>
-          {/* Divider */}
-          <div style={{ width: 1, alignSelf: 'stretch', background: '#E2E8F0', flexShrink: 0 }} />
-          {/* Zone + trend */}
-          <div style={{ flexShrink: 0 }}>
-            <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 6 }}>Current zone</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ padding: '3px 10px', borderRadius: 4, background: `${scoreColor}15`, color: scoreColor, fontSize: 14, fontWeight: 700 }}>{scoreZoneLabel}</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, color: '#475569' }}><TrendArrow trend={player.trend} /></span>
-            </div>
+          <div style={{ gridColumn: 3, gridRow: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ padding: '3px 10px', borderRadius: 4, background: `${scoreColor}15`, color: scoreColor, fontSize: 14, fontWeight: 700 }}>{scoreZoneLabel}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, color: '#475569' }}><TrendArrow trend={player.trend} /></span>
           </div>
-          {/* Divider */}
-          <div style={{ width: 1, alignSelf: 'stretch', background: '#E2E8F0', flexShrink: 0 }} />
-          {/* Bar — flex grow */}
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 10 }}>Score position</div>
-            {/* Three-segment bar with score marker */}
+          <div style={{ gridColumn: 5, gridRow: 2 }}>
             <div style={{ position: 'relative' }}>
               <div style={{ display: 'flex', height: 10, borderRadius: 5, overflow: 'hidden', gap: 2 }}>
-                {/* Low 0–39 */}
                 <div style={{ width: '40%', background: 'linear-gradient(90deg, #BBF7D0, #86EFAC)', borderRadius: '5px 0 0 5px' }} />
-                {/* Medium 40–69 */}
                 <div style={{ width: '30%', background: 'linear-gradient(90deg, #FDE68A, #FCA5A5)' }} />
-                {/* High 70–100 */}
                 <div style={{ width: '30%', background: 'linear-gradient(90deg, #FCA5A5, #DC2626)', borderRadius: '0 5px 5px 0' }} />
               </div>
-              {/* Score marker */}
               <div style={{
                 position: 'absolute', top: -3, left: `calc(${score}% - 7px)`,
-                width: 14, height: 16, borderRadius: 3,
-                background: scoreColor,
+                width: 14, height: 16, borderRadius: 3, background: scoreColor,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <div style={{ width: 0, height: 0, borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: '5px solid white', marginTop: 6 }} />
               </div>
             </div>
-            {/* Threshold labels */}
             <div style={{ position: 'relative', height: 20, marginTop: 4 }}>
               <span style={{ position: 'absolute', left: 0, fontSize: 11, color: '#16A34A', fontWeight: 600 }}>0 · Low</span>
               <span style={{ position: 'absolute', left: '40%', transform: 'translateX(-50%)', fontSize: 11, color: '#D97706', fontWeight: 600 }}>40 · Medium</span>
