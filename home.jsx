@@ -1151,7 +1151,7 @@ function SignalsBreakdownCard({ signals, rangeLabel }) {
           ))}
         </div>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
         {[['Customers', 96], ['vs prior', 72]].map(([h, w]) => (
           <div key={h} style={{ width: w, textAlign: 'right', fontSize: 11, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</div>
         ))}
