@@ -10,8 +10,8 @@ const { KGEnums, KGConstants } = window;
 
 // Range key constants — single source of truth for date ranges
 const RANGE_24H = KGConstants.DATE_RANGE_24H;
+const RANGE_7D  = KGConstants.DATE_RANGE_7D;
 const RANGE_30D = KGConstants.DATE_RANGE_30D;
-const RANGE_YTD = KGConstants.DATE_RANGE_YTD;
 
 const PLAYERS = [
   // ===== Top movers (also dashboard-surfaced) =====
@@ -348,13 +348,13 @@ function buildBaseDist(brandKey) {
 
 // activeMul = active-base multiplier vs MAU baseline (30d window).
 //   24h ≈ 0.12 — daily actives are a small subset of monthly actives
+//   7d  ≈ 0.38 — weekly actives
 //   30d  = 1.00 — the MAU definition
-//   ytd ≈ 1.68 — year-to-date actives (May 5 → ~125 days)
 // activeUnit / activeUnitFull = the metric label that fits the window.
 const RANGE_CONFIG = {
-  '24h': { days: 1,   label: '24 hours',     pointStep: 1, distMul: 1.00, depositMul: 0.034, activeMul: 0.12, activeUnit: 'DAU',  activeUnitFull: 'daily active users',      deltaLabel: 'vs prior 24h',    refreshLabel: 'hourly', trendStart: 0.98, trendGrowth: 0.03 },
-  '30d': { days: 30,  label: '30 days',      pointStep: 3, distMul: 1.00, depositMul: 1.05,  activeMul: 1.00, activeUnit: 'MAU',  activeUnitFull: 'monthly active users',    deltaLabel: 'vs prior 30d',    refreshLabel: 'daily',  trendStart: 0.85, trendGrowth: 0.81 },
-  'ytd': { days: 124, label: 'year to date', pointStep: 10,distMul: 1.00, depositMul: 4.22,  activeMul: 1.68, activeUnit: 'YTD',  activeUnitFull: 'year-to-date active users', deltaLabel: 'vs prior period', refreshLabel: 'weekly', trendStart: 0.62, trendGrowth: 1.80 },
+  [KGEnums.DATE_RANGE.LAST_24_HOURS]: { days: 1,  label: '24 hours',  pointStep: 1, distMul: 1.00, depositMul: 0.034, activeMul: 0.12, activeUnit: 'DAU',  activeUnitFull: 'daily active users',   deltaLabel: 'vs prior 24h', refreshLabel: 'hourly', trendStart: 0.98, trendGrowth: 0.03 },
+  [KGEnums.DATE_RANGE.LAST_7_DAYS]:  { days: 7,  label: '7 days',    pointStep: 1, distMul: 1.00, depositMul: 0.25,  activeMul: 0.38, activeUnit: 'WAU',  activeUnitFull: 'weekly active users',  deltaLabel: 'vs prior 7d',  refreshLabel: 'daily',  trendStart: 0.93, trendGrowth: 0.24 },
+  [KGEnums.DATE_RANGE.LAST_30_DAYS]: { days: 30, label: '30 days',   pointStep: 3, distMul: 1.00, depositMul: 1.05,  activeMul: 1.00, activeUnit: 'MAU',  activeUnitFull: 'monthly active users', deltaLabel: 'vs prior 30d', refreshLabel: 'daily',  trendStart: 0.85, trendGrowth: 0.81 },
 };
 
 // Deterministic pseudo-random
@@ -534,7 +534,7 @@ function buildRangeData(rangeKey, brandKey) {
    // already-elevated plateau so the stat card still reflects the jump.
    const SELF_EX_SPIKE_DAYS_AGO = 18; // April 18 2026
    const selfExCount = Math.max(1, Math.round(41200 * rgScale));
-   const selfExDelta = 11 + (rangeKey === RANGE_YTD ? 5 : 0);
+   const selfExDelta = 11 + (rangeKey === RANGE_30D ? 5 : 0);
   const tSpike = 1 - SELF_EX_SPIKE_DAYS_AGO / cfg.days; // 0-1 position of Apr 18 in this range
   const selfExTrend = [];
   for (let i = 0; i < numPoints; i++) {
@@ -562,7 +562,7 @@ function buildRangeData(rangeKey, brandKey) {
     { tool: 'Self-Exclusion', count: selfExCount, delta: selfExDelta, color: '#6366F1', trend: selfExTrend },
      ...RG_TOOL_DEFS.map(toolDef => {
        const count = Math.max(1, Math.round(toolDef.base * rgScale));
-       const delta = toolDef.deltaBase + (rangeKey === RANGE_YTD ? 5 : 0);
+       const delta = toolDef.deltaBase + (rangeKey === RANGE_30D ? 5 : 0);
        const trend = [];
       for (let i = 0; i < numPoints; i++) {
         const t = i / (numPoints - 1 || 1);

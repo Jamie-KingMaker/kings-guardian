@@ -147,7 +147,7 @@ function App() {
         <TweakSection title="Brand & market">
           <TweakRadio label="Brand" value={brand} onChange={setBrand} options={KGConstants.BRAND_OPTIONS} />
           <TweakSelect label="Country" value={country} onChange={setCountry} options={KGConstants.COUNTRY_OPTIONS} />
-          <TweakSelect label="Date range" value={dateRange} onChange={setDateRange} options={KGConstants.DATE_RANGE_OPTIONS.filter(option => [KGEnums.DATE_RANGE.LAST_24_HOURS, KGEnums.DATE_RANGE.LAST_30_DAYS].includes(option.value))} />
+          <TweakSelect label="Date range" value={dateRange} onChange={setDateRange} options={KGConstants.DATE_RANGE_OPTIONS.filter(option => [KGEnums.DATE_RANGE.LAST_24_HOURS, KGEnums.DATE_RANGE.LAST_7_DAYS, KGEnums.DATE_RANGE.LAST_30_DAYS].includes(option.value))} />
         </TweakSection>
       </TweaksPanel>
     </div>

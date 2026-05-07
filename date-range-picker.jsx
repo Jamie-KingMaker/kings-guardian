@@ -65,8 +65,8 @@ function DateRangePicker({ value, onChange, custom, onCustom, pageMode }) {
   const presets = KGConstants.DATE_RANGE_OPTIONS.filter(option =>
     [
       KGEnums.DATE_RANGE.LAST_24_HOURS,
+      KGEnums.DATE_RANGE.LAST_7_DAYS,
       KGEnums.DATE_RANGE.LAST_30_DAYS,
-      KGEnums.DATE_RANGE.YTD,
     ].includes(option.value)
   ).map(option => ({ v: option.value, label: option.label }));
 
