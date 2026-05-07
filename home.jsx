@@ -5,19 +5,10 @@ const { KGEnums, KGConstants } = window;
 
 function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, setCustomRange, onPlayerClick }) {
   const { PLAYERS, buildRangeData, MAU, MAU_TOTALS } = window.KGData;
-  // Map 'custom' to nearest preset based on day count
-  const effectiveRange = useMemoHome(() => {
-    if (dateRange !== KGEnums.DATE_RANGE.CUSTOM || !customRange?.start || !customRange?.end) return dateRange || KGConstants.DATE_RANGE_24H;
-    const start = new Date(customRange.start);
-    const end = new Date(customRange.end);
-    start.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
-    const days = Math.floor((end - start) / 86400000) + 1;
-    // Treat one-day span (same day or adjacent day) as 24h-equivalent for hourly charts.
-    if (days <= 2) return KGConstants.DATE_RANGE_24H;
-    if (days <= 7) return KGConstants.DATE_RANGE_7D;
-    return KGConstants.DATE_RANGE_30D;
-  }, [dateRange, customRange]);
+  const effectiveRange = useMemoHome(
+    () => KGConstants.getEffectiveDateRange(dateRange, customRange),
+    [dateRange, customRange]
+  );
   const rangeData = useMemoHome(() => buildRangeData(effectiveRange, brand), [effectiveRange, brand]);
 
   const filtered = PLAYERS.filter((p) =>

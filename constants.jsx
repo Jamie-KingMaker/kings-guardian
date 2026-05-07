@@ -192,6 +192,28 @@ function getDateRangeLabel(value) {
   return match ? match.label : 'Custom range';
 }
 
+function getEffectiveDateRange(dateRange, customRange) {
+  if (dateRange !== KGEnums.DATE_RANGE.CUSTOM || !customRange?.start || !customRange?.end) {
+    return dateRange || DATE_RANGE_24H;
+  }
+
+  const start = new Date(customRange.start);
+  const end = new Date(customRange.end);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return DATE_RANGE_24H;
+  }
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+  const from = Math.min(start.getTime(), end.getTime());
+  const to = Math.max(start.getTime(), end.getTime());
+  const days = Math.floor((to - from) / 86400000) + 1;
+
+  if (days <= 2) return DATE_RANGE_24H;
+  if (days <= 7) return DATE_RANGE_7D;
+  return DATE_RANGE_30D;
+}
+
 const PRODUCT_OPTIONS = Object.freeze([
   { value: 'all', label: 'All products' },
   { value: KGEnums.PRODUCT.SPORTS, label: KGEnums.PRODUCT.SPORTS },
@@ -314,6 +336,7 @@ window.KGConstants = {
   getCountryOptions,
   DATE_RANGE_OPTIONS,
   getDateRangeLabel,
+  getEffectiveDateRange,
   PRODUCT_OPTIONS,
   PLAYER_STATUS_CFG,
   ACTION_STATUSES,
