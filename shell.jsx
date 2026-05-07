@@ -17,7 +17,7 @@ function TopBar({ brand, setBrand, country, setCountry, lastRefresh }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingRight: 20, borderRight: '1px solid rgba(255,255,255,0.10)', height: '100%' }}>
         {isBrand ? (
           <>
-            <img src={theme.logoSrc} alt={theme.name} style={{ height: 22, width: 'auto', display: 'block' }} />
+            <img src={theme.logoSrc} alt={theme.name} style={{ height: 22, width: 'auto', display: 'block' , minWidth: 92}} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7, paddingLeft: 12, borderLeft: '1px solid rgba(255,255,255,0.16)' }}>
               <span style={{ fontSize: 13, color: '#E2E8F0', fontWeight: 600, letterSpacing: '0.01em', lineHeight: 1 }}>King's Guard</span>
               <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.10em', textTransform: 'uppercase', lineHeight: 1 }}>RG Intelligence</span>
