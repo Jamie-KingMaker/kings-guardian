@@ -159,7 +159,7 @@ function RiskTrendCard({ data, rangeLabel, growth, component_id = HOME_DASHBOARD
     <div id={component_id} style={{ ...cardStyle, display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexShrink: 0 }}>
         <div>
-          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Risk distribution trend · {rangeLabel}</div>
+          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Risk distribution · {rangeLabel}</div>
         </div>
         <DashboardTabs tabs={DASHBOARD_TAB_SETS.RISK} activeTab={view} onChange={setView} />
       </div>
