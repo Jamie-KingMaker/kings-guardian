@@ -514,7 +514,7 @@ function StatusCell({ playerId, status, onUpdate }) {
 function PlayerRow({ p, onClick, isMover, isQueue, effectiveStatus, onStatusUpdate }) {
   const sparkData = p.risk === KGEnums.RISK.HIGH ? [12, 14, 13, 18, 22, 28, 35, 42] :
                     p.risk === KGEnums.RISK.MEDIUM ? [18, 19, 21, 22, 24, 25, 27, 28] :
-                    p.trend === 'down' ? [22, 20, 19, 18, 16, 15, 14, 13] : [15, 16, 15, 16, 17, 16, 17, 16];
+                    p.trend === KGEnums.TREND.DOWN ? [22, 20, 19, 18, 16, 15, 14, 13] : [15, 16, 15, 16, 17, 16, 17, 16];
   const sparkColor = p.risk === KGEnums.RISK.HIGH ? '#DC2626' : p.risk === KGEnums.RISK.MEDIUM ? '#D97706' : '#16A34A';
   const scoreColor = p.riskScore == null ? '#94A3B8' : p.riskScore >= 70 ? '#DC2626' : p.riskScore >= 40 ? '#D97706' : '#16A34A';
   const needsAction = ACTION_STATUSES.has(effectiveStatus);
