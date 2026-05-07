@@ -56,6 +56,7 @@ function TrendArrow({ trend }) {
 }
 
 function Sparkline({ data, color = '#0F172A', height = 28, width = 96, fill = true }) {
+  if (!data || data.length < 2) return <svg width={width} height={height} />;
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;

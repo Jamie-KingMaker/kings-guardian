@@ -193,7 +193,7 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
   const innerH = H - PAD_T - PAD_B;
   const max = Math.max(...data.map((d) => d.high + d.med + d.low));
   const niceMax = Math.ceil(max / 1000) * 1000;
-  const xStep = innerW / (data.length - 1);
+  const xStep = innerW / (data.length - 1 || 1);
 
   const series = ['low', 'med', 'high'];
   const colors = { low: '#16A34A', med: '#D97706', high: '#DC2626' };
@@ -226,7 +226,7 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
     const mn = Math.min(...vals), mx = Math.max(...vals), rng = mx - mn || 1;
     const SW = fullWidth ? 720 : 200, SH = fullWidth ? 180 : 56, PL = 40, PB = fullWidth ? 26 : 16, PT = fullWidth ? 10 : 4, PR = 8;
     const iW = SW - PL - PR, iH = SH - PT - PB;
-    const xs = iW / (vals.length - 1);
+    const xs = iW / (vals.length - 1 || 1);
     const pts = vals.map((v, i) => [PL + i * xs, PT + iH - ((v - mn) / rng) * iH]);
     const line = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
     const area = line + ` L${pts[pts.length-1][0].toFixed(1)},${PT+iH} L${PL},${PT+iH} Z`;
@@ -748,8 +748,9 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
   const innerH = H - PAD_T - PAD_B;
 
   const buildPath = (vals, mn, rng) => {
+    const denom = vals.length - 1 || 1;
     const pts = vals.map((v, i) => [
-      PAD_L + (i / (vals.length - 1)) * innerW,
+      PAD_L + (i / denom) * innerW,
       PAD_T + innerH - ((v - mn) / rng) * innerH,
     ]);
     const line = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
@@ -788,7 +789,7 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
         })}
         {dateLabels.map((lbl, i) => {
           if (!labelIndices.has(i)) return null;
-          const x = PAD_L + (i / (numPts - 1)) * innerW;
+          const x = PAD_L + (i / (numPts - 1 || 1)) * innerW;
           return <text key={i} x={x} y={H-4} fontSize="11" textAnchor={i === 0 ? 'start' : i === numPts-1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}</text>;
         })}
       </svg>
@@ -815,7 +816,7 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
         <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="3" fill={color} stroke="#fff" strokeWidth="1.5"/>
         {dateLabels.map((lbl, i) => {
           if (!labelIndices.has(i)) return null;
-          const x = PAD_L + (i / (numPts - 1)) * innerW;
+          const x = PAD_L + (i / (numPts - 1 || 1)) * innerW;
           return <text key={i} x={x} y={H-4} fontSize="11" textAnchor={i === 0 ? 'start' : i === numPts-1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}</text>;
         })}
       </svg>
