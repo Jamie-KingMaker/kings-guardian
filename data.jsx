@@ -561,31 +561,45 @@ function buildRangeData(rangeKey, brandKey) {
    const SELF_EX_SPIKE_DAYS_AGO = 18; // April 18 2026
    const selfExCount = Math.max(1, Math.round(41200 * rgScale));
    const selfExDelta = 11 + (rangeKey === RANGE_30D ? 5 : 0);
+
+  // For 24h: generate 24 hourly points; otherwise use numPoints with date labels
+  const isHourlyRg = rangeKey === RANGE_24H;
+  const rgNumPts = isHourlyRg ? 24 : numPoints;
+  // Hourly activity shape: low overnight, builds through morning, peaks evening
+  const RG_HOUR_MUL = [0.42, 0.38, 0.35, 0.33, 0.32, 0.34, 0.40, 0.54, 0.68, 0.80, 0.90, 0.96, 1.00, 1.01, 1.03, 1.06, 1.12, 1.20, 1.32, 1.50, 1.65, 1.58, 1.30, 0.98];
+  const TODAY_HOUR_RG = 23;
+  const fmtHour = (h) => `${String(h).padStart(2, '0')}:00`;
+
+  const getRgLabel = (i) => {
+    if (isHourlyRg) {
+      const hoursAgo = rgNumPts - 1 - i;
+      const hour = ((TODAY_HOUR_RG - hoursAgo) % 24 + 24) % 24;
+      return fmtHour(hour);
+    }
+    const d = new Date(today);
+    d.setDate(today.getDate() - Math.round((1 - i / (rgNumPts - 1 || 1)) * cfg.days));
+    return fmtDate(d);
+  };
+
   const tSpike = 1 - SELF_EX_SPIKE_DAYS_AGO / cfg.days; // 0-1 position of Apr 18 in this range
   const selfExTrend = [];
-  for (let i = 0; i < numPoints; i++) {
-    const t = i / (numPoints - 1 || 1);
-    const d = new Date(today);
-    if (isHourlyTrendRange) {
-      d.setHours(23, 0, 0, 0);
-      d.setHours(d.getHours() - (numPoints - 1 - i));
-    } else {
-      d.setDate(today.getDate() - Math.round((1 - t) * cfg.days));
-    }
+  for (let i = 0; i < rgNumPts; i++) {
+    const t = i / (rgNumPts - 1 || 1);
     let v;
-    if (tSpike <= 0) {
-      // Whole range is post-spike — show slightly elevated plateau rising to count
+    if (isHourlyRg) {
+      const hoursAgo = rgNumPts - 1 - i;
+      const hour = ((TODAY_HOUR_RG - hoursAgo) % 24 + 24) % 24;
+      v = selfExCount * (0.93 + 0.07 * t) * RG_HOUR_MUL[hour];
+    } else if (tSpike <= 0) {
       v = selfExCount * (0.91 + 0.09 * t);
     } else if (t < tSpike) {
-      // Pre-spike: gently drifting low baseline
       v = selfExCount * (0.44 + 0.07 * (t / tSpike));
     } else {
-      // Post-spike: rapid rise from 82% → 100%
       const postT = (t - tSpike) / (1 - tSpike || 0.001);
       v = selfExCount * (0.82 + 0.18 * postT);
     }
     const noise = (rnd() - 0.5) * selfExCount * 0.03;
-    selfExTrend.push({ d: isHourlyTrendRange ? fmtHour(d) : fmtDate(d), v: Math.max(1, Math.round(v + noise)) });
+    selfExTrend.push({ d: getRgLabel(i), v: Math.max(1, Math.round(v + noise)) });
   }
   selfExTrend[selfExTrend.length - 1].v = selfExCount;
 
@@ -595,15 +609,24 @@ function buildRangeData(rangeKey, brandKey) {
        const count = Math.max(1, Math.round(toolDef.base * rgScale));
        const delta = toolDef.deltaBase + (rangeKey === RANGE_30D ? 5 : 0);
        const trend = [];
-      for (let i = 0; i < numPoints; i++) {
-        const t = i / (numPoints - 1 || 1);
+      for (let i = 0; i < rgNumPts; i++) {
+        const t = i / (rgNumPts - 1 || 1);
         const eased = t * t * (3 - 2 * t);
         const base = count * (toolDef.startFrac + (1 - toolDef.startFrac) * eased);
-        const spike = toolDef.spikes.reduce((acc, sp) => {
-          const dist = Math.abs(t - sp);
-          return acc + (dist < 1.2 / numPoints ? count * 0.20 * (1 - dist * numPoints / 1.2) : 0);
-        }, 0);
+        let v;
+        if (isHourlyRg) {
+          const hoursAgo = rgNumPts - 1 - i;
+          const hour = ((TODAY_HOUR_RG - hoursAgo) % 24 + 24) % 24;
+          v = base * RG_HOUR_MUL[hour];
+        } else {
+          const spike = toolDef.spikes.reduce((acc, sp) => {
+            const dist = Math.abs(t - sp);
+            return acc + (dist < 1.2 / rgNumPts ? count * 0.20 * (1 - dist * rgNumPts / 1.2) : 0);
+          }, 0);
+          v = base + spike;
+        }
         const noise = (rnd() - 0.5) * count * toolDef.noise;
+        trend.push({ d: getRgLabel(i), v: Math.max(1, Math.round(v + noise)) });
         const d = new Date(today);
         if (isHourlyTrendRange) {
           d.setHours(23, 0, 0, 0);

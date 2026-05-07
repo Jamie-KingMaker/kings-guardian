@@ -137,7 +137,7 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
         <TopMoversCard movers={rangeData.movers} brand={brand} country={country} onPlayerClick={onPlayerClick} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <RGAdoptionCard items={rangeData.rgAdoption} rangeLabel={rangeData.rangeLabel} />
         <SignalsBreakdownCard signals={rangeData.signals} rangeLabel={rangeData.rangeLabel} />
       </div>
@@ -991,7 +991,7 @@ function AttentionCard({ players, onPlayerClick }) {
 
 function RGAdoptionCard({ items, rangeLabel }) {
   const [view, setView] = React.useState('all');
-  const W = 720, H = 170;
+  const W = 720, H = 280;
   const PAD_L = 44, PAD_B = 26, PAD_T = 10, PAD_R = 12;
   const innerW = W - PAD_L - PAD_R;
   const innerH = H - PAD_T - PAD_B;
