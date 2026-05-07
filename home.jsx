@@ -1025,7 +1025,7 @@ function RGAdoptionCard({ items, rangeLabel }) {
   return (
     <div style={cardStyle}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
         <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
           RG Tool Usage · {rangeLabel}
         </div>
