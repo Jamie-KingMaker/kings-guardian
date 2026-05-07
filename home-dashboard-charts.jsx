@@ -9,6 +9,35 @@ const { formatMAU, calcPercentage, formatCompactValue, formatRedepositsSpeed, ge
 const { CARD: cardStyle, TAB_CONTAINER, TAB_BUTTON_ACTIVE, TAB_BUTTON_INACTIVE } = HOME_DASHBOARD_STYLES;
 const { RISK_TREND, DEPOSIT_ACTIVITY, SPARKLINE_FULL, SPARKLINE_MINI, RG_ADOPTION } = HOME_DASHBOARD_CHART_CONFIG;
 const { DEPOSIT_SHARES, REDEPOSIT_TIME } = HOME_DASHBOARD_DEPOSIT_CONFIG;
+const FILTER_ALL = KGEnums.FILTER.ALL;
+
+const DASHBOARD_TAB_SETS = Object.freeze({
+  RISK: Object.freeze([
+    [KGEnums.DASHBOARD_VIEW.OVERVIEW, 'Overview', null],
+    [KGEnums.DASHBOARD_VIEW.HIGH, 'High', '#DC2626'],
+    [KGEnums.DASHBOARD_VIEW.MEDIUM, 'Medium', '#D97706'],
+    [KGEnums.DASHBOARD_VIEW.LOW, 'Low', '#16A34A'],
+  ]),
+  COHORT: Object.freeze([
+    [FILTER_ALL, 'Overview', null],
+    [KGEnums.DASHBOARD_VIEW.HIGH, 'High', '#DC2626'],
+    [KGEnums.DASHBOARD_VIEW.MEDIUM, 'Medium', '#D97706'],
+    [KGEnums.DASHBOARD_VIEW.LOW, 'Low', '#16A34A'],
+  ]),
+});
+
+function DashboardTabs({ tabs, activeTab, onChange }) {
+  return (
+    <div style={TAB_CONTAINER}>
+      {tabs.map(([id, label, dot]) => (
+        <button key={id} onClick={() => onChange(id)} style={activeTab === id ? TAB_BUTTON_ACTIVE(dot || '#0F172A') : TAB_BUTTON_INACTIVE}>
+          {dot && <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot, flexShrink: 0 }} />}
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 /**
  * RiskTrendCard Component - Displays risk distribution trends over time
@@ -132,19 +161,7 @@ function RiskTrendCard({ data, rangeLabel, growth, component_id = HOME_DASHBOARD
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Risk distribution trend · {rangeLabel}</div>
         </div>
-        <div style={TAB_CONTAINER}>
-          {[
-            [KGEnums.DASHBOARD_VIEW.OVERVIEW, 'Overview', null],
-            [KGEnums.DASHBOARD_VIEW.HIGH, 'High', '#DC2626'],
-            [KGEnums.DASHBOARD_VIEW.MEDIUM, 'Medium', '#D97706'],
-            [KGEnums.DASHBOARD_VIEW.LOW, 'Low', '#16A34A'],
-          ].map(([id, label, dot]) => (
-            <button key={id} onClick={() => setView(id)} style={view === id ? TAB_BUTTON_ACTIVE(dot || '#0F172A') : TAB_BUTTON_INACTIVE}>
-              {dot && <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot, flexShrink: 0 }}></span>}
-              {label}
-            </button>
-          ))}
-        </div>
+        <DashboardTabs tabs={DASHBOARD_TAB_SETS.RISK} activeTab={view} onChange={setView} />
       </div>
 
       {view === KGEnums.DASHBOARD_VIEW.OVERVIEW && <>
@@ -218,7 +235,6 @@ function DepositActivityCard({
   component_id = HOME_DASHBOARD_COMPONENT_IDS.DEPOSIT_ACTIVITY_CARD
 }) {
   const [filter, setFilter] = React.useState(KGEnums.FILTER.ALL);
-  const FILTER_ALL = KGEnums.FILTER.ALL;
 
   const playerCounts = { all: mau || 1, high: (dist||{}).high || 1, med: (dist||{}).med || 1, low: (dist||{}).low || 1 };
   const filteredTotal = total * DEPOSIT_SHARES[filter];
@@ -335,14 +351,7 @@ function DepositActivityCard({
     <div id={component_id} style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 12 }}>
         <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, flexShrink: 0 }}>Deposit activity · {rangeLabel}</div>
-        <div style={TAB_CONTAINER}>
-          {[[FILTER_ALL, 'Overview', null], [KGEnums.DASHBOARD_VIEW.HIGH, 'High', '#DC2626'], [KGEnums.DASHBOARD_VIEW.MEDIUM, 'Medium', '#D97706'], [KGEnums.DASHBOARD_VIEW.LOW, 'Low', '#16A34A']].map(([v, lbl, dot]) => (
-            <button key={v} onClick={() => setFilter(v)} style={filter === v ? TAB_BUTTON_ACTIVE(dot || '#0F172A') : TAB_BUTTON_INACTIVE}>
-              {dot && <span style={{ width: 5, height: 5, borderRadius: '50%', background: dot, flexShrink: 0 }} />}
-              {lbl}
-            </button>
-          ))}
-        </div>
+        <DashboardTabs tabs={DASHBOARD_TAB_SETS.COHORT} activeTab={filter} onChange={setFilter} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
@@ -367,5 +376,202 @@ function DepositActivityCard({
   );
 }
 
-Object.assign(window, { RiskTrendCard, DepositActivityCard });
+/**
+ * RGAdoptionCard Component - Shows RG tool adoption trends
+ * Responsibility: Display multi-line adoption trend chart
+ */
+function RGAdoptionCard({
+  items,
+  rangeLabel,
+  component_id = HOME_DASHBOARD_COMPONENT_IDS.RG_ADOPTION_CARD
+}) {
+  const [view, setView] = React.useState(FILTER_ALL);
+
+  const W = RG_ADOPTION.WIDTH;
+  const H = RG_ADOPTION.HEIGHT;
+  const PAD_L = RG_ADOPTION.PAD_L;
+  const PAD_B = RG_ADOPTION.PAD_B;
+  const PAD_T = RG_ADOPTION.PAD_T;
+  const PAD_R = RG_ADOPTION.PAD_R;
+  const innerW = W - PAD_L - PAD_R;
+  const innerH = H - PAD_T - PAD_B;
+
+  const toolScales = HOME_DASHBOARD_RG_ADOPTION_SCALES[view] || HOME_DASHBOARD_RG_ADOPTION_SCALES[FILTER_ALL];
+  const scaledItems = items.map((item) => {
+    const scale = toolScales[item.tool] ?? 1;
+    return {
+      ...item,
+      count: Math.round(item.count * scale),
+      trend: (item.trend || []).map((point) => ({ ...point, v: Math.round(point.v * scale) })),
+    };
+  });
+
+  const numPts = scaledItems[0]?.trend?.length || 1;
+  const allVals = scaledItems.flatMap((item) => (item.trend || []).map((point) => point.v));
+  const { mn, mx, rng } = calculateDataScale(allVals);
+  const xStep = innerW / (numPts - 1 || 1);
+  const fmtY = (value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : `${value}`;
+
+  const buildPath = (vals) => {
+    const pts = vals.map((value, index) => [
+      PAD_L + index * xStep,
+      PAD_T + innerH - ((value - mn) / rng) * innerH,
+    ]);
+    const line = pts.map((point, i) => (i === 0 ? 'M' : 'L') + point[0].toFixed(1) + ',' + point[1].toFixed(1)).join(' ');
+    const area = line + ` L${pts[pts.length - 1][0].toFixed(1)},${PAD_T + innerH} L${PAD_L},${PAD_T + innerH} Z`;
+    return { pts, line, area };
+  };
+
+  const gridVals = [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(mn + (mx - mn) * (1 - t)));
+  const labels = scaledItems[0]?.trend?.map((point) => point.d) || [];
+  const xLabelStep = Math.max(1, Math.ceil((numPts - 1) / 6));
+  const labelSet = new Set(Array.from({ length: numPts }, (_, index) => index).filter((index) => index % xLabelStep === 0));
+  labelSet.add(numPts - 1);
+
+  return (
+    <div id={component_id} style={cardStyle}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+          RG Tool Usage · {rangeLabel}
+        </div>
+        <DashboardTabs tabs={DASHBOARD_TAB_SETS.COHORT} activeTab={view} onChange={setView} />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
+        {scaledItems.map((item) => (
+          <div key={item.tool} style={{ padding: '10px 12px', background: `${item.color}09`, borderRadius: 6, border: `1px solid ${item.color}28` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 10.5, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1.2 }}>{item.tool}</span>
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {item.count.toLocaleString()}
+            </div>
+            <div style={{ fontSize: 11.5, color: '#16A34A', fontWeight: 700, marginTop: 3 }}>↑ {item.delta}%</div>
+          </div>
+        ))}
+      </div>
+
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+        {gridVals.map((value, index) => {
+          const y = PAD_T + innerH - ((value - mn) / rng) * innerH;
+          return (
+            <g key={index}>
+              <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#F1F5F9" strokeWidth="1" />
+              <text x={PAD_L - 4} y={y + 4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(value)}</text>
+            </g>
+          );
+        })}
+
+        {scaledItems.map((item) => {
+          const { area } = buildPath((item.trend || []).map((point) => point.v));
+          return <path key={item.tool + 'a'} d={area} fill={item.color} fillOpacity="0.07" />;
+        })}
+
+        {scaledItems.map((item) => {
+          const { pts, line } = buildPath((item.trend || []).map((point) => point.v));
+          const last = pts[pts.length - 1];
+          return (
+            <g key={item.tool}>
+              <path d={line} fill="none" stroke={item.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx={last[0]} cy={last[1]} r="3" fill={item.color} stroke="#fff" strokeWidth="1.5" />
+            </g>
+          );
+        })}
+
+        {labels.map((label, index) => {
+          if (!labelSet.has(index)) return null;
+          const x = PAD_L + index * xStep;
+          return (
+            <text key={index} x={x} y={H - 4} fontSize="11" textAnchor={index === 0 ? 'start' : index === numPts - 1 ? 'end' : 'middle'} fill="#94A3B8">
+              {label}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+/**
+ * SignalsBreakdownCard Component - Shows active risk signals
+ * Responsibility: Display ranked signals with WoW comparison
+ */
+function SignalsBreakdownCard({
+  signals,
+  rangeLabel,
+  component_id = HOME_DASHBOARD_COMPONENT_IDS.SIGNALS_BREAKDOWN_CARD
+}) {
+  const [view, setView] = React.useState(FILTER_ALL);
+  const SIGNAL_META = KGConstants.SIGNAL_META || {};
+
+  const cohortSignalScale = {
+    [FILTER_ALL]: 1,
+    [KGEnums.DASHBOARD_VIEW.HIGH]: 0.22,
+    [KGEnums.DASHBOARD_VIEW.MEDIUM]: 0.41,
+    [KGEnums.DASHBOARD_VIEW.LOW]: 0.37,
+  };
+  const scaledSignals = signals.map((signal) => ({
+    ...signal,
+    count: Math.max(1, Math.round(signal.count * (cohortSignalScale[view] || 1))),
+  }));
+
+  const wowChange = (label) => {
+    const hash = hashString(label + view);
+    return { pct: 5 + (hash % 28), up: (hash & 1) === 1 };
+  };
+
+  return (
+    <div id={component_id} style={cardStyle}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+          Active risk signals · {rangeLabel}
+        </div>
+        <DashboardTabs tabs={DASHBOARD_TAB_SETS.COHORT} activeTab={view} onChange={setView} />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+        {[['Customers', 96], ['vs prior', 72]].map(([header, width]) => (
+          <div key={header} style={{ width, textAlign: 'right', fontSize: 11, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{header}</div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {scaledSignals.map((signal, index) => {
+          const meta = SIGNAL_META[signal.label] || { desc: '' };
+          const { pct, up } = wowChange(signal.label);
+          const changeColor = up ? '#DC2626' : '#16A34A';
+          return (
+            <div key={signal.label} style={{
+              display: 'flex', alignItems: 'center',
+              padding: '10px 0',
+              borderBottom: index < scaledSignals.length - 1 ? '1px solid #F8FAFC' : 'none',
+            }}>
+              <div style={{ width: 36, flexShrink: 0 }}>
+                <span style={{ fontFamily: "'Roboto Mono', monospace", fontSize: 18, fontWeight: 700, color: index < 2 ? signal.color : '#CBD5E1' }}>
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+              </div>
+              <div style={{ flex: 1, minWidth: 0, paddingRight: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', marginBottom: 1 }}>{signal.label}</div>
+                {meta.desc && <div style={{ fontSize: 11.5, color: '#94A3B8', lineHeight: 1.4 }}>{meta.desc}</div>}
+              </div>
+              <div style={{ width: 96, textAlign: 'right', flexShrink: 0 }}>
+                <span style={{ fontFamily: "'Roboto Mono', monospace", fontSize: 16, fontWeight: 700, color: '#0F172A', letterSpacing: '-0.01em' }}>
+                  {signal.count.toLocaleString()}
+                </span>
+              </div>
+              <div style={{ width: 72, textAlign: 'right', flexShrink: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: changeColor }}>
+                  {up ? '↑' : '↓'} {pct}%
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { RiskTrendCard, DepositActivityCard, RGAdoptionCard, SignalsBreakdownCard });
 
