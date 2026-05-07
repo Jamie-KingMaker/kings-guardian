@@ -36,6 +36,36 @@ const KGEnums = Object.freeze({
     LAST_30_DAYS: '30d',
     CUSTOM: 'custom',
   }),
+  VIEW: Object.freeze({
+    HOME: 'home',
+    PLAYERS: 'players',
+    PLAYER_DETAIL: 'player-detail',
+    POPULATION: 'population',
+    LOG: 'log',
+    INTERVENTIONS: 'interventions',
+    MONITORING: 'monitoring',
+    REPORTING: 'reporting',
+  }),
+  FILTER: Object.freeze({
+    ALL: 'all',
+    NEEDS_ACTION: 'needs-action',
+    ANY_SET: 'any-set',
+  }),
+  PLAYER_LIST: Object.freeze({
+    SHORTCUT_MOVERS: 'movers',
+    SHORTCUT_QUEUE: 'queue',
+    SORT_PRIORITY: 'priority',
+    SORT_RISK_SCORE: 'riskScore',
+    SORT_RISK: 'risk',
+    SORT_SPEND: 'spend',
+    SORT_SPEND_DELTA: 'spendDelta',
+  }),
+  DASHBOARD_VIEW: Object.freeze({
+    OVERVIEW: 'overview',
+    HIGH: 'high',
+    MEDIUM: 'med',
+    LOW: 'low',
+  }),
   PLAYER_STATUS: Object.freeze({
     UNDER_REVIEW: 'under-review',
     FLAGGED: 'flagged',
@@ -215,7 +245,7 @@ function getEffectiveDateRange(dateRange, customRange) {
 }
 
 const PRODUCT_OPTIONS = Object.freeze([
-  { value: 'all', label: 'All products' },
+  { value: KGEnums.FILTER.ALL, label: 'All products' },
   { value: KGEnums.PRODUCT.SPORTS, label: KGEnums.PRODUCT.SPORTS },
   { value: KGEnums.PRODUCT.CASINO, label: KGEnums.PRODUCT.CASINO },
   { value: KGEnums.PRODUCT.VIRTUALS, label: KGEnums.PRODUCT.VIRTUALS },

@@ -7,17 +7,27 @@ const PAGE_SIZE = 50;
 const STATUS_CFG = KGConstants.PLAYER_STATUS_CFG;
 const ACTION_STATUSES = new Set(KGConstants.ACTION_STATUSES);
 const RISK_ORDER = KGConstants.RISK_ORDER;
+const FILTER_ALL = KGEnums.FILTER.ALL;
+const STATUS_FILTER_NEEDS_ACTION = KGEnums.FILTER.NEEDS_ACTION;
+const STATUS_FILTER_ANY_SET = KGEnums.FILTER.ANY_SET;
+const SHORTCUT_MOVERS = KGEnums.PLAYER_LIST.SHORTCUT_MOVERS;
+const SHORTCUT_QUEUE = KGEnums.PLAYER_LIST.SHORTCUT_QUEUE;
+const SORT_PRIORITY = KGEnums.PLAYER_LIST.SORT_PRIORITY;
+const SORT_RISK_SCORE = KGEnums.PLAYER_LIST.SORT_RISK_SCORE;
+const SORT_RISK = KGEnums.PLAYER_LIST.SORT_RISK;
+const SORT_SPEND = KGEnums.PLAYER_LIST.SORT_SPEND;
+const SORT_SPEND_DELTA = KGEnums.PLAYER_LIST.SORT_SPEND_DELTA;
 
 function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RANGE_24H }) {
   const { PLAYERS, buildRangeData, getPlayerPopulation } = window.KGData;
   const data = useMemoList(() => buildRangeData(range, brand === KGEnums.BRAND.ALL ? null : brand), [range, brand]);
 
-  const [riskFilter, setRiskFilter]       = useStateList('all');
-  const [productFilter, setProductFilter] = useStateList('all');
-  const [statusFilter, setStatusFilter]   = useStateList('all');
-  const [signalFilter, setSignalFilter]   = useStateList('all');
-  const [tierFilter, setTierFilter]       = useStateList('all');
-  const [sortKey, setSortKey]             = useStateList('riskScore');
+  const [riskFilter, setRiskFilter]       = useStateList(FILTER_ALL);
+  const [productFilter, setProductFilter] = useStateList(FILTER_ALL);
+  const [statusFilter, setStatusFilter]   = useStateList(FILTER_ALL);
+  const [signalFilter, setSignalFilter]   = useStateList(FILTER_ALL);
+  const [tierFilter, setTierFilter]       = useStateList(FILTER_ALL);
+  const [sortKey, setSortKey]             = useStateList(SORT_RISK_SCORE);
   const [page, setPage]                   = useStateList(0);
   const [shortcut, setShortcut]           = useStateList(null);
   const [statusOverrides, setStatusOverrides] = useStateList({});
@@ -72,9 +82,9 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
       };
     }
     const filtered = PLAYERS.filter(p =>
-      (brand === 'all' || p.brand === brand) &&
+      (brand === KGEnums.BRAND.ALL || p.brand === brand) &&
       (country === 'ALL' || p.country === country) &&
-      (shortcut === null || (shortcut === 'movers' ? moverIds.has(p.id) : queueIds.has(p.id)))
+      (shortcut === null || (shortcut === SHORTCUT_MOVERS ? moverIds.has(p.id) : queueIds.has(p.id)))
     );
     return {
       all: filtered.length,
@@ -90,41 +100,41 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
 
   const matchesPostFilter = (p) => {
     if (effectiveCountry !== 'ALL' && p.country !== effectiveCountry) return false;
-    if (productFilter !== 'all' && !p.products.includes(productFilter)) return false;
-    if (statusFilter !== 'all') {
+    if (productFilter !== FILTER_ALL && !p.products.includes(productFilter)) return false;
+    if (statusFilter !== FILTER_ALL) {
       const es = effectiveStatus(p);
-      if (statusFilter === 'needs-action') {
+      if (statusFilter === STATUS_FILTER_NEEDS_ACTION) {
         if (!ACTION_STATUSES.has(es)) return false;
-      } else if (statusFilter === 'any-set') {
+      } else if (statusFilter === STATUS_FILTER_ANY_SET) {
         if (!es) return false;
       } else {
         if (es !== statusFilter) return false;
       }
     }
-    if (signalFilter !== 'all' && !(p.signals || []).includes(signalFilter)) return false;
-    if (tierFilter !== 'all' && p.tier !== Number(tierFilter)) return false;
+    if (signalFilter !== FILTER_ALL && !(p.signals || []).includes(signalFilter)) return false;
+    if (tierFilter !== FILTER_ALL && p.tier !== Number(tierFilter)) return false;
     return true;
   };
 
   const rows = useMemoList(() => {
     if (!useFullPop) {
       let r = PLAYERS.filter(p =>
-        (brand === 'all' || p.brand === brand) &&
+        (brand === KGEnums.BRAND.ALL || p.brand === brand) &&
         (country === 'ALL' || p.country === country) &&
-        (riskFilter === 'all' || p.risk === riskFilter) &&
-        (shortcut === null || (shortcut === 'movers' ? moverIds.has(p.id) : queueIds.has(p.id))) &&
+        (riskFilter === FILTER_ALL || p.risk === riskFilter) &&
+        (shortcut === null || (shortcut === SHORTCUT_MOVERS ? moverIds.has(p.id) : queueIds.has(p.id))) &&
         matchesPostFilter(p)
       );
       r = r.slice().sort((a, b) => {
-        if (sortKey === 'priority') {
+        if (sortKey === SORT_PRIORITY) {
           const pa = (STATUS_CFG[effectiveStatus(a)]?.priority ?? 99);
           const pb = (STATUS_CFG[effectiveStatus(b)]?.priority ?? 99);
           return pa !== pb ? pa - pb : (b.riskScore ?? -1) - (a.riskScore ?? -1);
         }
-        if (sortKey === 'riskScore') return (b.riskScore ?? -1) - (a.riskScore ?? -1);
-        if (sortKey === 'risk') return RISK_ORDER[a.risk] - RISK_ORDER[b.risk];
-        if (sortKey === 'spend') return b.spend - a.spend;
-        if (sortKey === 'spendDelta') return (b.spendDelta ?? -999) - (a.spendDelta ?? -999);
+        if (sortKey === SORT_RISK_SCORE) return (b.riskScore ?? -1) - (a.riskScore ?? -1);
+        if (sortKey === SORT_RISK) return RISK_ORDER[a.risk] - RISK_ORDER[b.risk];
+        if (sortKey === SORT_SPEND) return b.spend - a.spend;
+        if (sortKey === SORT_SPEND_DELTA) return (b.spendDelta ?? -999) - (a.spendDelta ?? -999);
         return 0;
       });
       return { page: r.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), filteredCount: r.length };
@@ -142,9 +152,9 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
 
     const activeSegs = fullPop.segments
       .map((s, idx) => ({ s, idx }))
-      .filter(({ s }) => riskFilter === 'all' || s.bucket === riskFilter);
+      .filter(({ s }) => riskFilter === FILTER_ALL || s.bucket === riskFilter);
 
-    const hasPostFilter = effectiveCountry !== 'ALL' || productFilter !== 'all' || statusFilter !== 'all' || signalFilter !== 'all' || tierFilter !== 'all';
+    const hasPostFilter = effectiveCountry !== 'ALL' || productFilter !== FILTER_ALL || statusFilter !== FILTER_ALL || signalFilter !== FILTER_ALL || tierFilter !== FILTER_ALL;
 
     if (!hasPostFilter) {
       const pageStart = page * PAGE_SIZE;
@@ -178,19 +188,19 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
       }
     }
 
-    if (sortKey === 'riskScore' && riskFilter === 'all') {
+    if (sortKey === SORT_RISK_SCORE && riskFilter === FILTER_ALL) {
       // Natural order
     } else {
       out.sort((a, b) => {
-        if (sortKey === 'priority') {
+        if (sortKey === SORT_PRIORITY) {
           const pa = (STATUS_CFG[effectiveStatus(a)]?.priority ?? 99);
           const pb = (STATUS_CFG[effectiveStatus(b)]?.priority ?? 99);
           return pa !== pb ? pa - pb : (b.riskScore ?? -1) - (a.riskScore ?? -1);
         }
-        if (sortKey === 'riskScore') return (b.riskScore ?? -1) - (a.riskScore ?? -1);
-        if (sortKey === 'risk') return RISK_ORDER[a.risk] - RISK_ORDER[b.risk];
-        if (sortKey === 'spend') return b.spend - a.spend;
-        if (sortKey === 'spendDelta') return (b.spendDelta ?? -999) - (a.spendDelta ?? -999);
+        if (sortKey === SORT_RISK_SCORE) return (b.riskScore ?? -1) - (a.riskScore ?? -1);
+        if (sortKey === SORT_RISK) return RISK_ORDER[a.risk] - RISK_ORDER[b.risk];
+        if (sortKey === SORT_SPEND) return b.spend - a.spend;
+        if (sortKey === SORT_SPEND_DELTA) return (b.spendDelta ?? -999) - (a.spendDelta ?? -999);
         return 0;
       });
     }
@@ -201,7 +211,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
     };
   }, [useFullPop, fullPop, brand, country, riskFilter, productFilter, statusFilter, signalFilter, tierFilter, shortcut, sortKey, page, moverIds, queueIds, statusOverrides]);
 
-  const totalForBucket = riskFilter === 'all' ? counts.all : counts[riskFilter];
+  const totalForBucket = riskFilter === FILTER_ALL ? counts.all : counts[riskFilter];
   const totalPages = useFullPop
     ? Math.max(1, Math.ceil(totalForBucket / PAGE_SIZE))
     : Math.max(1, Math.ceil((rows.filteredCount || 0) / PAGE_SIZE));
@@ -267,27 +277,27 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
       {/* Dashboard-context shortcuts + needs-action call-out */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <span style={{ fontSize: 13, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Quick filters</span>
-        <Shortcut active={shortcut === 'movers'} onClick={() => setShortcut(shortcut === 'movers' ? null : 'movers')}
+        <Shortcut active={shortcut === SHORTCUT_MOVERS} onClick={() => setShortcut(shortcut === SHORTCUT_MOVERS ? null : SHORTCUT_MOVERS)}
           color="#DC2626" label={`Top movers (${moverIds.size})`} icon="trending"
         />
-        <Shortcut active={shortcut === 'queue'} onClick={() => setShortcut(shortcut === 'queue' ? null : 'queue')}
+        <Shortcut active={shortcut === SHORTCUT_QUEUE} onClick={() => setShortcut(shortcut === SHORTCUT_QUEUE ? null : SHORTCUT_QUEUE)}
           color="#D97706" label={`Attention queue (${queueIds.size})`} icon="bell"
         />
         <button
-          onClick={() => { setStatusFilter(statusFilter === 'needs-action' ? 'all' : 'needs-action'); setShortcut(null); }}
+          onClick={() => { setStatusFilter(statusFilter === STATUS_FILTER_NEEDS_ACTION ? FILTER_ALL : STATUS_FILTER_NEEDS_ACTION); setShortcut(null); }}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '6px 10px', borderRadius: 999,
-            border: `1px solid ${statusFilter === 'needs-action' ? '#DC2626' : '#E2E8F0'}`,
-            background: statusFilter === 'needs-action' ? '#DC2626' : '#FFFFFF',
-            color: statusFilter === 'needs-action' ? '#FFFFFF' : '#475569',
+            border: `1px solid ${statusFilter === STATUS_FILTER_NEEDS_ACTION ? '#DC2626' : '#E2E8F0'}`,
+            background: statusFilter === STATUS_FILTER_NEEDS_ACTION ? '#DC2626' : '#FFFFFF',
+            color: statusFilter === STATUS_FILTER_NEEDS_ACTION ? '#FFFFFF' : '#475569',
             fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
           }}>
           <Icon name="bell" size={12} />
           Needs action ({needsActionCount})
         </button>
-        {(shortcut || statusFilter === 'needs-action') && (
-          <button onClick={() => { setShortcut(null); setStatusFilter('all'); }} style={{
+        {(shortcut || statusFilter === STATUS_FILTER_NEEDS_ACTION) && (
+          <button onClick={() => { setShortcut(null); setStatusFilter(FILTER_ALL); }} style={{
             fontSize: 13, color: '#64748B', background: 'transparent', border: 'none',
             cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit',
           }}>Clear</button>
@@ -297,7 +307,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
       {/* Filter bar */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 10, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 13, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', paddingLeft: 4 }}>Filter</span>
-        <Segment value={riskFilter} setValue={setRiskFilter} options={[['all', 'Active base'], [KGEnums.RISK.HIGH, 'High risk'], [KGEnums.RISK.MEDIUM, 'Medium risk'], [KGEnums.RISK.LOW, 'Low risk'], [KGEnums.RISK.UNRATED, 'Insufficient data']]} colors={{ [KGEnums.RISK.HIGH]: '#DC2626', [KGEnums.RISK.MEDIUM]: '#D97706', [KGEnums.RISK.LOW]: '#16A34A' }} />
+        <Segment value={riskFilter} setValue={setRiskFilter} options={[[FILTER_ALL, 'Active base'], [KGEnums.RISK.HIGH, 'High risk'], [KGEnums.RISK.MEDIUM, 'Medium risk'], [KGEnums.RISK.LOW, 'Low risk'], [KGEnums.RISK.UNRATED, 'Insufficient data']]} colors={{ [KGEnums.RISK.HIGH]: '#DC2626', [KGEnums.RISK.MEDIUM]: '#D97706', [KGEnums.RISK.LOW]: '#16A34A' }} />
         <div style={{ width: 1, height: 20, background: '#E2E8F0' }}></div>
         <Segment value={productFilter} setValue={setProductFilter} options={KGConstants.PRODUCT_OPTIONS.map(option => [option.value, option.label])} />
         <div style={{ width: 1, height: 20, background: '#E2E8F0' }}></div>
@@ -306,9 +316,9 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
           padding: '5px 8px', borderRadius: 5, border: '1px solid #E2E8F0', background: '#FFFFFF',
           fontSize: 13, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
         }}>
-          <option value="all">Any status</option>
-          <option value="needs-action">— Needs action</option>
-          <option value="any-set">— Any status set</option>
+          <option value={FILTER_ALL}>Any status</option>
+          <option value={STATUS_FILTER_NEEDS_ACTION}>— Needs action</option>
+          <option value={STATUS_FILTER_ANY_SET}>— Any status set</option>
           {KGConstants.PLAYER_STATUS_FILTER_GROUPS.map(group => (
             <optgroup key={group.label} label={group.label}>
               {group.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
@@ -320,7 +330,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
           padding: '5px 8px', borderRadius: 5, border: '1px solid #E2E8F0', background: '#FFFFFF',
           fontSize: 13, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
         }}>
-          <option value="all">Any signal</option>
+          <option value={FILTER_ALL}>Any signal</option>
           {signalOptions.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
         <div style={{ width: 1, height: 20, background: '#E2E8F0' }}></div>
@@ -328,7 +338,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
           padding: '5px 8px', borderRadius: 5, border: '1px solid #E2E8F0', background: '#FFFFFF',
           fontSize: 13, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
         }}>
-          <option value="all">Any tier</option>
+          <option value={FILTER_ALL}>Any tier</option>
           <option value="9">Tier 9 — VIP</option>
           <option value="8">Tier 8</option>
           <option value="7">Tier 7</option>
@@ -341,7 +351,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
         </select>
         <div style={{ flex: 1 }}></div>
         <span style={{ fontSize: 13, color: '#64748B', marginRight: 4 }}>Sort</span>
-        <Segment value={sortKey} setValue={setSortKey} options={[['priority', 'Priority'], ['riskScore', 'Score'], ['risk', 'Bucket'], ['spend', 'Spend'], ['spendDelta', '% Δ']]} compact />
+        <Segment value={sortKey} setValue={setSortKey} options={[[SORT_PRIORITY, 'Priority'], [SORT_RISK_SCORE, 'Score'], [SORT_RISK, 'Bucket'], [SORT_SPEND, 'Spend'], [SORT_SPEND_DELTA, '% Δ']]} compact />
       </div>
 
       {/* Table */}
@@ -379,7 +389,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
       {/* Pagination */}
       <Pagination
         page={page} setPage={setPage} totalPages={totalPages}
-        bucketLabel={riskFilter === 'all' ? 'active base' : riskFilter === 'unrated' ? 'insufficient data' : `${riskFilter} risk`}
+        bucketLabel={riskFilter === FILTER_ALL ? 'active base' : riskFilter === KGEnums.RISK.UNRATED ? 'insufficient data' : `${riskFilter} risk`}
         bucketCount={totalForBucket}
         pageSize={PAGE_SIZE}
         showing={rows.page.length}

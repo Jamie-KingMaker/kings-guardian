@@ -89,7 +89,7 @@ function App() {
   const [country, setCountry] = useState(KGEnums.COUNTRY.NG);
   const [dateRange, setDateRange] = useState(KGEnums.DATE_RANGE.LAST_7_DAYS);
   const [customRange, setCustomRange] = useState(null);
-  const [activeView, setActiveView] = useState('home');
+  const [activeView, setActiveView] = useState(KGEnums.VIEW.HOME);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
 
@@ -101,19 +101,19 @@ function App() {
 
   const handlePlayerClick = (id) => {
     setSelectedPlayer(id);
-    setActiveView('player-detail');
+    setActiveView(KGEnums.VIEW.PLAYER_DETAIL);
   };
 
   let body;
-  if (activeView === 'home') {
+  if (activeView === KGEnums.VIEW.HOME) {
     body = <HomeDashboard brand={brand} country={country} dateRange={dateRange} setDateRange={setDateRange} customRange={customRange} setCustomRange={setCustomRange} onPlayerClick={handlePlayerClick} />;
-  } else if (activeView === 'players') {
+  } else if (activeView === KGEnums.VIEW.PLAYERS) {
     body = <PlayerList brand={brand} country={country} range={dateRange} onPlayerClick={handlePlayerClick} />;
-  } else if (activeView === 'player-detail') {
-    body = <PlayerDetail playerId={selectedPlayer} onBack={() => setActiveView('players')} />;
-  } else if (activeView === 'population') {
+  } else if (activeView === KGEnums.VIEW.PLAYER_DETAIL) {
+    body = <PlayerDetail playerId={selectedPlayer} onBack={() => setActiveView(KGEnums.VIEW.PLAYERS)} />;
+  } else if (activeView === KGEnums.VIEW.POPULATION) {
     body = <PopulationRisk brand={brand} country={country} dateRange={dateRange} />;
-  } else if (activeView === 'log') {
+  } else if (activeView === KGEnums.VIEW.LOG) {
     body = <InteractionLog brand={brand} country={country} onPlayerClick={handlePlayerClick} />;
   } else {
     body = (
@@ -130,7 +130,7 @@ function App() {
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <TopBar brand={brand} setBrand={setBrand} country={country} setCountry={setCountry} dateRange={dateRange} setDateRange={setDateRange} customRange={customRange} setCustomRange={setCustomRange} lastRefresh="3h ago" />
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        <Sidebar activeView={activeView === 'player-detail' ? 'players' : activeView} setActiveView={(v) => { setActiveView(v); setSelectedPlayer(null); }} brand={brand} country={country} dateRange={dateRange} />
+        <Sidebar activeView={activeView === KGEnums.VIEW.PLAYER_DETAIL ? KGEnums.VIEW.PLAYERS : activeView} setActiveView={(v) => { setActiveView(v); setSelectedPlayer(null); }} brand={brand} country={country} dateRange={dateRange} />
         <div style={{ flex: 1, overflow: 'auto', background: '#F1F5F9' }}>
           {body}
         </div>
@@ -138,9 +138,9 @@ function App() {
 
       <TweaksPanel title="King's Guard tweaks">
         <TweakSection title="View">
-          <TweakRadio label="Active screen" value={activeView === 'player-detail' ? 'players' : activeView} onChange={(v) => { setActiveView(v); setSelectedPlayer(null); }} options={[
-            { value: 'home', label: 'Dashboard' },
-            { value: 'players', label: 'Player list' },
+          <TweakRadio label="Active screen" value={activeView === KGEnums.VIEW.PLAYER_DETAIL ? KGEnums.VIEW.PLAYERS : activeView} onChange={(v) => { setActiveView(v); setSelectedPlayer(null); }} options={[
+            { value: KGEnums.VIEW.HOME, label: 'Dashboard' },
+            { value: KGEnums.VIEW.PLAYERS, label: 'Player list' },
           ]} />
           <TweakButton onClick={() => handlePlayerClick('BK-4827193')}>Open sample player profile →</TweakButton>
         </TweakSection>

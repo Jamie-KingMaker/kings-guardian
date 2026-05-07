@@ -158,13 +158,13 @@ function Dropdown({ value, options, onChange }) {
 function Sidebar({ activeView, setActiveView, brand, country, dateRange }) {
   const theme = getBrandTheme(brand);
   const items = [
-    { id: 'home', label: 'Dashboard', icon: 'home' },
-    { id: 'players', label: 'Player List', icon: 'list' },
-    { id: 'population', label: 'Player Behaviours & Trends', icon: 'chart' },
-    { id: 'log', label: 'Interaction Log', icon: 'log' },
-    { id: 'interventions', label: 'Intervention Tracker', icon: 'list', disabled: true },
-    { id: 'monitoring', label: 'Monitoring & Flags', icon: 'flag', disabled: true },
-    { id: 'reporting', label: 'Reporting', icon: 'export', disabled: true },
+    { id: KGEnums.VIEW.HOME, label: 'Dashboard', icon: 'home' },
+    { id: KGEnums.VIEW.PLAYERS, label: 'Player List', icon: 'list' },
+    { id: KGEnums.VIEW.POPULATION, label: 'Player Behaviours & Trends', icon: 'chart' },
+    { id: KGEnums.VIEW.LOG, label: 'Interaction Log', icon: 'log' },
+    { id: KGEnums.VIEW.INTERVENTIONS, label: 'Intervention Tracker', icon: 'list', disabled: true },
+    { id: KGEnums.VIEW.MONITORING, label: 'Monitoring & Flags', icon: 'flag', disabled: true },
+    { id: KGEnums.VIEW.REPORTING, label: 'Reporting', icon: 'export', disabled: true },
   ];
   return (
     <div style={{

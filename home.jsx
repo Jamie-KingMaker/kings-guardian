@@ -2,6 +2,8 @@
 
 const { useMemo: useMemoHome } = React;
 const { KGEnums, KGConstants } = window;
+const FILTER_ALL = KGEnums.FILTER.ALL;
+const DASHBOARD_VIEW = KGEnums.DASHBOARD_VIEW;
 
 function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, setCustomRange, onPlayerClick }) {
   const { PLAYERS, buildRangeData, MAU, MAU_TOTALS } = window.KGData;
@@ -181,7 +183,7 @@ function StatCard({ label, value, subtext, delta, deltaUp, tone }) {
 }
 
 function RiskTrendCard({ data, rangeLabel, growth }) {
-  const [view, setView] = React.useState('overview');
+  const [view, setView] = React.useState(DASHBOARD_VIEW.OVERVIEW);
   const W = 720;
   const H = 200;
   const PAD_L = 40,PAD_B = 28,PAD_T = 12,PAD_R = 12;
@@ -297,10 +299,10 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
         </div>
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
           {[
-            ['overview', 'Overview', null],
-            ['high',     'High',     '#DC2626'],
-            ['med',      'Medium',   '#D97706'],
-            ['low',      'Low',      '#16A34A'],
+            [DASHBOARD_VIEW.OVERVIEW, 'Overview', null],
+            [DASHBOARD_VIEW.HIGH, 'High', '#DC2626'],
+            [DASHBOARD_VIEW.MEDIUM, 'Medium', '#D97706'],
+            [DASHBOARD_VIEW.LOW, 'Low', '#16A34A'],
           ].map(([id, label, dot]) => (
             <button key={id} onClick={() => setView(id)} style={{
               padding: '4px 10px', borderRadius: 4, border: 'none', fontSize: 13, fontWeight: 600,
@@ -317,7 +319,7 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
         </div>
       </div>
 
-      {view === 'overview' && <>
+      {view === DASHBOARD_VIEW.OVERVIEW && <>
         <div style={{ display: 'flex', gap: 14, fontSize: 13, marginBottom: 10, flexShrink: 0 }}>
           {[['High', '#DC2626', ''], ['Medium', '#D97706', ''], ['Low', '#16A34A', '5 3']].map(([l, c, dash]) =>
             <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#475569', fontWeight: 500 }}>
@@ -375,9 +377,9 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
         </div>
       </>}
 
-      {view === 'high' && <TierSparkline bucket="high" label="High risk"   color="#DC2626" fullWidth />}
-      {view === 'med'  && <TierSparkline bucket="med"  label="Medium risk" color="#D97706" fullWidth />}
-      {view === 'low'  && <TierSparkline bucket="low"  label="Low risk"    color="#16A34A" fullWidth />}
+      {view === DASHBOARD_VIEW.HIGH && <TierSparkline bucket="high" label="High risk"   color="#DC2626" fullWidth />}
+      {view === DASHBOARD_VIEW.MEDIUM && <TierSparkline bucket="med"  label="Medium risk" color="#D97706" fullWidth />}
+      {view === DASHBOARD_VIEW.LOW && <TierSparkline bucket="low"  label="Low risk"    color="#16A34A" fullWidth />}
     </div>);
 
 }
@@ -482,7 +484,7 @@ function RGCopilotCard({ brand, country, rangeLabel, dist, total, mau, sd, range
     const topMover = (rangeData.movers || [])[0];
 
     const filterDirective = riskFilter ?
-    `\nFOCUS FILTER: Generate callouts SPECIFICALLY about ${riskFilter}-risk players (${riskFilter === 'high' ? 'score 80+, escalation candidates' : riskFilter === 'medium' ? 'score 50–79, monitor & nudge' : 'score <50, healthy but watch for upward migration'}). All 5 callouts must address this segment — patterns within it, notable movers into/out of it, deposit & session signals from it, recommended actions for the team. Do not pivot to other risk levels unless directly comparing.` :
+    `\nFOCUS FILTER: Generate callouts SPECIFICALLY about ${riskFilter}-risk players (${riskFilter === KGEnums.RISK.HIGH ? 'score 80+, escalation candidates' : riskFilter === KGEnums.RISK.MEDIUM ? 'score 50–79, monitor & nudge' : 'score <50, healthy but watch for upward migration'}). All 5 callouts must address this segment — patterns within it, notable movers into/out of it, deposit & session signals from it, recommended actions for the team. Do not pivot to other risk levels unless directly comparing.` :
     '';
 
     const prompt = `You are an internal Responsible Gambling analyst writing a daily morning brief for the King's Guard platform at KingMakers. Your audience is the CS + RG operations team.
@@ -577,9 +579,9 @@ Tone: calm, professional, operational. No emojis. No preamble. No closing summar
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2, flexShrink: 0 }}>
           {[
           { id: null, label: 'Overview', dot: null },
-          { id: 'high', label: 'High', dot: '#DC2626' },
-          { id: 'medium', label: 'Medium', dot: '#D97706' },
-          { id: 'low', label: 'Low', dot: '#16A34A' }].
+          { id: KGEnums.RISK.HIGH, label: 'High', dot: '#DC2626' },
+          { id: KGEnums.RISK.MEDIUM, label: 'Medium', dot: '#D97706' },
+          { id: KGEnums.RISK.LOW, label: 'Low', dot: '#16A34A' }].
           map((opt) => {
             const active = riskFilter === opt.id;
             return (
@@ -697,7 +699,7 @@ function RiskDistributionCard({ dist, total }) {
 }
 
 function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabel, rangeKey, dist, mau }) {
-  const [filter, setFilter] = React.useState('all');
+  const [filter, setFilter] = React.useState(FILTER_ALL);
 
   // High-risk players deposit disproportionately (problem gambling profile)
   const DEPOSIT_SHARES = { all: 1.00, high: 0.38, med: 0.28, low: 0.34 };
@@ -771,7 +773,7 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
 
   // Build the SVG chart
   let chartEl;
-  if (filter === 'all') {
+  if (filter === FILTER_ALL) {
     // Overview — all 3 tiers as overlaid lines
     const allVals = [...tierSeries.high, ...tierSeries.med, ...tierSeries.low];
     const mn = Math.min(...allVals), mx = Math.max(...allVals), rng = mx - mn || 1;
@@ -843,7 +845,7 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 12 }}>
         <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, flexShrink: 0 }}>Deposit activity · {rangeLabel}</div>
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
-          {[['all','Overview',null],['high','High','#DC2626'],['med','Medium','#D97706'],['low','Low','#16A34A']].map(([v, lbl, dot]) => (
+          {[[FILTER_ALL, 'Overview', null], [DASHBOARD_VIEW.HIGH, 'High', '#DC2626'], [DASHBOARD_VIEW.MEDIUM, 'Medium', '#D97706'], [DASHBOARD_VIEW.LOW, 'Low', '#16A34A']].map(([v, lbl, dot]) => (
             <button key={v} onClick={() => setFilter(v)} style={{
               flex: 1, padding: '4px 10px', borderRadius: 4, border: 'none', cursor: 'pointer',
               fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
@@ -862,13 +864,13 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
 
       {/* Stat mini-cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
-        {miniCard('Total value',      fmtCompact(Math.round(filteredTotal), brand), filter === 'all' ? 'all players' : `${filter} risk tier`)}
+        {miniCard('Total value',      fmtCompact(Math.round(filteredTotal), brand), filter === FILTER_ALL ? 'all players' : `${filter} risk tier`)}
         {miniCard('Avg / player',     fmtCompact(Math.round(avgPerPlayer), brand),  `${filteredCount.toLocaleString()} players`)}
-        {miniCard('Re-deposit speed', fmtSpeed(speedMins), speedSub(speedMins), filter !== 'all' ? TIER_COLORS[filter] : null)}
+        {miniCard('Re-deposit speed', fmtSpeed(speedMins), speedSub(speedMins), filter !== FILTER_ALL ? TIER_COLORS[filter] : null)}
       </div>
 
       {/* Legend (overview only) */}
-      {filter === 'all' && (
+      {filter === FILTER_ALL && (
         <div style={{ display: 'flex', gap: 14, marginBottom: 8 }}>
           {[['high','High risk','#DC2626'],['med','Medium risk','#D97706'],['low','Low risk','#16A34A']].map(([t, lbl, c]) => (
             <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -981,7 +983,7 @@ function AttentionCard({ players, onPlayerClick }) {
 }
 
 function RGAdoptionCard({ items, rangeLabel }) {
-  const [view, setView] = React.useState('all');
+  const [view, setView] = React.useState(FILTER_ALL);
   const W = 720, H = 280;
   const PAD_L = 44, PAD_B = 26, PAD_T = 10, PAD_R = 12;
   const innerW = W - PAD_L - PAD_R;
@@ -1036,7 +1038,7 @@ function RGAdoptionCard({ items, rangeLabel }) {
           RG Tool Usage · {rangeLabel}
         </div>
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
-          {[['all','Overview',null],['high','High','#DC2626'],['med','Medium','#D97706'],['low','Low','#16A34A']].map(([v, lbl, dot]) => (
+          {[[FILTER_ALL, 'Overview', null], [DASHBOARD_VIEW.HIGH, 'High', '#DC2626'], [DASHBOARD_VIEW.MEDIUM, 'Medium', '#D97706'], [DASHBOARD_VIEW.LOW, 'Low', '#16A34A']].map(([v, lbl, dot]) => (
             <button key={v} onClick={() => setView(v)} style={{
               padding: '4px 10px', borderRadius: 4, border: 'none', cursor: 'pointer',
               background: view === v ? '#FFFFFF' : 'transparent',
@@ -1115,7 +1117,7 @@ function RGAdoptionCard({ items, rangeLabel }) {
 }
 
 function SignalsBreakdownCard({ signals, rangeLabel }) {
-  const [view, setView] = React.useState('all');
+  const [view, setView] = React.useState(FILTER_ALL);
   const SIGNAL_META = window.KGConstants.SIGNAL_META || {};
 
   // Per-cohort signal scale — high-risk cohort shows higher counts on severe signals
@@ -1144,7 +1146,7 @@ function SignalsBreakdownCard({ signals, rangeLabel }) {
           Active risk signals · {rangeLabel}
         </div>
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
-          {[['all','Overview',null],['high','High','#DC2626'],['med','Medium','#D97706'],['low','Low','#16A34A']].map(([v, lbl, dot]) => (
+          {[[FILTER_ALL, 'Overview', null], [DASHBOARD_VIEW.HIGH, 'High', '#DC2626'], [DASHBOARD_VIEW.MEDIUM, 'Medium', '#D97706'], [DASHBOARD_VIEW.LOW, 'Low', '#16A34A']].map(([v, lbl, dot]) => (
             <button key={v} onClick={() => setView(v)} style={{
               padding: '4px 10px', borderRadius: 4, border: 'none', cursor: 'pointer',
               background: view === v ? '#FFFFFF' : 'transparent',
