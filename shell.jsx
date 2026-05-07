@@ -210,8 +210,6 @@ function Sidebar({ activeView, setActiveView, brand, country, dateRange }) {
         </button>
       ))}
 
-      <div style={{ flex: 1 }}></div>
-
       <SidebarCopilot brand={brand} country={country} dateRange={dateRange} theme={theme} />
     </div>
   );
