@@ -50,7 +50,7 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
 
           </h1>
           <p style={{ fontSize: 15, color: '#64748B', margin: '4px 0 0' }}>
-            {fmtMau(mau)} {rangeData.activeUnitFull} · {total.toLocaleString()} risk-monitored over the last {rangeData.rangeLabel} · {rangeData.refreshLabel} batch refresh
+            {fmtMau(mau)} {rangeData.activeUnitFull}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
