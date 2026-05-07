@@ -198,7 +198,73 @@ function PlayerDetail({ playerId, onBack }) {
 
   // ── Tab bodies ────────────────────────────────────────────────────────────
 
+  // Determine zone info for the player's score
+  const score = player.riskScore ?? 0;
+  const scoreZone = score >= 70 ? 'high' : score >= 40 ? 'medium' : 'low';
+  const scoreZoneLabel = scoreZone === 'high' ? 'High risk' : scoreZone === 'medium' ? 'Medium risk' : 'Low risk';
+  const scoreColor = scoreZone === 'high' ? '#DC2626' : scoreZone === 'medium' ? '#D97706' : '#16A34A';
+
   const overviewBody = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Risk score card — full width */}
+      <div style={{ ...cardStyle, padding: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          {/* Score number */}
+          <div style={{ flexShrink: 0 }}>
+            <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 4 }}>Risk score</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+              <span style={{ fontSize: 40, fontWeight: 700, color: scoreColor, fontFamily: "'Roboto Mono', monospace", lineHeight: 1 }}>{score}</span>
+              <span style={{ fontSize: 14, color: '#94A3B8' }}>/ 100</span>
+            </div>
+          </div>
+          {/* Divider */}
+          <div style={{ width: 1, height: 44, background: '#E2E8F0', flexShrink: 0 }} />
+          {/* Zone + trend */}
+          <div style={{ flexShrink: 0 }}>
+            <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 6 }}>Current zone</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ padding: '3px 10px', borderRadius: 4, background: `${scoreColor}15`, color: scoreColor, fontSize: 14, fontWeight: 700 }}>{scoreZoneLabel}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, color: '#475569' }}><TrendArrow trend={player.trend} />{player.trend ? player.trend.charAt(0).toUpperCase() + player.trend.slice(1) : '—'}</span>
+            </div>
+          </div>
+          {/* Divider */}
+          <div style={{ width: 1, height: 44, background: '#E2E8F0', flexShrink: 0 }} />
+          {/* Bar — flex grow */}
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 10 }}>Score position</div>
+            {/* Three-segment bar with score marker */}
+            <div style={{ position: 'relative' }}>
+              <div style={{ display: 'flex', height: 10, borderRadius: 5, overflow: 'hidden', gap: 2 }}>
+                {/* Low 0–39 */}
+                <div style={{ width: '40%', background: 'linear-gradient(90deg, #BBF7D0, #86EFAC)', borderRadius: '5px 0 0 5px' }} />
+                {/* Medium 40–69 */}
+                <div style={{ width: '30%', background: 'linear-gradient(90deg, #FDE68A, #FCA5A5)' }} />
+                {/* High 70–100 */}
+                <div style={{ width: '30%', background: 'linear-gradient(90deg, #FCA5A5, #DC2626)', borderRadius: '0 5px 5px 0' }} />
+              </div>
+              {/* Score marker */}
+              <div style={{
+                position: 'absolute', top: -3, left: `calc(${score}% - 7px)`,
+                width: 14, height: 16, borderRadius: 3,
+                background: scoreColor,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <div style={{ width: 0, height: 0, borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: '5px solid white', marginTop: 6 }} />
+              </div>
+            </div>
+            {/* Threshold labels */}
+            <div style={{ position: 'relative', height: 20, marginTop: 4 }}>
+              <span style={{ position: 'absolute', left: 0, fontSize: 11, color: '#16A34A', fontWeight: 600 }}>0 · Low</span>
+              <span style={{ position: 'absolute', left: '40%', transform: 'translateX(-50%)', fontSize: 11, color: '#94A3B8' }}>40</span>
+              <span style={{ position: 'absolute', left: '40%', transform: 'translateX(4px)', fontSize: 11, color: '#D97706', fontWeight: 600 }}>Medium</span>
+              <span style={{ position: 'absolute', left: '70%', transform: 'translateX(-50%)', fontSize: 11, color: '#94A3B8' }}>70</span>
+              <span style={{ position: 'absolute', left: '70%', transform: 'translateX(4px)', fontSize: 11, color: '#DC2626', fontWeight: 600 }}>High</span>
+              <span style={{ position: 'absolute', right: 0, fontSize: 11, color: '#94A3B8' }}>100</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16 }}>
       {/* Left */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -248,6 +314,7 @@ function PlayerDetail({ playerId, onBack }) {
           <strong style={{ color: '#0F172A' }}>Suggested action:</strong> Players with this signal pattern often respond well to a deposit-limit conversation.
         </div>
       </div>
+    </div>
     </div>
   );
 
