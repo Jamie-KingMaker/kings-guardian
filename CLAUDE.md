@@ -1,5 +1,6 @@
 # Code style
 - always use enums to avoid repeated string literals
+- always aim to use the SOLID principles when writing code to ensure that the code is maintainable, scalable, and easy to understand
 
 [//]: # (TODO: Add more details about code style, e.g. naming conventions, formatting, using SOLID Principles, etc.)
 
