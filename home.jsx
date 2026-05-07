@@ -976,13 +976,23 @@ function AttentionCard({ players, onPlayerClick }) {
 }
 
 function RGAdoptionCard({ items, rangeLabel }) {
+  const [view, setView] = React.useState('all');
   const W = 720, H = 170;
   const PAD_L = 44, PAD_B = 26, PAD_T = 10, PAD_R = 12;
   const innerW = W - PAD_L - PAD_R;
   const innerH = H - PAD_T - PAD_B;
 
-  const numPts = items[0]?.trend?.length || 1;
-  const allVals = items.flatMap(i => (i.trend || []).map(p => p.v));
+  // Scale factors by risk cohort (approximate proportions of tool usage)
+  const cohortScale = { all: 1, high: 0.18, med: 0.34, low: 0.48 };
+  const scale = cohortScale[view] || 1;
+  const scaledItems = items.map(i => ({
+    ...i,
+    count: Math.round(i.count * scale),
+    trend: (i.trend || []).map(p => ({ ...p, v: Math.round(p.v * scale) })),
+  }));
+
+  const numPts = scaledItems[0]?.trend?.length || 1;
+  const allVals = scaledItems.flatMap(i => (i.trend || []).map(p => p.v));
   const mn = Math.min(...allVals);
   const mx = Math.max(...allVals);
   const rng = mx - mn || 1;
@@ -1000,20 +1010,37 @@ function RGAdoptionCard({ items, rangeLabel }) {
   };
 
   const gridVals = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(mn + (mx - mn) * (1 - t)));
-  const labels = items[0]?.trend?.map(p => p.d) || [];
+  const labels = scaledItems[0]?.trend?.map(p => p.d) || [];
   const xLabelStep = Math.max(1, Math.ceil((numPts - 1) / 6));
   const labelSet = new Set(Array.from({ length: numPts }, (_, i) => i).filter(i => i % xLabelStep === 0));
 
   return (
     <div style={cardStyle}>
       {/* Header */}
-      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>
-        RG Tool Usage · {rangeLabel}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+          RG Tool Usage · {rangeLabel}
+        </div>
+        <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
+          {[['all','Overview',null],['high','High','#DC2626'],['med','Medium','#D97706'],['low','Low','#16A34A']].map(([v, lbl, dot]) => (
+            <button key={v} onClick={() => setView(v)} style={{
+              padding: '4px 10px', borderRadius: 4, border: 'none', cursor: 'pointer',
+              background: view === v ? '#FFFFFF' : 'transparent',
+              color: view === v ? '#0F172A' : '#64748B',
+              fontSize: 13, fontWeight: view === v ? 600 : 500,
+              boxShadow: view === v ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5,
+            }}>
+              {dot && <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot, flexShrink: 0 }} />}
+              {lbl}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Stat mini-cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
-        {items.map(i => (
+        {scaledItems.map(i => (
           <div key={i.tool} style={{ padding: '10px 12px', background: `${i.color}09`, borderRadius: 6, border: `1px solid ${i.color}28` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: i.color, flexShrink: 0 }} />
@@ -1041,13 +1068,13 @@ function RGAdoptionCard({ items, rangeLabel }) {
         })}
 
         {/* Area fills */}
-        {items.map(item => {
+        {scaledItems.map(item => {
           const { area } = buildPath((item.trend || []).map(p => p.v));
           return <path key={item.tool + 'a'} d={area} fill={item.color} fillOpacity="0.07" />;
         })}
 
         {/* Lines + end dots */}
-        {items.map(item => {
+        {scaledItems.map(item => {
           const { pts, line } = buildPath((item.trend || []).map(p => p.v));
           const last = pts[pts.length - 1];
           return (
