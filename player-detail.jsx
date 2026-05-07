@@ -1,6 +1,7 @@
 // Player Risk Dashboard - detailed player view
 
 const { useState: useStatePD } = React;
+const { KGEnums, KGConstants } = window;
 
 // Tiny seeded RNG — mirrors the one in data.jsx so charts are stable per player.
 function pdSeeded(seed) {
@@ -78,7 +79,11 @@ function PlayerDetail({ playerId, onBack }) {
   const betsGrowthPct     = Math.round(sd * 0.71);
   const avgDepositPct     = Math.max(1, Math.round(sd - depositsGrowthPct));
 
-  const sevColor = { high: '#DC2626', medium: '#D97706', low: '#16A34A' };
+  const sevColor = {
+    high: KGConstants.RISK_COLORS.high.main,
+    medium: KGConstants.RISK_COLORS.medium.main,
+    low: KGConstants.RISK_COLORS.low.main,
+  };
 
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -93,11 +98,11 @@ function PlayerDetail({ playerId, onBack }) {
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20 }}>
           <div style={{
             width: 56, height: 56, borderRadius: 8,
-            background: player.brand === 'betking' ? '#001041' : '#040B67',
+            background: player.brand === KGEnums.BRAND.BETKING ? '#001041' : '#040B67',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 20, color: player.brand === 'betking' ? '#FFC400' : '#F1C72F',
+            fontSize: 20, color: player.brand === KGEnums.BRAND.BETKING ? '#FFC400' : '#F1C72F',
             fontWeight: 700,
-          }}>{player.brand === 'betking' ? 'BK' : 'SS'}</div>
+          }}>{player.brand === KGEnums.BRAND.BETKING ? 'BK' : 'SS'}</div>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
               <h2 style={{ margin: 0, fontSize: 25, fontWeight: 600, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", letterSpacing: '-0.01em' }}>{player.id}</h2>

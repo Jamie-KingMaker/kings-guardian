@@ -1,11 +1,14 @@
 // Shared atoms for King's Guard
 
-const RISK_COLORS = {
-  high: { main: '#DC2626', bg: 'rgba(220, 38, 38, 0.08)', border: 'rgba(220, 38, 38, 0.24)', dim: '#FCA5A5' },
-  medium: { main: '#D97706', bg: 'rgba(217, 119, 6, 0.08)', border: 'rgba(217, 119, 6, 0.24)', dim: '#FCD34D' },
-  low: { main: '#16A34A', bg: 'rgba(22, 163, 74, 0.08)', border: 'rgba(22, 163, 74, 0.24)', dim: '#86EFAC' },
-  unrated: { main: '#64748B', bg: 'rgba(100, 116, 139, 0.08)', border: 'rgba(100, 116, 139, 0.24)', dim: '#CBD5E1' },
-};
+const { KGEnums, KGConstants } = window;
+
+const {
+  RISK_COLORS,
+  RISK_LABELS,
+  BRAND_ACCENTS,
+  BRAND_THEME,
+  COUNTRY_NAMES,
+} = KGConstants;
 
 function RiskDot({ level, size = 8 }) {
   const c = RISK_COLORS[level] || RISK_COLORS.unrated;
@@ -19,7 +22,6 @@ function RiskDot({ level, size = 8 }) {
 
 function RiskPill({ level, dense }) {
   const c = RISK_COLORS[level] || RISK_COLORS.unrated;
-  const labels = { high: 'High', medium: 'Medium', low: 'Low', unrated: 'Unrated' };
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -32,7 +34,7 @@ function RiskPill({ level, dense }) {
       lineHeight: 1, whiteSpace: 'nowrap',
     }}>
       <RiskDot level={level} size={6} />
-      {labels[level]}
+      {RISK_LABELS[level]}
     </span>
   );
 }
@@ -40,9 +42,9 @@ function RiskPill({ level, dense }) {
 function TrendArrow({ trend }) {
   if (!trend) return <span style={{ color: '#94A3B8' }}>—</span>;
   const map = {
-    up: { icon: '↗', color: '#DC2626', label: 'Increasing' },
-    stable: { icon: '→', color: '#64748B', label: 'Stable' },
-    down: { icon: '↘', color: '#16A34A', label: 'Decreasing' },
+    [KGEnums.TREND.UP]: { icon: '↗', color: '#DC2626', label: 'Increasing' },
+    [KGEnums.TREND.STABLE]: { icon: '→', color: '#64748B', label: 'Stable' },
+    [KGEnums.TREND.DOWN]: { icon: '↘', color: '#16A34A', label: 'Decreasing' },
   };
   const t = map[trend];
   return (
@@ -74,80 +76,23 @@ function Sparkline({ data, color = '#0F172A', height = 28, width = 96, fill = tr
 
 function fmtCurrency(amount, brand) {
   // BetKing = NGN, SuperSportBet = ZAR
-  if (brand === 'betking') {
+  if (brand === KGEnums.BRAND.BETKING) {
     return '₦' + amount.toLocaleString('en-NG');
   }
   return 'R' + amount.toLocaleString('en-ZA');
 }
 
 function fmtCompact(amount, brand) {
-  const sym = brand === 'betking' ? '₦' : 'R';
+  const sym = brand === KGEnums.BRAND.BETKING ? '₦' : 'R';
   if (amount >= 1000000) return sym + (amount / 1000000).toFixed(1) + 'M';
   if (amount >= 1000) return sym + (amount / 1000).toFixed(1) + 'k';
   return sym + amount;
 }
 
-const BRAND_ACCENTS = {
-  betking: { name: 'BetKing', primary: '#001041', accent: '#FFC400', country: ['NG'] },
-  supersportbet: { name: 'SuperSportBet', primary: '#040B67', accent: '#F1C72F', country: ['ZA', 'ZM'] },
-};
-
-// Brand-driven theming for the app shell. When a single brand is active,
-// the topbar takes the brand's primary color and accents (sidebar active state,
-// status pills, focus rings) take the brand's accent color. 'all' falls back
-// to the neutral King's Guard slate/amber palette.
-const BRAND_THEME = {
-  betking: {
-    name: 'BetKing',
-    topbar: '#001041',
-    topbarBorder: 'rgba(255, 196, 0, 0.18)',
-    sidebar: '#000B2D',
-    accent: '#FFC400',
-    accentText: '#FFC400',
-    accentBg: 'rgba(255, 196, 0, 0.12)',
-    accentBgSoft: 'rgba(255, 196, 0, 0.08)',
-    accentBorder: 'rgba(255, 196, 0, 0.22)',
-    logoSrc: 'logo-betking.svg',
-    logoWidth: 88,
-  },
-  supersportbet: {
-    name: 'SuperSportBet',
-    topbar: '#040B67',
-    topbarBorder: 'rgba(241, 199, 47, 0.20)',
-    sidebar: '#03084F',
-    accent: '#F1C72F',
-    accentText: '#F1C72F',
-    accentBg: 'rgba(241, 199, 47, 0.12)',
-    accentBgSoft: 'rgba(241, 199, 47, 0.08)',
-    accentBorder: 'rgba(241, 199, 47, 0.22)',
-    logoSrc: 'logo-supersportbet.svg',
-    logoWidth: 132,
-  },
-  all: {
-    name: "King's Guard",
-    topbar: '#0F172A',
-    topbarBorder: 'rgba(148, 163, 184, 0.12)',
-    sidebar: '#0B1220',
-    accent: '#F59E0B',
-    accentText: '#FBBF24',
-    accentBg: 'rgba(245, 158, 11, 0.10)',
-    accentBgSoft: 'rgba(245, 158, 11, 0.06)',
-    accentBorder: 'rgba(245, 158, 11, 0.20)',
-    logoSrc: null,
-    logoWidth: null,
-  },
-};
-
 function getBrandTheme(brand) {
   return BRAND_THEME[brand] || BRAND_THEME.all;
 }
 
-const COUNTRY_NAMES = {
-  ALL: 'All markets',
-  NG: 'Nigeria',
-  ZA: 'South Africa',
-  ZM: 'Zambia',
-};
 
 // Crown / Shield icon — original mark for King's Guard
 function GuardLogo({ size = 28 }) {

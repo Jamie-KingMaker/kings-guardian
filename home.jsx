@@ -1,30 +1,31 @@
 // Home Dashboard view for King's Guard
 
 const { useMemo: useMemoHome } = React;
+const { KGEnums } = window;
 
 function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, setCustomRange, onPlayerClick }) {
   const { PLAYERS, buildRangeData, MAU, MAU_TOTALS } = window.KGData;
   // Map 'custom' to nearest preset based on day count
   const effectiveRange = useMemoHome(() => {
-    if (dateRange !== 'custom' || !customRange?.start || !customRange?.end) return dateRange || '7d';
+    if (dateRange !== KGEnums.DATE_RANGE.CUSTOM || !customRange?.start || !customRange?.end) return dateRange || KGEnums.DATE_RANGE.LAST_7_DAYS;
     const days = Math.round((customRange.end - customRange.start) / 86400000) + 1;
-    if (days <= 10) return '7d';
-    if (days <= 22) return '14d';
-    if (days <= 60) return '30d';
-    if (days <= 120) return '90d';
-    return 'ytd';
+    if (days <= 10) return KGEnums.DATE_RANGE.LAST_7_DAYS;
+    if (days <= 22) return KGEnums.DATE_RANGE.LAST_14_DAYS;
+    if (days <= 60) return KGEnums.DATE_RANGE.LAST_30_DAYS;
+    if (days <= 120) return KGEnums.DATE_RANGE.LAST_90_DAYS;
+    return KGEnums.DATE_RANGE.YTD;
   }, [dateRange, customRange]);
   const rangeData = useMemoHome(() => buildRangeData(effectiveRange, brand), [effectiveRange, brand]);
 
   const filtered = PLAYERS.filter((p) =>
-  (brand === 'all' || p.brand === brand) && (
-  country === 'ALL' || p.country === country)
+  (brand === KGEnums.BRAND.ALL || p.brand === brand) && (
+  country === KGEnums.COUNTRY.ALL || p.country === country)
   );
 
   // Country-scoped MAU + distribution. Country filter scales totals proportionally.
   let countryShare = 1;
-  if (brand === 'supersportbet' && country === 'ZA') countryShare = MAU.supersportbet.ZA / MAU_TOTALS.supersportbet;else
-  if (brand === 'supersportbet' && country === 'ZM') countryShare = MAU.supersportbet.ZM / MAU_TOTALS.supersportbet;
+  if (brand === KGEnums.BRAND.SUPERSPORTBET && country === KGEnums.COUNTRY.ZA) countryShare = MAU[KGEnums.BRAND.SUPERSPORTBET].ZA / MAU_TOTALS[KGEnums.BRAND.SUPERSPORTBET];else
+  if (brand === KGEnums.BRAND.SUPERSPORTBET && country === KGEnums.COUNTRY.ZM) countryShare = MAU[KGEnums.BRAND.SUPERSPORTBET].ZM / MAU_TOTALS[KGEnums.BRAND.SUPERSPORTBET];
 
   const dist = {
     high: Math.round(rangeData.dist.high * countryShare),
@@ -44,7 +45,7 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 4 }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, marginBottom: 4 }}>
-            {brand === 'all' ? 'KingMakers Portfolio' : BRAND_ACCENTS[brand].name} · {COUNTRY_NAMES[country] || country}
+            {brand === KGEnums.BRAND.ALL ? 'KingMakers Portfolio' : BRAND_ACCENTS[brand].name} · {COUNTRY_NAMES[country] || country}
           </div>
           <h1 style={{ fontSize: 25, fontWeight: 600, color: '#0F172A', margin: 0, letterSpacing: '-0.01em' }}>Guardian Dashboard
 
@@ -129,7 +130,7 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
-        <DepositActivityCard data={rangeData.deposits} brand={brand} total={brand === 'supersportbet' ? rangeData.depositTotalSS : rangeData.depositTotal} growth={rangeData.depositGrowth} rangeLabel={rangeData.rangeLabel} deltaLabel={rangeData.deltaLabel} rangeKey={effectiveRange} dist={dist} mau={mau} />
+        <DepositActivityCard data={rangeData.deposits} brand={brand} total={brand === KGEnums.BRAND.SUPERSPORTBET ? rangeData.depositTotalSS : rangeData.depositTotal} growth={rangeData.depositGrowth} rangeLabel={rangeData.rangeLabel} deltaLabel={rangeData.deltaLabel} rangeKey={effectiveRange} dist={dist} mau={mau} />
         <TopMoversCard movers={rangeData.movers} brand={brand} country={country} onPlayerClick={onPlayerClick} />
       </div>
 
@@ -467,13 +468,12 @@ function RGCopilotCard({ brand, country, rangeLabel, dist, total, mau, sd, range
   const [riskFilter, setRiskFilter] = React.useState(null); // null | 'high' | 'medium' | 'low'
   const reqIdRef = React.useRef(0);
 
-  const brandLabel = brand === 'all' ? 'KingMakers Portfolio' :
-  brand === 'betking' ? 'BetKing' :
-  'SuperSportBet';
-  const countryLabel = country === 'ALL' ? 'all markets' :
-  country === 'NG' ? 'Nigeria' :
-  country === 'ZA' ? 'South Africa' :
-  country === 'ZM' ? 'Zambia' : country;
+  const brandLabel = brand === KGEnums.BRAND.ALL ? 'KingMakers Portfolio' :
+    (BRAND_THEME[brand]?.name || brand);
+  const countryLabel = country === KGEnums.COUNTRY.ALL ? 'all markets' :
+  country === KGEnums.COUNTRY.NG ? 'Nigeria' :
+  country === KGEnums.COUNTRY.ZA ? 'South Africa' :
+  country === KGEnums.COUNTRY.ZM ? 'Zambia' : country;
 
   React.useEffect(() => {
     const reqId = ++reqIdRef.current;
@@ -481,7 +481,7 @@ function RGCopilotCard({ brand, country, rangeLabel, dist, total, mau, sd, range
     setError(false);
 
     const pct = (n) => (n / total * 100).toFixed(1);
-    const depositTotal = brand === 'supersportbet' ? rangeData.depositTotalSS : rangeData.depositTotal;
+    const depositTotal = brand === KGEnums.BRAND.SUPERSPORTBET ? rangeData.depositTotalSS : rangeData.depositTotal;
     const topSignals = (rangeData.signals || []).slice(0, 3).map((s) => `${s.label} ${s.share}%`).join(', ');
     const topMover = (rangeData.movers || [])[0];
 

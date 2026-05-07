@@ -1,10 +1,11 @@
 // Top bar + sidebar shell for King's Guard
 
 const { useState } = React;
+const { KGEnums, KGConstants } = window;
 
 function TopBar({ brand, setBrand, country, setCountry, lastRefresh }) {
   const theme = getBrandTheme(brand);
-  const isBrand = brand === 'betking' || brand === 'supersportbet';
+  const isBrand = brand === KGEnums.BRAND.BETKING || brand === KGEnums.BRAND.SUPERSPORTBET;
   return (
     <div style={{
       height: 64, background: theme.topbar,
@@ -35,7 +36,7 @@ function TopBar({ brand, setBrand, country, setCountry, lastRefresh }) {
 
       {/* Brand switcher — segmented */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 6 }}>
-        {['betking', 'supersportbet'].map(b => {
+        {KGConstants.BRAND_OPTIONS.map(({ value: b }) => {
           const bt = BRAND_THEME[b];
           const active = brand === b;
           return (
@@ -62,10 +63,7 @@ function TopBar({ brand, setBrand, country, setCountry, lastRefresh }) {
       {/* Country */}
       <Dropdown
         value={country}
-        options={[
-          { v: 'ALL', label: 'All markets' },
-          ...(brand === 'betking' ? [{ v: 'NG', label: 'Nigeria' }] : [{ v: 'ZA', label: 'South Africa' }, { v: 'ZM', label: 'Zambia' }])
-        ]}
+        options={KGConstants.getCountryOptions(brand).map(option => ({ v: option.value, label: option.label }))}
         onChange={setCountry}
       />
 
@@ -216,7 +214,7 @@ function Sidebar({ activeView, setActiveView, brand, country, dateRange }) {
   );
 }
 
-function SidebarCopilot({ brand, country, dateRange, theme }) {
+function SidebarCopilot({ brand, country, dateRange }) {
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const [chatLoading, setChatLoading] = useState(false);
@@ -230,9 +228,9 @@ function SidebarCopilot({ brand, country, dateRange, theme }) {
     if (chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
   }, [chatHistory, chatLoading]);
 
-  const brandLabel = brand === 'all' ? 'KingMakers Portfolio' : brand === 'betking' ? 'BetKing' : 'SuperSportBet';
-  const countryLabel = country === 'ALL' ? 'all markets' : country === 'NG' ? 'Nigeria' : country === 'ZA' ? 'South Africa' : country === 'ZM' ? 'Zambia' : country;
-  const rangeLabel = dateRange === '24h' ? 'last 24 hours' : dateRange === '7d' ? 'last 7 days' : dateRange === '14d' ? 'last 14 days' : dateRange === '30d' ? 'last 30 days' : dateRange === '90d' ? 'last 90 days' : 'custom range';
+  const brandLabel = brand === KGEnums.BRAND.ALL ? 'KingMakers Portfolio' : BRAND_THEME[brand]?.name || BRAND_THEME[KGEnums.BRAND.ALL].name;
+  const countryLabel = country === KGEnums.COUNTRY.ALL ? 'all markets' : COUNTRY_NAMES[country] || country;
+  const rangeLabel = (KGConstants.getDateRangeLabel(dateRange) || 'Custom range').toLowerCase();
 
   const submit = (q) => {
     const trimmed = (q || '').trim();

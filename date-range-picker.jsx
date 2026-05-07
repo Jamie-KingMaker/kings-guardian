@@ -3,6 +3,7 @@
 // using the same slate palette + amber accents as the rest of the dashboard.
 
 const { useState: useStateDR, useEffect: useEffectDR, useRef: useRefDR } = React;
+const { KGEnums, KGConstants } = window;
 
 // Color tokens lifted from the rest of the dashboard
 const DR = {
@@ -61,15 +62,17 @@ function DateRangePicker({ value, onChange, custom, onCustom, pageMode }) {
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
 
-  const presets = [
-    { v: '7d', label: 'Last 7 days' },
-    { v: '14d', label: 'Last 14 days' },
-    { v: '30d', label: 'Last 30 days' },
-    { v: 'ytd', label: 'Year to date' },
-  ];
+  const presets = KGConstants.DATE_RANGE_OPTIONS.filter(option =>
+    [
+      KGEnums.DATE_RANGE.LAST_7_DAYS,
+      KGEnums.DATE_RANGE.LAST_14_DAYS,
+      KGEnums.DATE_RANGE.LAST_30_DAYS,
+      KGEnums.DATE_RANGE.YTD,
+    ].includes(option.value)
+  ).map(option => ({ v: option.value, label: option.label }));
 
   const triggerLabel = (() => {
-    if (value === 'custom' && custom?.start && custom?.end) {
+    if (value === KGEnums.DATE_RANGE.CUSTOM && custom?.start && custom?.end) {
       return `${fmtShort(custom.start)} – ${fmtShort(custom.end)}, ${custom.end.getFullYear()}`;
     }
     const p = presets.find(p => p.v === value);
@@ -94,14 +97,14 @@ function DateRangePicker({ value, onChange, custom, onCustom, pageMode }) {
   const applyCustom = () => {
     if (draft.start && draft.end) {
       onCustom(draft);
-      onChange('custom');
+      onChange(KGEnums.DATE_RANGE.CUSTOM);
       setOpen(false);
       setPicking(false);
     }
   };
 
   if (pageMode) {
-    const customActive = value === 'custom';
+    const customActive = value === KGEnums.DATE_RANGE.CUSTOM;
     const customLabel = customActive && custom?.start && custom?.end ? triggerLabel : 'Custom range…';
     return (
       <div ref={ref} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
@@ -205,10 +208,10 @@ function DateRangePicker({ value, onChange, custom, onCustom, pageMode }) {
           ))}
           <div style={{ height: 1, background: DR.divider, margin: '4px 0' }}></div>
           <PresetItem
-            selected={value === 'custom'}
+            selected={value === KGEnums.DATE_RANGE.CUSTOM}
             onClick={() => { setPicking(true); setDraft({ start: custom?.start || null, end: custom?.end || null }); }}
             label="Custom range…"
-            trailing={value === 'custom' && custom?.start && custom?.end
+            trailing={value === KGEnums.DATE_RANGE.CUSTOM && custom?.start && custom?.end
               ? `${fmtShort(custom.start)} – ${fmtShort(custom.end)}` : null}
           />
         </div>

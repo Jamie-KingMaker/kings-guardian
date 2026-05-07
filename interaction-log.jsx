@@ -1,27 +1,37 @@
 // Interaction Log — King's Guard CS Agent audit trail
 
 const { useState: useStateIL, useMemo: useMemoIL } = React;
+const { KGEnums, KGConstants } = window;
 
 // ── Type config ───────────────────────────────────────────────────────────────
-const IL_TYPES = {
-  outreach:       { label: 'Outreach',       color: '#0891B2', bg: 'rgba(8,145,178,0.10)'   },
-  'status-change':{ label: 'Status Change',  color: '#7C3AED', bg: 'rgba(124,58,237,0.10)'  },
-  note:           { label: 'Note',           color: '#64748B', bg: 'rgba(100,116,139,0.10)'  },
-  automated:      { label: 'Auto Flag',      color: '#D97706', bg: 'rgba(217,119,6,0.10)'   },
-  'rg-tool':      { label: 'RG Tool',        color: '#059669', bg: 'rgba(5,150,105,0.10)'   },
-  'limit-set':    { label: 'Limit Set',      color: '#059669', bg: 'rgba(5,150,105,0.10)'   },
-  'self-excluded':{ label: 'Self-Excluded',  color: '#475569', bg: 'rgba(71,85,105,0.10)'   },
-  'cooling-off':  { label: 'Cooling Off',    color: '#0369A1', bg: 'rgba(3,105,161,0.10)'   },
-};
-
-const IL_OUTCOMES = {
-  contacted:   { label: 'Contacted',   color: '#16A34A' },
-  'no-answer': { label: 'No Answer',   color: '#94A3B8' },
-  voicemail:   { label: 'Voicemail',   color: '#64748B' },
-  'email-sent':{ label: 'Email Sent',  color: '#0891B2' },
-  escalated:   { label: 'Escalated',   color: '#DC2626' },
-  declined:    { label: 'Declined',    color: '#D97706' },
-};
+const IL_TYPES = KGConstants.INTERACTION_TYPE_CFG;
+const IL_OUTCOMES = KGConstants.INTERACTION_OUTCOME_CFG;
+const IL_TYPE_FILTER_OPTIONS = [
+  ['all', 'All types'],
+  [KGEnums.INTERACTION_TYPE.OUTREACH, IL_TYPES[KGEnums.INTERACTION_TYPE.OUTREACH].label],
+  [KGEnums.INTERACTION_TYPE.STATUS_CHANGE, 'Status'],
+  [KGEnums.INTERACTION_TYPE.NOTE, 'Notes'],
+  [KGEnums.INTERACTION_TYPE.AUTOMATED, 'Auto'],
+  [KGEnums.INTERACTION_TYPE.RG_TOOL, IL_TYPES[KGEnums.INTERACTION_TYPE.RG_TOOL].label],
+  [KGEnums.INTERACTION_TYPE.LIMIT_SET, 'Limits'],
+];
+const IL_TYPE_FORM_OPTIONS = [
+  KGEnums.INTERACTION_TYPE.OUTREACH,
+  KGEnums.INTERACTION_TYPE.STATUS_CHANGE,
+  KGEnums.INTERACTION_TYPE.NOTE,
+  KGEnums.INTERACTION_TYPE.RG_TOOL,
+  KGEnums.INTERACTION_TYPE.LIMIT_SET,
+  KGEnums.INTERACTION_TYPE.COOLING_OFF,
+  KGEnums.INTERACTION_TYPE.SELF_EXCLUDED,
+];
+const IL_OUTCOME_FORM_OPTIONS = [
+  KGEnums.INTERACTION_OUTCOME.CONTACTED,
+  KGEnums.INTERACTION_OUTCOME.NO_ANSWER,
+  KGEnums.INTERACTION_OUTCOME.VOICEMAIL,
+  KGEnums.INTERACTION_OUTCOME.EMAIL_SENT,
+  KGEnums.INTERACTION_OUTCOME.ESCALATED,
+  KGEnums.INTERACTION_OUTCOME.DECLINED,
+];
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 // Only log-specific fields are stored here (no risk/tier — those live solely in
@@ -239,7 +249,7 @@ function InteractionLog({ brand, country, onPlayerClick }) {
 
         {/* Type filter */}
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
-          {[['all', 'All types'], ['outreach', 'Outreach'], ['status-change', 'Status'], ['note', 'Notes'], ['automated', 'Auto'], ['rg-tool', 'RG Tool'], ['limit-set', 'Limits']].map(([v, l]) => (
+          {IL_TYPE_FILTER_OPTIONS.map(([v, l]) => (
             <button key={v} onClick={() => setTypeFilter(v)} style={{
               padding: '4px 9px', borderRadius: 4, border: 'none', cursor: 'pointer', fontFamily: 'inherit',
               fontSize: 12, fontWeight: 600,
@@ -423,25 +433,14 @@ function LogInteractionModal({ onClose, onSubmit }) {
             <label style={modalLabel}>
               Type
               <select value={form.type} onChange={e => set('type', e.target.value)} style={modalInput}>
-                <option value="outreach">Outreach</option>
-                <option value="status-change">Status Change</option>
-                <option value="note">Note</option>
-                <option value="rg-tool">RG Tool</option>
-                <option value="limit-set">Limit Set</option>
-                <option value="cooling-off">Cooling Off</option>
-                <option value="self-excluded">Self-Excluded</option>
+                {IL_TYPE_FORM_OPTIONS.map(type => <option key={type} value={type}>{IL_TYPES[type].label}</option>)}
               </select>
             </label>
             <label style={modalLabel}>
               Outcome
               <select value={form.outcome} onChange={e => set('outcome', e.target.value)} style={modalInput}>
                 <option value="">— N/A</option>
-                <option value="contacted">Contacted</option>
-                <option value="no-answer">No Answer</option>
-                <option value="voicemail">Voicemail</option>
-                <option value="email-sent">Email Sent</option>
-                <option value="escalated">Escalated</option>
-                <option value="declined">Declined</option>
+                {IL_OUTCOME_FORM_OPTIONS.map(outcome => <option key={outcome} value={outcome}>{IL_OUTCOMES[outcome].label}</option>)}
               </select>
             </label>
           </div>

@@ -1,29 +1,16 @@
 // Player List — King's Guard CS Agent View
 
 const { useState: useStateList, useMemo: useMemoList } = React;
+const { KGEnums, KGConstants } = window;
 
 const PAGE_SIZE = 50;
-
-const STATUS_CFG = {
-  'under-review':  { label: 'Under Review',        short: 'Under Review',  color: '#6366F1', bg: 'rgba(99,102,241,0.10)',  priority: 2 },
-  'flagged':       { label: 'Flagged for Monitoring', short: 'Flagged',     color: '#D97706', bg: 'rgba(217,119,6,0.10)',   priority: 2 },
-  'outreach':      { label: 'Outreach Recommended', short: 'Outreach Rec.', color: '#DC2626', bg: 'rgba(220,38,38,0.10)',   priority: 1 },
-  'outreach-done': { label: 'Outreach Completed',   short: 'Contacted',     color: '#0891B2', bg: 'rgba(8,145,178,0.10)',   priority: 3 },
-  'rg-suggested':  { label: 'RG Tool Suggested',    short: 'RG Suggested',  color: '#7C3AED', bg: 'rgba(124,58,237,0.10)',  priority: 3 },
-  'self-excluded': { label: 'Self-Excluded',        short: 'Self-Excluded', color: '#475569', bg: 'rgba(71,85,105,0.10)',   priority: 4 },
-  'cooling-off':   { label: 'Cooling Off',          short: 'Cooling Off',   color: '#0369A1', bg: 'rgba(3,105,161,0.10)',   priority: 4 },
-  'deposit-limit': { label: 'Deposit Limit Set',    short: 'Dep. Limit',    color: '#059669', bg: 'rgba(5,150,105,0.10)',   priority: 4 },
-  'resolved':      { label: 'Resolved',             short: 'Resolved',      color: '#16A34A', bg: 'rgba(22,163,74,0.10)',   priority: 5 },
-  'reopened':      { label: 'Reopened',             short: 'Reopened',      color: '#EF4444', bg: 'rgba(239,68,68,0.10)',   priority: 1 },
-  'monitor':       { label: 'Flagged for Monitoring', short: 'Flagged',     color: '#D97706', bg: 'rgba(217,119,6,0.10)',   priority: 2 },
-};
-
-// Statuses that require agent action
-const ACTION_STATUSES = new Set(['outreach', 'reopened', 'flagged', 'under-review', 'monitor']);
+const STATUS_CFG = KGConstants.PLAYER_STATUS_CFG;
+const ACTION_STATUSES = new Set(KGConstants.ACTION_STATUSES);
+const RISK_ORDER = KGConstants.RISK_ORDER;
 
 function PlayerList({ brand, country, onPlayerClick, range = '7d' }) {
   const { PLAYERS, buildRangeData, getPlayerPopulation } = window.KGData;
-  const data = useMemoList(() => buildRangeData(range, brand === 'all' ? null : brand), [range, brand]);
+  const data = useMemoList(() => buildRangeData(range, brand === KGEnums.BRAND.ALL ? null : brand), [range, brand]);
 
   const [riskFilter, setRiskFilter]       = useStateList('all');
   const [productFilter, setProductFilter] = useStateList('all');
@@ -64,11 +51,11 @@ function PlayerList({ brand, country, onPlayerClick, range = '7d' }) {
   };
   const countryShareTotal = useMemoList(() => {
     if (country === 'ALL') return 1;
-    if (brand === 'betking') return 1;
-    if (brand !== 'all') return countryShareForBrand(brand, country);
-    const bkShare = (MAU.betking[country] || 0);
-    const ssShare = (MAU.supersportbet[country] || 0);
-    const total = window.KGData.MAU_TOTALS.all;
+    if (brand === KGEnums.BRAND.BETKING) return 1;
+    if (brand !== KGEnums.BRAND.ALL) return countryShareForBrand(brand, country);
+    const bkShare = (MAU[KGEnums.BRAND.BETKING][country] || 0);
+    const ssShare = (MAU[KGEnums.BRAND.SUPERSPORTBET][country] || 0);
+      const total = window.KGData.MAU_TOTALS[KGEnums.BRAND.ALL];
     return (bkShare + ssShare) / total;
   }, [brand, country]);
 
@@ -98,8 +85,8 @@ function PlayerList({ brand, country, onPlayerClick, range = '7d' }) {
     };
   }, [useFullPop, fullPop, brand, country, shortcut, moverIds, queueIds]);
 
-  const brandIsSingleCountry = (brand === 'betking');
-  const effectiveCountry = brandIsSingleCountry ? 'ALL' : country;
+  const brandIsSingleCountry = (brand === KGEnums.BRAND.BETKING);
+  const effectiveCountry = brandIsSingleCountry ? KGEnums.COUNTRY.ALL : country;
 
   const matchesPostFilter = (p) => {
     if (effectiveCountry !== 'ALL' && p.country !== effectiveCountry) return false;
@@ -128,7 +115,6 @@ function PlayerList({ brand, country, onPlayerClick, range = '7d' }) {
         (shortcut === null || (shortcut === 'movers' ? moverIds.has(p.id) : queueIds.has(p.id))) &&
         matchesPostFilter(p)
       );
-      const riskOrder = { high: 0, medium: 1, low: 2, unrated: 3 };
       r = r.slice().sort((a, b) => {
         if (sortKey === 'priority') {
           const pa = (STATUS_CFG[effectiveStatus(a)]?.priority ?? 99);
@@ -136,7 +122,7 @@ function PlayerList({ brand, country, onPlayerClick, range = '7d' }) {
           return pa !== pb ? pa - pb : (b.riskScore ?? -1) - (a.riskScore ?? -1);
         }
         if (sortKey === 'riskScore') return (b.riskScore ?? -1) - (a.riskScore ?? -1);
-        if (sortKey === 'risk') return riskOrder[a.risk] - riskOrder[b.risk];
+        if (sortKey === 'risk') return RISK_ORDER[a.risk] - RISK_ORDER[b.risk];
         if (sortKey === 'spend') return b.spend - a.spend;
         if (sortKey === 'spendDelta') return (b.spendDelta ?? -999) - (a.spendDelta ?? -999);
         return 0;
@@ -144,7 +130,6 @@ function PlayerList({ brand, country, onPlayerClick, range = '7d' }) {
       return { page: r.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE), filteredCount: r.length };
     }
 
-    const order = { high: 0, medium: 1, low: 2, unrated: 3 };
     const targetEnd = (page + 1) * PAGE_SIZE;
     const out = [];
 
@@ -196,7 +181,6 @@ function PlayerList({ brand, country, onPlayerClick, range = '7d' }) {
     if (sortKey === 'riskScore' && riskFilter === 'all') {
       // Natural order
     } else {
-      const riskOrder = { high: 0, medium: 1, low: 2, unrated: 3 };
       out.sort((a, b) => {
         if (sortKey === 'priority') {
           const pa = (STATUS_CFG[effectiveStatus(a)]?.priority ?? 99);
@@ -204,7 +188,7 @@ function PlayerList({ brand, country, onPlayerClick, range = '7d' }) {
           return pa !== pb ? pa - pb : (b.riskScore ?? -1) - (a.riskScore ?? -1);
         }
         if (sortKey === 'riskScore') return (b.riskScore ?? -1) - (a.riskScore ?? -1);
-        if (sortKey === 'risk') return riskOrder[a.risk] - riskOrder[b.risk];
+        if (sortKey === 'risk') return RISK_ORDER[a.risk] - RISK_ORDER[b.risk];
         if (sortKey === 'spend') return b.spend - a.spend;
         if (sortKey === 'spendDelta') return (b.spendDelta ?? -999) - (a.spendDelta ?? -999);
         return 0;
@@ -288,9 +272,9 @@ function PlayerList({ brand, country, onPlayerClick, range = '7d' }) {
       {/* Filter bar */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 10, background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 8, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 13, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', paddingLeft: 4 }}>Filter</span>
-        <Segment value={riskFilter} setValue={setRiskFilter} options={[['all', 'Active base'], ['high', 'High risk'], ['medium', 'Medium risk'], ['low', 'Low risk'], ['unrated', 'Insufficient data']]} colors={{ high: '#DC2626', medium: '#D97706', low: '#16A34A' }} />
+        <Segment value={riskFilter} setValue={setRiskFilter} options={[['all', 'Active base'], [KGEnums.RISK.HIGH, 'High risk'], [KGEnums.RISK.MEDIUM, 'Medium risk'], [KGEnums.RISK.LOW, 'Low risk'], [KGEnums.RISK.UNRATED, 'Insufficient data']]} colors={{ [KGEnums.RISK.HIGH]: '#DC2626', [KGEnums.RISK.MEDIUM]: '#D97706', [KGEnums.RISK.LOW]: '#16A34A' }} />
         <div style={{ width: 1, height: 20, background: '#E2E8F0' }}></div>
-        <Segment value={productFilter} setValue={setProductFilter} options={[['all', 'All products'], ['Sports', 'Sports'], ['Casino', 'Casino'], ['Virtuals', 'Virtuals']]} />
+        <Segment value={productFilter} setValue={setProductFilter} options={KGConstants.PRODUCT_OPTIONS.map(option => [option.value, option.label])} />
         <div style={{ width: 1, height: 20, background: '#E2E8F0' }}></div>
         {/* Status filter — full list */}
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{
@@ -300,25 +284,11 @@ function PlayerList({ brand, country, onPlayerClick, range = '7d' }) {
           <option value="all">Any status</option>
           <option value="needs-action">— Needs action</option>
           <option value="any-set">— Any status set</option>
-          <optgroup label="Needs action">
-            <option value="outreach">Outreach Recommended</option>
-            <option value="reopened">Reopened</option>
-            <option value="flagged">Flagged for Monitoring</option>
-            <option value="under-review">Under Review</option>
-            <option value="monitor">Monitoring (legacy)</option>
-          </optgroup>
-          <optgroup label="In progress">
-            <option value="outreach-done">Outreach Completed</option>
-            <option value="rg-suggested">RG Tool Suggested</option>
-          </optgroup>
-          <optgroup label="Self-managed">
-            <option value="self-excluded">Self-Excluded</option>
-            <option value="cooling-off">Cooling Off</option>
-            <option value="deposit-limit">Deposit Limit Set</option>
-          </optgroup>
-          <optgroup label="Closed">
-            <option value="resolved">Resolved</option>
-          </optgroup>
+          {KGConstants.PLAYER_STATUS_FILTER_GROUPS.map(group => (
+            <optgroup key={group.label} label={group.label}>
+              {group.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </optgroup>
+          ))}
         </select>
         <div style={{ width: 1, height: 20, background: '#E2E8F0' }}></div>
         <select value={signalFilter} onChange={e => setSignalFilter(e.target.value)} style={{
@@ -496,24 +466,11 @@ function StatusCell({ playerId, status, onUpdate }) {
         }}
       >
         <option value="">— No status</option>
-        <optgroup label="Needs action">
-          <option value="under-review">Under Review</option>
-          <option value="flagged">Flagged for Monitoring</option>
-          <option value="outreach">Outreach Recommended</option>
-          <option value="reopened">Reopened</option>
-        </optgroup>
-        <optgroup label="In progress">
-          <option value="outreach-done">Outreach Completed</option>
-          <option value="rg-suggested">RG Tool Suggested</option>
-        </optgroup>
-        <optgroup label="Self-managed">
-          <option value="self-excluded">Self-Excluded</option>
-          <option value="cooling-off">Cooling Off</option>
-          <option value="deposit-limit">Deposit Limit Set</option>
-        </optgroup>
-        <optgroup label="Closed">
-          <option value="resolved">Resolved</option>
-        </optgroup>
+        {KGConstants.PLAYER_STATUS_EDIT_GROUPS.map(group => (
+          <optgroup key={group.label} label={group.label}>
+            {group.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </optgroup>
+        ))}
       </select>
     );
   }
@@ -574,11 +531,11 @@ function PlayerRow({ p, onClick, isMover, isQueue, effectiveStatus, onStatusUpda
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{
             width: 24, height: 24, borderRadius: 4,
-            background: p.brand === 'betking' ? '#001041' : '#040B67',
+            background: p.brand === KGEnums.BRAND.BETKING ? '#001041' : '#040B67',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 11, color: p.brand === 'betking' ? '#FFC400' : '#F1C72F',
+            fontSize: 11, color: p.brand === KGEnums.BRAND.BETKING ? '#FFC400' : '#F1C72F',
             fontWeight: 700, flexShrink: 0,
-          }}>{p.brand === 'betking' ? 'BK' : 'SS'}</div>
+          }}>{p.brand === KGEnums.BRAND.BETKING ? 'BK' : 'SS'}</div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <span style={{ fontFamily: "'Roboto Mono', monospace", fontSize: 14, color: '#0F172A', fontWeight: 500 }}>{p.id}</span>

@@ -1,6 +1,7 @@
 // Population Risk — King's Guard macro-level population analytics
 
 const { useState: useStatePR, useMemo: useMemoRR } = React;
+const { KGConstants } = window;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmtK(n)  { return n >= 1e6 ? (n/1e6).toFixed(2)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'k' : String(n); }
@@ -80,27 +81,11 @@ function MiniSparkline({ values, color }) {
   );
 }
 
-const SIGNAL_META = {
-  'Spend spike (>50% w/w)':    { desc: 'Weekly spend ≥50% above prior-week baseline',                        severity: 'Critical' },
-  'Rapid re-deposit':           { desc: 'Deposit placed within 10 min of a losing session',                  severity: 'Critical' },
-  'Loss-chasing pattern':       { desc: 'Bet size escalating after consecutive losses in the same session',   severity: 'Critical' },
-  'Deposit frequency surge':    { desc: 'Deposit frequency 3× or more above 4-week average',                 severity: 'High'     },
-  'Multiple deposits/session':  { desc: '3+ deposits placed within a single betting session',                 severity: 'High'     },
-  'Failed deposit attempts':    { desc: 'Repeated failed attempts before a successful deposit clears',        severity: 'High'     },
-  'Late-night activity shift':  { desc: 'Sessions increasingly concentrated in the 22:00–04:00 window',       severity: 'Medium'   },
-  'Sports → Casino shift':      { desc: 'Primary product migrating from sports to casino or slots',           severity: 'Medium'   },
-  'Session length spike':       { desc: 'Average session duration more than 2× personal weekly baseline',     severity: 'Medium'   },
-  'Withdrawal reversal':        { desc: 'Pending withdrawal cancelled and funds returned to wallet for play', severity: 'Medium'   },
-};
-
-const SEVERITY_STYLE = {
-  Critical: { bg: 'rgba(220,38,38,0.08)',   color: '#DC2626', label: 'Critical' },
-  High:     { bg: 'rgba(217,119,6,0.10)',   color: '#D97706', label: 'High'     },
-  Medium:   { bg: 'rgba(100,116,139,0.10)', color: '#64748B', label: 'Medium'   },
-};
+const SIGNAL_META = KGConstants.SIGNAL_META;
+const SEVERITY_STYLE = KGConstants.SEVERITY_STYLE;
 
 // ── Main component ────────────────────────────────────────────────────────────
-function PopulationRisk({ brand, country, dateRange: dateRangeProp = '7d' }) {
+function PopulationRisk({ brand, dateRange: dateRangeProp = '7d' }) {
   const { buildRangeData } = window.KGData;
   const effectiveBrand = (brand === 'all' || !brand) ? null : brand;
 
@@ -177,8 +162,6 @@ function PopulationRisk({ brand, country, dateRange: dateRangeProp = '7d' }) {
   const dHigh = parseInt((statDeltas.high   || '+0').replace(/[^0-9]/g, '')) * (statDeltas.high?.startsWith('+')   ? 1 : -1);
   const dMed  = parseInt((statDeltas.medium || '+0').replace(/[^0-9]/g, '')) * (statDeltas.medium?.startsWith('+') ? 1 : -1);
 
-  const outreachTotal = Math.round(dist.high * 0.38 + dist.med * 0.04);
-  const contactedTotal = Math.round(outreachTotal * 0.47);
 
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
