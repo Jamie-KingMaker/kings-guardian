@@ -65,7 +65,8 @@ function generatePlayerInsights(player) {
 }
 
 function PlayerDetail({ playerId, onBack }) {
-  const player = window.KGData.PLAYERS.find(p => p.id === playerId) || window.KGData.PLAYERS[0];
+  const { getPlayerById, PLAYERS } = window.KGData;
+  const player = getPlayerById(playerId) || PLAYERS[0];
   const [tab, setTab] = useStatePD('overview');
 
   // All insights derived from the player's own data — no hardcoded values.

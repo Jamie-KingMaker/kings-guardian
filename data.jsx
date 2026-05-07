@@ -268,6 +268,15 @@ const PLAYERS = [
     status: null },
 ];
 
+const PLAYER_MAP = PLAYERS.reduce((acc, player) => {
+  acc[player.id] = player;
+  return acc;
+}, {});
+
+function getPlayerById(playerId) {
+  return PLAYER_MAP[playerId] || null;
+}
+
  const AGENTS = [
   { id: 'amaka-n', label: 'Amaka N.', initials: 'AN', kind: 'agent', selectable: true },
   { id: 'james-t', label: 'James T.', initials: 'JT', kind: 'agent', selectable: true },
@@ -280,6 +289,14 @@ const AGENT_MAP = AGENTS.reduce((acc, agent) => {
   acc[agent.id] = agent;
   return acc;
 }, {});
+
+function getAgentById(agentId) {
+  return AGENT_MAP[agentId] || null;
+}
+
+function getSelectableAgents() {
+  return AGENTS.filter(agent => agent.selectable);
+}
 
 // ===== Date-range-aware data generator =====
 // Returns coherent mock data sized & shaped for the chosen window.
@@ -487,7 +504,7 @@ function buildRangeData(rangeKey, brandKey) {
     'BK-9374821', 'BK-5621847', 'SS-2647193',
     'BK-1738294', 'SS-9012384', 'BK-2847362',
   ]
-    .map(id => PLAYERS.find(p => p.id === id))
+    .map(id => getPlayerById(id))
     .filter(Boolean)
     .map(p => {
       const from = MOVER_FROM[p.id] ?? (p.riskFrom || 0);
@@ -863,4 +880,8 @@ function getPlayerPopulation(brandKey, rangeKey) {
   return { length, get, slice, segments, bucketCounts };
 }
 
-window.KGData = { PLAYERS, AGENTS, AGENT_MAP, buildRangeData, RANGE_CONFIG, MAU, MAU_TOTALS, getPlayerPopulation, bucketCountsForBrand };
+window.KGData = {
+  PLAYERS, PLAYER_MAP, getPlayerById,
+  AGENTS, AGENT_MAP, getAgentById, getSelectableAgents,
+  buildRangeData, RANGE_CONFIG, MAU, MAU_TOTALS, getPlayerPopulation, bucketCountsForBrand,
+};

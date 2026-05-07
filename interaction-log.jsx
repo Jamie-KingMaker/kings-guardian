@@ -103,12 +103,8 @@ function fmtAbsTime(ts) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-// Build a stable id→player lookup from the single source of truth in data.jsx.
-// Falls back to a sensible default so the log never breaks if a player is unknown.
 function buildPlayerMap() {
-  const map = {};
-  ((window.KGData && window.KGData.PLAYERS) || []).forEach(p => { map[p.id] = p; });
-  return map;
+  return (window.KGData && window.KGData.PLAYER_MAP) || {};
 }
 
 function buildAgentMap() {
@@ -121,9 +117,9 @@ function findAgentIdByLabel(agentMap, label) {
 }
 
 function enrichLogEntry(entry, playerMap, agentMap) {
-  const p = playerMap[entry.player];
+  const p = (window.KGData && window.KGData.getPlayerById && window.KGData.getPlayerById(entry.player)) || playerMap[entry.player];
   const agentId = entry.agentId || findAgentIdByLabel(agentMap, entry.agent);
-  const agent = agentMap[agentId] || agentMap.system || { id: 'system', label: 'System', initials: '⚙', kind: 'system' };
+  const agent = (window.KGData && window.KGData.getAgentById && window.KGData.getAgentById(agentId)) || agentMap[agentId] || agentMap.system || { id: 'system', label: 'System', initials: '⚙', kind: 'system' };
   return {
     ...entry,
     agentId,
@@ -149,7 +145,7 @@ function InteractionLog({ brand, country, onPlayerClick }) {
   const [entries, setEntries] = useStateIL(() =>
     IL_DATA_SEED.map(e => enrichLogEntry(e, playerMap, agentMap))
   );
-  const agents = useMemoIL(() => (window.KGData && window.KGData.AGENTS) || [], []);
+  const agents = useMemoIL(() => ((window.KGData && window.KGData.getSelectableAgents && window.KGData.getSelectableAgents()) || (window.KGData && window.KGData.AGENTS) || []), []);
 
   const filtered = useMemoIL(() => {
     return entries.filter(e => {
@@ -263,7 +259,7 @@ function InteractionLog({ brand, country, onPlayerClick }) {
           fontSize: 13, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
         }}>
           <option value="all">All agents</option>
-          {agents.map(agent => <option key={agent.id} value={agent.id}>{agent.label}</option>)}
+          {[...(window.KGData && window.KGData.AGENTS ? window.KGData.AGENTS : agents)].map(agent => <option key={agent.id} value={agent.id}>{agent.label}</option>)}
         </select>
 
         {/* Risk filter */}
@@ -399,7 +395,7 @@ function InteractionLog({ brand, country, onPlayerClick }) {
 
 // ── Log interaction modal ─────────────────────────────────────────────────────
 function LogInteractionModal({ onClose, onSubmit }) {
-  const agents = ((window.KGData && window.KGData.AGENTS) || []).filter(agent => agent.selectable);
+  const agents = (window.KGData && window.KGData.getSelectableAgents && window.KGData.getSelectableAgents()) || [];
   const defaultAgentId = agents[0] ? agents[0].id : 'amaka-n';
   const [form, setForm] = React.useState({ player: '', agentId: defaultAgentId, type: 'outreach', desc: '', outcome: '' });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
