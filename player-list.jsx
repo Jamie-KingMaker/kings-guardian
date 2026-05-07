@@ -317,7 +317,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>Sort by</span>
-            <Segment value={sortKey} setValue={setSortKey} options={[[SORT_PRIORITY, 'Priority'], [SORT_RISK_SCORE, 'Score'], [SORT_RISK, 'Bucket'], [SORT_SPEND, 'Spend']]} compact />
+            <Segment value={sortKey} setValue={setSortKey} options={[[SORT_RISK_SCORE, 'Score'], [SORT_SPEND, 'Spend'], [SORT_PRIORITY, 'Priority']]} compact />
           </div>
         </div>
 
