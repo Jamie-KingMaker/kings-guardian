@@ -768,16 +768,16 @@ function PlayerRangeSelector({ range, setRange }) {
   );
 }
 
-// ── SpendDepositsCard — combined spend line + deposits bars (RiskTrendCard style) ──
+// ── SpendDepositsCard — DepositActivityCard-style combined chart for a single player ──
 function SpendDepositsCard({ player, range, setRange, tall }) {
   const { spend, dep, labels, escAt, escLabel } = getPlayerChartData(player, range);
 
-  const W = 600, H = tall ? 260 : 200;
+  const W = 600, H = tall ? 240 : 180;
   const PAD_L = 36, PAD_B = 24, PAD_T = 10, PAD_R = 8;
   const iW = W - PAD_L - PAD_R;
   const iH = H - PAD_T - PAD_B;
 
-  // Spend line — normalise to its own min/max
+  // Spend line — normalise to min/max range
   const maxSpend = Math.max(...spend);
   const minSpend = Math.min(...spend);
   const spendRng = maxSpend - minSpend || 1;
@@ -790,62 +790,81 @@ function SpendDepositsCard({ player, range, setRange, tall }) {
   const spendLine = spendPts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
   const spendArea = spendLine + ` L${spendPts[spendPts.length - 1][0].toFixed(1)},${PAD_T + iH} L${PAD_L},${PAD_T + iH}Z`;
 
-  // Deposits bars — pinned to the bottom, max height = 28% of chart area
+  // Deposits bars — anchored to baseline, capped at 30% of chart height
   const maxDep = Math.max(...dep, 1);
-  const barMaxH = iH * 0.28;
+  const barMaxH = iH * 0.30;
   const barW = Math.max(4, xStep * 0.52);
 
-  // Y-axis grid labels (spend axis)
+  // Y-axis grid (spend scale)
   const gridVals = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(minSpend + spendRng * (1 - t)));
-  const fmtY = v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`;
+  const fmtY = v => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`;
 
   const rangeLabelMap = { '24h': 'Last 24 hours', '7d': 'Last 7 days', '30d': 'Last 30 days' };
+  const sd = player.spendDelta || 0;
+  const depositsGrowthPct = Math.round(sd * 0.62);
+  const totalDep = dep.reduce((s, d) => s + d, 0);
+
+  // Mini stat card — matches DepositActivityCard's miniCard helper
+  const miniCard = (label, value, sub, accentColor) => (
+    <div style={{ padding: '10px 12px', borderRadius: 6, background: accentColor ? `${accentColor}08` : '#F8FAFC', border: `1px solid ${accentColor ? accentColor + '20' : '#F1F5F9'}` }}>
+      <div style={{ fontSize: 11, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: accentColor || '#0F172A', fontFamily: "'Roboto Mono', monospace", letterSpacing: '-0.01em', lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 3 }}>{sub}</div>
+    </div>
+  );
 
   return (
     <div style={{ ...cardStyle }}>
-      {/* Header: title + tabs — identical pattern to RiskTrendCard */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+      {/* Header — mirrors DepositActivityCard exactly */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12 }}>
+        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, flexShrink: 0 }}>
           Spend &amp; Deposits · {rangeLabelMap[range]}
         </div>
         <PlayerRangeSelector range={range} setRange={setRange} />
       </div>
 
+      {/* Mini stat summary — same pattern as DepositActivityCard */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
+        {miniCard('Total spend', fmtCompact(player.spend, player.brand), `+${sd}% vs prior`, '#0F172A')}
+        {miniCard('Deposits', totalDep, `+${depositsGrowthPct}% vs prior`, '#DC2626')}
+        {miniCard('Avg deposit', fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand), 'per transaction', null)}
+      </div>
+
       {/* Legend */}
-      <div style={{ display: 'flex', gap: 14, fontSize: 13, marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#475569', fontWeight: 500 }}>
-          <svg width="18" height="10" style={{ flexShrink: 0 }}>
-            <line x1="0" y1="5" x2="18" y2="5" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" />
-          </svg>
-          Spend
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#475569', fontWeight: 500 }}>
-          <svg width="10" height="10" style={{ flexShrink: 0 }}>
-            <rect x="0" y="0" width="10" height="10" fill="#DC2626" rx="2" />
-          </svg>
-          Deposits
-        </div>
+      <div style={{ display: 'flex', gap: 14, marginBottom: 8 }}>
+        {[
+          { label: 'Spend', color: '#0F172A', dash: false, isBar: false },
+          { label: 'Deposits', color: '#DC2626', dash: false, isBar: true },
+        ].map(({ label, color, isBar }) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            {isBar
+              ? <div style={{ width: 10, height: 10, background: color, borderRadius: 2, flexShrink: 0 }} />
+              : <div style={{ width: 18, height: 2, background: color, borderRadius: 1, flexShrink: 0 }} />
+            }
+            <span style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>{label}</span>
+          </div>
+        ))}
       </div>
 
       {/* SVG chart */}
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
-        {/* Horizontal grid lines */}
+        {/* Grid lines */}
         {gridVals.map((v, i) => {
           const y = PAD_T + iH - ((v - minSpend) / spendRng) * iH;
           return (
             <g key={i}>
-              <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#F1F5F9" strokeWidth="1" />
+              <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#E2E8F0" strokeWidth="1" />
               <text x={PAD_L - 4} y={y + 4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(v)}</text>
             </g>
           );
         })}
 
-        {/* Spend: filled area + line + endpoint dot */}
+        {/* Spend: area fill + line + endpoint dot */}
         <path d={spendArea} fill="#0F172A" fillOpacity="0.06" />
         <path d={spendLine} fill="none" stroke="#0F172A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         <circle cx={spendPts[spendPts.length - 1][0]} cy={spendPts[spendPts.length - 1][1]} r="3" fill="#0F172A" stroke="#fff" strokeWidth="1.5" />
 
-        {/* Deposits: bars anchored to bottom */}
+        {/* Deposits: bars anchored to baseline */}
         {dep.map((d, i) => d > 0 && (
           <rect key={i}
             x={PAD_L + i * xStep - barW / 2}
@@ -855,11 +874,12 @@ function SpendDepositsCard({ player, range, setRange, tall }) {
           />
         ))}
 
-        {/* Escalation threshold marker */}
-        <line x1={PAD_L + escAt * xStep} y1={PAD_T} x2={PAD_L + escAt * xStep} y2={PAD_T + iH} stroke="#D97706" strokeWidth="1" strokeDasharray="3,3" />
+        {/* Escalation marker */}
+        <line x1={PAD_L + escAt * xStep} y1={PAD_T} x2={PAD_L + escAt * xStep} y2={PAD_T + iH}
+          stroke="#D97706" strokeWidth="1" strokeDasharray="3,3" />
         <text x={PAD_L + escAt * xStep + 4} y={PAD_T + 10} fontSize="10" fill="#D97706" fontWeight="600">{escLabel}</text>
 
-        {/* X-axis labels */}
+        {/* X-axis date labels */}
         {labels.map((l, i) => l && (
           <text key={i} x={PAD_L + i * xStep} y={H - 6} fontSize="11"
             textAnchor={i === 0 ? 'start' : i === spend.length - 1 ? 'end' : 'middle'}
