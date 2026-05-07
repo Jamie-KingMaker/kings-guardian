@@ -1008,7 +1008,7 @@ function RGAdoptionCard({ items, rangeLabel }) {
     <div style={cardStyle}>
       {/* Header */}
       <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>
-        Responsible Gaming tools used by players · {rangeLabel}
+        Responsible Gaming Tool Usage · {rangeLabel}
       </div>
 
       {/* Stat mini-cards */}
