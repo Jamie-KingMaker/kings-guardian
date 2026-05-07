@@ -268,6 +268,19 @@ const PLAYERS = [
     status: null },
 ];
 
+ const AGENTS = [
+  { id: 'amaka-n', label: 'Amaka N.', initials: 'AN', kind: 'agent', selectable: true },
+  { id: 'james-t', label: 'James T.', initials: 'JT', kind: 'agent', selectable: true },
+  { id: 'sarah-o', label: 'Sarah O.', initials: 'SO', kind: 'agent', selectable: true },
+  { id: 'chidi-e', label: 'Chidi E.', initials: 'CE', kind: 'agent', selectable: true },
+  { id: 'system', label: 'System', initials: '⚙', kind: 'system', selectable: false },
+];
+
+const AGENT_MAP = AGENTS.reduce((acc, agent) => {
+  acc[agent.id] = agent;
+  return acc;
+}, {});
+
 // ===== Date-range-aware data generator =====
 // Returns coherent mock data sized & shaped for the chosen window.
 
@@ -850,4 +863,4 @@ function getPlayerPopulation(brandKey, rangeKey) {
   return { length, get, slice, segments, bucketCounts };
 }
 
-window.KGData = { PLAYERS, buildRangeData, RANGE_CONFIG, MAU, MAU_TOTALS, getPlayerPopulation, bucketCountsForBrand };
+window.KGData = { PLAYERS, AGENTS, AGENT_MAP, buildRangeData, RANGE_CONFIG, MAU, MAU_TOTALS, getPlayerPopulation, bucketCountsForBrand };

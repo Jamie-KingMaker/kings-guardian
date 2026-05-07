@@ -23,69 +23,68 @@ const IL_OUTCOMES = {
   declined:    { label: 'Declined',    color: '#D97706' },
 };
 
-const AGENTS = ['Amaka N.', 'James T.', 'Sarah O.', 'Chidi E.', 'System'];
-
 // ── Mock data ─────────────────────────────────────────────────────────────────
 // Only log-specific fields are stored here (no risk/tier — those live solely in
-// window.KGData.PLAYERS and are merged in at runtime by enrichLogEntry()).
+// window.KGData.PLAYERS / window.KGData.AGENTS and are merged in at runtime by
+// enrichLogEntry()).
 const IL_DATA_SEED = [
   // May 5
-  { id: 1,  ts: '2026-05-05T10:14', player: 'BK-4827193', agent: 'Amaka N.',  type: 'outreach',      desc: 'Called player regarding rapid re-deposit pattern (3 deposits within 12 min of session loss). Player acknowledged concern and agreed to review current limits.', outcome: 'contacted' },
-  { id: 2,  ts: '2026-05-05T09:55', player: 'BK-3918274', agent: 'System',    type: 'automated',     desc: 'Score escalated 58 → 81. Trigger: 3 consecutive rapid re-deposits within 15 minutes of session end, deposit frequency up 162% vs prior 7d.', outcome: null },
-  { id: 3,  ts: '2026-05-05T09:47', player: 'BK-3918274', agent: 'James T.',  type: 'status-change', desc: 'Status updated: Monitoring → Outreach Recommended. Score crossed 80 threshold, re-deposit speed now 8 min avg.', outcome: null },
-  { id: 4,  ts: '2026-05-05T09:31', player: 'BK-5804359', agent: 'Sarah O.',  type: 'outreach',      desc: 'Email sent following two missed call attempts. Included link to deposit limit settings and RG resources page.', outcome: 'email-sent' },
-  { id: 5,  ts: '2026-05-05T09:12', player: 'BK-9188862', agent: 'System',    type: 'automated',     desc: 'Late-night session alert: 4.2 hours continuous play between 01:00–05:12. No self-imposed breaks detected.', outcome: null },
-  { id: 6,  ts: '2026-05-05T08:58', player: 'BK-2847362', agent: 'Amaka N.',  type: 'note',          desc: 'Player contacted support requesting info on deposit limits. Directed to limit-setting flow. Monitoring for follow-through — flagged for review in 48h.', outcome: null },
+  { id: 1,  ts: '2026-05-05T10:14', player: 'BK-4827193', agentId: 'amaka-n', type: 'outreach',      desc: 'Called player regarding rapid re-deposit pattern (3 deposits within 12 min of session loss). Player acknowledged concern and agreed to review current limits.', outcome: 'contacted' },
+  { id: 2,  ts: '2026-05-05T09:55', player: 'BK-3918274', agentId: 'system',  type: 'automated',     desc: 'Score escalated 58 → 81. Trigger: 3 consecutive rapid re-deposits within 15 minutes of session end, deposit frequency up 162% vs prior 7d.', outcome: null },
+  { id: 3,  ts: '2026-05-05T09:47', player: 'BK-3918274', agentId: 'james-t', type: 'status-change', desc: 'Status updated: Monitoring → Outreach Recommended. Score crossed 80 threshold, re-deposit speed now 8 min avg.', outcome: null },
+  { id: 4,  ts: '2026-05-05T09:31', player: 'BK-5804359', agentId: 'sarah-o', type: 'outreach',      desc: 'Email sent following two missed call attempts. Included link to deposit limit settings and RG resources page.', outcome: 'email-sent' },
+  { id: 5,  ts: '2026-05-05T09:12', player: 'BK-9188862', agentId: 'system',  type: 'automated',     desc: 'Late-night session alert: 4.2 hours continuous play between 01:00–05:12. No self-imposed breaks detected.', outcome: null },
+  { id: 6,  ts: '2026-05-05T08:58', player: 'BK-2847362', agentId: 'amaka-n', type: 'note',          desc: 'Player contacted support requesting info on deposit limits. Directed to limit-setting flow. Monitoring for follow-through — flagged for review in 48h.', outcome: null },
   // May 4
-  { id: 7,  ts: '2026-05-04T17:43', player: 'BK-4827193', agent: 'Amaka N.',  type: 'status-change', desc: 'Status updated: Outreach Recommended → Outreach Completed. Successful call made, player receptive.', outcome: null },
-  { id: 8,  ts: '2026-05-04T17:22', player: 'BK-1736294', agent: 'James T.',  type: 'outreach',      desc: 'Second call attempt — no answer. Left voicemail with RG support line number. Will retry tomorrow 09:00.', outcome: 'voicemail' },
-  { id: 9,  ts: '2026-05-04T16:55', player: 'BK-7382918', agent: 'System',    type: 'automated',     desc: 'Spend spike detected: ₦142,000 deposited across 7 transactions today, 2× daily average. Score increased 18 points.', outcome: null },
-  { id: 10, ts: '2026-05-04T16:30', player: 'BK-7382918', agent: 'Sarah O.',  type: 'status-change', desc: 'Status updated: No status → Flagged for Monitoring. Score 74, rising trend, no prior contact on record.', outcome: null },
-  { id: 11, ts: '2026-05-04T15:04', player: 'BK-4873494', agent: 'Chidi E.',  type: 'note',          desc: 'Escalated to supervisor review. Player has declined two outreach attempts and made 6 deposits in the past 4 hours. Considering formal RG intervention pathway.', outcome: null },
-  { id: 12, ts: '2026-05-04T14:48', player: 'BK-4873494', agent: 'Amaka N.',  type: 'outreach',      desc: 'Second call attempt — player picked up but ended the call immediately. Attempt logged.', outcome: 'declined' },
-  { id: 13, ts: '2026-05-04T13:22', player: 'BK-9374821', agent: 'James T.',  type: 'rg-tool',       desc: 'Player guided through deposit limit configuration during call. Set a ₦50,000/day limit. Player stated they find this helpful.', outcome: null },
-  { id: 14, ts: '2026-05-04T13:05', player: 'BK-9374821', agent: 'James T.',  type: 'status-change', desc: 'Status updated: Outreach Recommended → RG Tool Suggested. Deposit limit now active.', outcome: null },
-  { id: 15, ts: '2026-05-04T12:41', player: 'BK-8287974', agent: 'Sarah O.',  type: 'outreach',      desc: 'Spoke with player for 11 minutes. Player stated they are aware of their behaviour and plan to take a break this weekend. No tool adoption at this time.', outcome: 'contacted' },
-  { id: 16, ts: '2026-05-04T11:18', player: 'BK-3321643', agent: 'System',    type: 'automated',     desc: 'Sports → Casino product migration detected. Player shifted 78% of bets to Casino in the past 3 days — leading indicator pattern.', outcome: null },
-  { id: 17, ts: '2026-05-04T10:55', player: 'BK-3321643', agent: 'Amaka N.',  type: 'status-change', desc: 'Status updated: No status → Under Review. Product migration pattern noted, monitoring escalation signals.', outcome: null },
-  { id: 18, ts: '2026-05-04T10:30', player: 'BK-2398779', agent: 'System',    type: 'automated',     desc: 'Failed deposit attempts spike: 9 failed attempts in 2 hours. Pattern may indicate payment workaround behaviour.', outcome: null },
+  { id: 7,  ts: '2026-05-04T17:43', player: 'BK-4827193', agentId: 'amaka-n', type: 'status-change', desc: 'Status updated: Outreach Recommended → Outreach Completed. Successful call made, player receptive.', outcome: null },
+  { id: 8,  ts: '2026-05-04T17:22', player: 'BK-1736294', agentId: 'james-t', type: 'outreach',      desc: 'Second call attempt — no answer. Left voicemail with RG support line number. Will retry tomorrow 09:00.', outcome: 'voicemail' },
+  { id: 9,  ts: '2026-05-04T16:55', player: 'BK-7382918', agentId: 'system',  type: 'automated',     desc: 'Spend spike detected: ₦142,000 deposited across 7 transactions today, 2× daily average. Score increased 18 points.', outcome: null },
+  { id: 10, ts: '2026-05-04T16:30', player: 'BK-7382918', agentId: 'sarah-o', type: 'status-change', desc: 'Status updated: No status → Flagged for Monitoring. Score 74, rising trend, no prior contact on record.', outcome: null },
+  { id: 11, ts: '2026-05-04T15:04', player: 'BK-4873494', agentId: 'chidi-e', type: 'note',          desc: 'Escalated to supervisor review. Player has declined two outreach attempts and made 6 deposits in the past 4 hours. Considering formal RG intervention pathway.', outcome: null },
+  { id: 12, ts: '2026-05-04T14:48', player: 'BK-4873494', agentId: 'amaka-n', type: 'outreach',      desc: 'Second call attempt — player picked up but ended the call immediately. Attempt logged.', outcome: 'declined' },
+  { id: 13, ts: '2026-05-04T13:22', player: 'BK-9374821', agentId: 'james-t', type: 'rg-tool',       desc: 'Player guided through deposit limit configuration during call. Set a ₦50,000/day limit. Player stated they find this helpful.', outcome: null },
+  { id: 14, ts: '2026-05-04T13:05', player: 'BK-9374821', agentId: 'james-t', type: 'status-change', desc: 'Status updated: Outreach Recommended → RG Tool Suggested. Deposit limit now active.', outcome: null },
+  { id: 15, ts: '2026-05-04T12:41', player: 'BK-8287974', agentId: 'sarah-o', type: 'outreach',      desc: 'Spoke with player for 11 minutes. Player stated they are aware of their behaviour and plan to take a break this weekend. No tool adoption at this time.', outcome: 'contacted' },
+  { id: 16, ts: '2026-05-04T11:18', player: 'BK-3321643', agentId: 'system',  type: 'automated',     desc: 'Sports → Casino product migration detected. Player shifted 78% of bets to Casino in the past 3 days — leading indicator pattern.', outcome: null },
+  { id: 17, ts: '2026-05-04T10:55', player: 'BK-3321643', agentId: 'amaka-n', type: 'status-change', desc: 'Status updated: No status → Under Review. Product migration pattern noted, monitoring escalation signals.', outcome: null },
+  { id: 18, ts: '2026-05-04T10:30', player: 'BK-2398779', agentId: 'system',  type: 'automated',     desc: 'Failed deposit attempts spike: 9 failed attempts in 2 hours. Pattern may indicate payment workaround behaviour.', outcome: null },
   // May 3
-  { id: 19, ts: '2026-05-03T16:44', player: 'BK-7336219', agent: 'James T.',  type: 'outreach',      desc: 'Outreach call placed — no answer. SMS sent as backup with RG helpline.', outcome: 'no-answer' },
-  { id: 20, ts: '2026-05-03T15:55', player: 'BK-9188862', agent: 'Amaka N.',  type: 'outreach',      desc: 'Called player. They confirmed they had been playing more than usual due to a stressful period at work. Provided emotional support script and offered cooling-off option.', outcome: 'contacted' },
-  { id: 21, ts: '2026-05-03T15:42', player: 'BK-9188862', agent: 'Amaka N.',  type: 'cooling-off',   desc: 'Player elected a 72-hour cooling-off period during the call. Status updated accordingly.', outcome: null },
-  { id: 22, ts: '2026-05-03T15:40', player: 'BK-9188862', agent: 'Amaka N.',  type: 'status-change', desc: 'Status updated: Outreach Recommended → Cooling Off. Player self-initiated cooling-off period.', outcome: null },
-  { id: 23, ts: '2026-05-03T14:20', player: 'BK-4252587', agent: 'Sarah O.',  type: 'note',          desc: 'Inbound support call — player asked how to set a loss limit. Assisted through the process. Limit of ₦30,000/session now active.', outcome: null },
-  { id: 24, ts: '2026-05-03T14:18', player: 'BK-4252587', agent: 'Sarah O.',  type: 'limit-set',     desc: 'Loss limit of ₦30,000/session set following inbound support request. Player-initiated.', outcome: null },
-  { id: 25, ts: '2026-05-03T13:00', player: 'BK-6735223', agent: 'Chidi E.',  type: 'outreach',      desc: 'Supervisor-led call given VIP tier and score of 85. Player denied concern, stated recent deposit volumes are due to a windfall. Escalation note added.', outcome: 'contacted' },
-  { id: 26, ts: '2026-05-03T12:55', player: 'BK-6735223', agent: 'Chidi E.',  type: 'note',          desc: 'Player claims higher deposits this period are from a salary bonus. Inconsistent with 3am session pattern. Score remains 85. Continue monitoring — revisit if score increases further.', outcome: null },
-  { id: 27, ts: '2026-05-03T11:35', player: 'BK-1769791', agent: 'James T.',  type: 'outreach',      desc: 'Spoke to player briefly — they asked to be called back tomorrow. Agreed on 10:00 window.', outcome: 'contacted' },
-  { id: 28, ts: '2026-05-03T10:02', player: 'BK-9838926', agent: 'System',    type: 'automated',     desc: 'Burst deposit cluster: 5 deposits in 28 minutes totalling ₦95,000. Highest single-session deposit velocity this player has recorded.', outcome: null },
+  { id: 19, ts: '2026-05-03T16:44', player: 'BK-7336219', agentId: 'james-t', type: 'outreach',      desc: 'Outreach call placed — no answer. SMS sent as backup with RG helpline.', outcome: 'no-answer' },
+  { id: 20, ts: '2026-05-03T15:55', player: 'BK-9188862', agentId: 'amaka-n', type: 'outreach',      desc: 'Called player. They confirmed they had been playing more than usual due to a stressful period at work. Provided emotional support script and offered cooling-off option.', outcome: 'contacted' },
+  { id: 21, ts: '2026-05-03T15:42', player: 'BK-9188862', agentId: 'amaka-n', type: 'cooling-off',   desc: 'Player elected a 72-hour cooling-off period during the call. Status updated accordingly.', outcome: null },
+  { id: 22, ts: '2026-05-03T15:40', player: 'BK-9188862', agentId: 'amaka-n', type: 'status-change', desc: 'Status updated: Outreach Recommended → Cooling Off. Player self-initiated cooling-off period.', outcome: null },
+  { id: 23, ts: '2026-05-03T14:20', player: 'BK-4252587', agentId: 'sarah-o', type: 'note',          desc: 'Inbound support call — player asked how to set a loss limit. Assisted through the process. Limit of ₦30,000/session now active.', outcome: null },
+  { id: 24, ts: '2026-05-03T14:18', player: 'BK-4252587', agentId: 'sarah-o', type: 'limit-set',     desc: 'Loss limit of ₦30,000/session set following inbound support request. Player-initiated.', outcome: null },
+  { id: 25, ts: '2026-05-03T13:00', player: 'BK-6735223', agentId: 'chidi-e', type: 'outreach',      desc: 'Supervisor-led call given VIP tier and score of 85. Player denied concern, stated recent deposit volumes are due to a windfall. Escalation note added.', outcome: 'contacted' },
+  { id: 26, ts: '2026-05-03T12:55', player: 'BK-6735223', agentId: 'chidi-e', type: 'note',          desc: 'Player claims higher deposits this period are from a salary bonus. Inconsistent with 3am session pattern. Score remains 85. Continue monitoring — revisit if score increases further.', outcome: null },
+  { id: 27, ts: '2026-05-03T11:35', player: 'BK-1769791', agentId: 'james-t', type: 'outreach',      desc: 'Spoke to player briefly — they asked to be called back tomorrow. Agreed on 10:00 window.', outcome: 'contacted' },
+  { id: 28, ts: '2026-05-03T10:02', player: 'BK-9838926', agentId: 'system',  type: 'automated',     desc: 'Burst deposit cluster: 5 deposits in 28 minutes totalling ₦95,000. Highest single-session deposit velocity this player has recorded.', outcome: null },
   // May 2
-  { id: 29, ts: '2026-05-02T17:15', player: 'BK-4873494', agent: 'Amaka N.',  type: 'outreach',      desc: 'First outreach attempt — no answer. Voicemail not available. Email queued.', outcome: 'no-answer' },
-  { id: 30, ts: '2026-05-02T16:50', player: 'BK-4873494', agent: 'System',    type: 'automated',     desc: 'Score escalated 61 → 79. Three failed deposit attempts followed by two large successful deposits. Flagged for immediate review.', outcome: null },
-  { id: 31, ts: '2026-05-02T15:30', player: 'BK-1736294', agent: 'James T.',  type: 'outreach',      desc: 'First call attempt. No answer. Scheduled follow-up for May 4.', outcome: 'no-answer' },
-  { id: 32, ts: '2026-05-02T14:44', player: 'BK-5804359', agent: 'Sarah O.',  type: 'outreach',      desc: 'Called player. Discussed RG options. Player said they would think about it. No commitment made. Follow-up email sent.', outcome: 'contacted' },
-  { id: 33, ts: '2026-05-02T13:15', player: 'BK-9838926', agent: 'Amaka N.',  type: 'status-change', desc: 'Status updated: No status → Outreach Recommended. Score 77, burst deposits flagged by automated rule.', outcome: null },
-  { id: 34, ts: '2026-05-02T11:30', player: 'BK-7882145', agent: 'System',    type: 'automated',     desc: 'Self-exclusion request received via support chat. Processed automatically and ingested from product platform.', outcome: null },
-  { id: 35, ts: '2026-05-02T11:30', player: 'BK-7882145', agent: 'System',    type: 'self-excluded', desc: 'Player self-excluded via product platform. 30-day exclusion period active. Account access suspended.', outcome: null },
+  { id: 29, ts: '2026-05-02T17:15', player: 'BK-4873494', agentId: 'amaka-n', type: 'outreach',      desc: 'First outreach attempt — no answer. Voicemail not available. Email queued.', outcome: 'no-answer' },
+  { id: 30, ts: '2026-05-02T16:50', player: 'BK-4873494', agentId: 'system',  type: 'automated',     desc: 'Score escalated 61 → 79. Three failed deposit attempts followed by two large successful deposits. Flagged for immediate review.', outcome: null },
+  { id: 31, ts: '2026-05-02T15:30', player: 'BK-1736294', agentId: 'james-t', type: 'outreach',      desc: 'First call attempt. No answer. Scheduled follow-up for May 4.', outcome: 'no-answer' },
+  { id: 32, ts: '2026-05-02T14:44', player: 'BK-5804359', agentId: 'sarah-o', type: 'outreach',      desc: 'Called player. Discussed RG options. Player said they would think about it. No commitment made. Follow-up email sent.', outcome: 'contacted' },
+  { id: 33, ts: '2026-05-02T13:15', player: 'BK-9838926', agentId: 'amaka-n', type: 'status-change', desc: 'Status updated: No status → Outreach Recommended. Score 77, burst deposits flagged by automated rule.', outcome: null },
+  { id: 34, ts: '2026-05-02T11:30', player: 'BK-7882145', agentId: 'system',  type: 'automated',     desc: 'Self-exclusion request received via support chat. Processed automatically and ingested from product platform.', outcome: null },
+  { id: 35, ts: '2026-05-02T11:30', player: 'BK-7882145', agentId: 'system',  type: 'self-excluded', desc: 'Player self-excluded via product platform. 30-day exclusion period active. Account access suspended.', outcome: null },
   // May 1
-  { id: 36, ts: '2026-05-01T16:20', player: 'BK-2398779', agent: 'Chidi E.',  type: 'outreach',      desc: 'Supervisor outreach. Player expressed frustration with losses but declined any intervention tools. Agreed to a 48-hour pause on contact.', outcome: 'declined' },
-  { id: 37, ts: '2026-05-01T15:55', player: 'BK-2398779', agent: 'Chidi E.',  type: 'note',          desc: 'Player has declined RG intervention twice. Behaviour consistent with denial pattern. Recommend regulatory disclosure notice if score reaches 90+.', outcome: null },
-  { id: 38, ts: '2026-05-01T14:00', player: 'BK-1769791', agent: 'Sarah O.',  type: 'rg-tool',       desc: 'Player set a ₦20,000/day deposit limit following nudge in app. No agent contact required — limit adoption tracked from platform event.', outcome: null },
-  { id: 39, ts: '2026-05-01T13:40', player: 'BK-1769791', agent: 'Sarah O.',  type: 'status-change', desc: 'Status updated: Outreach Recommended → Deposit Limit Set. Player adopted tool without direct outreach.', outcome: null },
-  { id: 40, ts: '2026-05-01T11:25', player: 'BK-3918274', agent: 'System',    type: 'automated',     desc: 'Deposit frequency spike: 8 deposits in 6 hours. Score rose from 42 → 58. Moved to medium-risk bucket.', outcome: null },
+  { id: 36, ts: '2026-05-01T16:20', player: 'BK-2398779', agentId: 'chidi-e', type: 'outreach',      desc: 'Supervisor outreach. Player expressed frustration with losses but declined any intervention tools. Agreed to a 48-hour pause on contact.', outcome: 'declined' },
+  { id: 37, ts: '2026-05-01T15:55', player: 'BK-2398779', agentId: 'chidi-e', type: 'note',          desc: 'Player has declined RG intervention twice. Behaviour consistent with denial pattern. Recommend regulatory disclosure notice if score reaches 90+.', outcome: null },
+  { id: 38, ts: '2026-05-01T14:00', player: 'BK-1769791', agentId: 'sarah-o', type: 'rg-tool',       desc: 'Player set a ₦20,000/day deposit limit following nudge in app. No agent contact required — limit adoption tracked from platform event.', outcome: null },
+  { id: 39, ts: '2026-05-01T13:40', player: 'BK-1769791', agentId: 'sarah-o', type: 'status-change', desc: 'Status updated: Outreach Recommended → Deposit Limit Set. Player adopted tool without direct outreach.', outcome: null },
+  { id: 40, ts: '2026-05-01T11:25', player: 'BK-3918274', agentId: 'system',  type: 'automated',     desc: 'Deposit frequency spike: 8 deposits in 6 hours. Score rose from 42 → 58. Moved to medium-risk bucket.', outcome: null },
   // Apr 30
-  { id: 41, ts: '2026-04-30T17:05', player: 'BK-4827193', agent: 'James T.',  type: 'outreach',      desc: 'Outreach call placed per scheduled follow-up. Player did not answer. Rescheduled for May 4.', outcome: 'no-answer' },
-  { id: 42, ts: '2026-04-30T15:35', player: 'BK-9374821', agent: 'System',    type: 'automated',     desc: 'Score crossed 75 threshold. Re-deposit velocity now averaging 14 minutes — well within high-risk criteria.', outcome: null },
-  { id: 43, ts: '2026-04-30T15:20', player: 'BK-9374821', agent: 'Amaka N.',  type: 'status-change', desc: 'Status updated: Under Review → Outreach Recommended. Score 76, pattern escalating.', outcome: null },
-  { id: 44, ts: '2026-04-30T14:10', player: 'BK-6735223', agent: 'System',    type: 'automated',     desc: 'VIP crossover alert: Tier 6 player entered high-risk bucket. Flagged for supervisor-led outreach per protocol.', outcome: null },
-  { id: 45, ts: '2026-04-30T12:00', player: 'BK-5804359', agent: 'James T.',  type: 'status-change', desc: 'Status updated: No status → Outreach Recommended following consecutive high-score days.', outcome: null },
+  { id: 41, ts: '2026-04-30T17:05', player: 'BK-4827193', agentId: 'james-t', type: 'outreach',      desc: 'Outreach call placed per scheduled follow-up. Player did not answer. Rescheduled for May 4.', outcome: 'no-answer' },
+  { id: 42, ts: '2026-04-30T15:35', player: 'BK-9374821', agentId: 'system',  type: 'automated',     desc: 'Score crossed 75 threshold. Re-deposit velocity now averaging 14 minutes — well within high-risk criteria.', outcome: null },
+  { id: 43, ts: '2026-04-30T15:20', player: 'BK-9374821', agentId: 'amaka-n', type: 'status-change', desc: 'Status updated: Under Review → Outreach Recommended. Score 76, pattern escalating.', outcome: null },
+  { id: 44, ts: '2026-04-30T14:10', player: 'BK-6735223', agentId: 'system',  type: 'automated',     desc: 'VIP crossover alert: Tier 6 player entered high-risk bucket. Flagged for supervisor-led outreach per protocol.', outcome: null },
+  { id: 45, ts: '2026-04-30T12:00', player: 'BK-5804359', agentId: 'james-t', type: 'status-change', desc: 'Status updated: No status → Outreach Recommended following consecutive high-score days.', outcome: null },
   // Apr 29
-  { id: 46, ts: '2026-04-29T16:45', player: 'BK-8287974', agent: 'System',    type: 'automated',     desc: 'Re-deposit pattern: player re-deposited within 5 minutes of depleting balance on 4 separate occasions today.', outcome: null },
-  { id: 47, ts: '2026-04-29T15:10', player: 'BK-7336219', agent: 'Amaka N.',  type: 'status-change', desc: 'Status updated: No status → Flagged for Monitoring. Score 79, persistent chasing-loss signals.', outcome: null },
-  { id: 48, ts: '2026-04-29T14:35', player: 'BK-4827193', agent: 'Sarah O.',  type: 'outreach',      desc: 'First outreach attempt for this escalation cycle. Player receptive — confirmed awareness of high recent spend. Agreed to explore limits.', outcome: 'contacted' },
-  { id: 49, ts: '2026-04-29T13:00', player: 'BK-4827193', agent: 'Sarah O.',  type: 'status-change', desc: 'Status updated: Flagged → Outreach Recommended. Score at 89, highest on record for this player.', outcome: null },
-  { id: 50, ts: '2026-04-29T10:22', player: 'BK-4252587', agent: 'System',    type: 'automated',     desc: 'Late-night activity shift: 63% of bets placed between 23:00–03:00 this week, up from 21% prior week.', outcome: null },
+  { id: 46, ts: '2026-04-29T16:45', player: 'BK-8287974', agentId: 'system',  type: 'automated',     desc: 'Re-deposit pattern: player re-deposited within 5 minutes of depleting balance on 4 separate occasions today.', outcome: null },
+  { id: 47, ts: '2026-04-29T15:10', player: 'BK-7336219', agentId: 'amaka-n', type: 'status-change', desc: 'Status updated: No status → Flagged for Monitoring. Score 79, persistent chasing-loss signals.', outcome: null },
+  { id: 48, ts: '2026-04-29T14:35', player: 'BK-4827193', agentId: 'sarah-o', type: 'outreach',      desc: 'First outreach attempt for this escalation cycle. Player receptive — confirmed awareness of high recent spend. Agreed to explore limits.', outcome: 'contacted' },
+  { id: 49, ts: '2026-04-29T13:00', player: 'BK-4827193', agentId: 'sarah-o', type: 'status-change', desc: 'Status updated: Flagged → Outreach Recommended. Score at 89, highest on record for this player.', outcome: null },
+  { id: 50, ts: '2026-04-29T10:22', player: 'BK-4252587', agentId: 'system',  type: 'automated',     desc: 'Late-night activity shift: 63% of bets placed between 23:00–03:00 this week, up from 21% prior week.', outcome: null },
 ];
 
 function fmtRelTime(ts) {
@@ -112,10 +111,25 @@ function buildPlayerMap() {
   return map;
 }
 
-function enrichLogEntry(entry, playerMap) {
+function buildAgentMap() {
+  return (window.KGData && window.KGData.AGENT_MAP) || {};
+}
+
+function findAgentIdByLabel(agentMap, label) {
+  const match = Object.values(agentMap).find(agent => agent.label === label);
+  return match ? match.id : 'system';
+}
+
+function enrichLogEntry(entry, playerMap, agentMap) {
   const p = playerMap[entry.player];
+  const agentId = entry.agentId || findAgentIdByLabel(agentMap, entry.agent);
+  const agent = agentMap[agentId] || agentMap.system || { id: 'system', label: 'System', initials: '⚙', kind: 'system' };
   return {
     ...entry,
+    agentId,
+    agentName: agent.label,
+    agentInitials: agent.initials,
+    agentKind: agent.kind,
     risk: p ? p.risk : 'high',
     tier: p ? p.tier : 5,
   };
@@ -131,17 +145,21 @@ function InteractionLog({ brand, country, onPlayerClick }) {
 
   // Enrich seed data once: merge risk + tier from PLAYERS by player ID.
   const playerMap = useMemoIL(() => buildPlayerMap(), []);
+  const agentMap = useMemoIL(() => buildAgentMap(), []);
   const [entries, setEntries] = useStateIL(() =>
-    IL_DATA_SEED.map(e => enrichLogEntry(e, playerMap))
+    IL_DATA_SEED.map(e => enrichLogEntry(e, playerMap, agentMap))
   );
+  const agents = useMemoIL(() => (window.KGData && window.KGData.AGENTS) || [], []);
 
   const filtered = useMemoIL(() => {
     return entries.filter(e => {
-      if (typeFilter !== 'all' && e.type !== typeFilter) return false;
-      if (agentFilter !== 'all' && e.agent !== agentFilter) return false;
-      if (riskFilter !== 'all' && e.risk !== riskFilter) return false;
-      if (search && !e.player.toLowerCase().includes(search.toLowerCase()) && !e.desc.toLowerCase().includes(search.toLowerCase())) return false;
-      return true;
+      const searchValue = search.toLowerCase();
+      const matchesSearch = !searchValue || e.player.toLowerCase().includes(searchValue) || e.desc.toLowerCase().includes(searchValue);
+
+      return (typeFilter === 'all' || e.type === typeFilter) &&
+        (agentFilter === 'all' || e.agentId === agentFilter) &&
+        (riskFilter === 'all' || e.risk === riskFilter) &&
+        matchesSearch;
     });
   }, [entries, typeFilter, agentFilter, riskFilter, search]);
 
@@ -153,9 +171,6 @@ function InteractionLog({ brand, country, onPlayerClick }) {
     const outreachEntries = all.filter(e => e.type === 'outreach');
     const contacted = outreachEntries.filter(e => e.outcome === 'contacted');
     const autoFlags = all.filter(e => e.type === 'automated');
-    const needsAction = [...new Set(
-      all.filter(e => e.type === 'status-change' && e.desc.toLowerCase().includes('outreach recommended')).map(e => e.player)
-    )].length;
     return {
       total: all.length,
       outreach: outreachEntries.length,
@@ -167,7 +182,8 @@ function InteractionLog({ brand, country, onPlayerClick }) {
   const addEntry = (entry) => {
     const enriched = enrichLogEntry(
       { ...entry, id: Date.now(), ts: new Date().toISOString() },
-      playerMap
+      playerMap,
+      agentMap
     );
     setEntries(prev => [enriched, ...prev]);
     setShowForm(false);
@@ -247,7 +263,7 @@ function InteractionLog({ brand, country, onPlayerClick }) {
           fontSize: 13, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
         }}>
           <option value="all">All agents</option>
-          {AGENTS.map(a => <option key={a} value={a}>{a}</option>)}
+          {agents.map(agent => <option key={agent.id} value={agent.id}>{agent.label}</option>)}
         </select>
 
         {/* Risk filter */}
@@ -285,11 +301,11 @@ function InteractionLog({ brand, country, onPlayerClick }) {
                 No entries match the current filters.
               </td></tr>
             )}
-            {displayed.map((e, i) => {
+            {displayed.map((e) => {
               const typeCfg = IL_TYPES[e.type] || IL_TYPES.note;
               const outcomeCfg = IL_OUTCOMES[e.outcome];
               const riskColor = e.risk === 'high' ? '#DC2626' : e.risk === 'medium' ? '#D97706' : '#16A34A';
-              const isAuto = e.agent === 'System';
+              const isAuto = e.agentKind === 'system';
               return (
                 <tr key={e.id} style={{ borderBottom: '1px solid #F1F5F9', background: isAuto ? '#FAFAFA' : 'transparent' }}
                   onMouseEnter={ev => ev.currentTarget.style.background = '#F8FAFC'}
@@ -334,8 +350,8 @@ function InteractionLog({ brand, country, onPlayerClick }) {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 10, fontWeight: 700,
                         color: isAuto ? '#94A3B8' : '#4338CA', flexShrink: 0,
-                      }}>{isAuto ? '⚙' : e.agent.split(' ').map(p => p[0]).join('')}</div>
-                      <span style={{ fontSize: 13, color: '#475569', fontWeight: 500 }}>{e.agent}</span>
+                      }}>{e.agentInitials}</div>
+                      <span style={{ fontSize: 13, color: '#475569', fontWeight: 500 }}>{e.agentName}</span>
                     </div>
                   </td>
                   {/* Outcome */}
@@ -383,7 +399,9 @@ function InteractionLog({ brand, country, onPlayerClick }) {
 
 // ── Log interaction modal ─────────────────────────────────────────────────────
 function LogInteractionModal({ onClose, onSubmit }) {
-  const [form, setForm] = React.useState({ player: '', agent: 'Amaka N.', type: 'outreach', desc: '', outcome: '' });
+  const agents = ((window.KGData && window.KGData.AGENTS) || []).filter(agent => agent.selectable);
+  const defaultAgentId = agents[0] ? agents[0].id : 'amaka-n';
+  const [form, setForm] = React.useState({ player: '', agentId: defaultAgentId, type: 'outreach', desc: '', outcome: '' });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSubmit = (e) => {
@@ -433,8 +451,8 @@ function LogInteractionModal({ onClose, onSubmit }) {
           </div>
           <label style={modalLabel}>
             Agent
-            <select value={form.agent} onChange={e => set('agent', e.target.value)} style={modalInput}>
-              {AGENTS.filter(a => a !== 'System').map(a => <option key={a} value={a}>{a}</option>)}
+            <select value={form.agentId} onChange={e => set('agentId', e.target.value)} style={modalInput}>
+              {agents.map(agent => <option key={agent.id} value={agent.id}>{agent.label}</option>)}
             </select>
           </label>
           <label style={modalLabel}>
