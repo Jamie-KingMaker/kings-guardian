@@ -6,7 +6,7 @@ const KGEnums = Object.freeze({
   BRAND: Object.freeze({
     ALL: 'all',
     BETKING: 'BetKing',
-    SUPERSPORTBET: 'supersportbet',
+    SUPERSPORTBET: 'SuperSportBet',
   }),
   COUNTRY: Object.freeze({
     ALL: 'ALL',
@@ -106,7 +106,7 @@ const RISK_ORDER = Object.freeze({
 
 const BRAND_ACCENTS = Object.freeze({
   [KGEnums.BRAND.BETKING]: { name: KGEnums.BRAND.BETKING, primary: '#001041', accent: '#FFC400', country: [KGEnums.COUNTRY.NG] },
-  [KGEnums.BRAND.SUPERSPORTBET]: { name: 'SuperSportBet', primary: '#040B67', accent: '#F1C72F', country: [KGEnums.COUNTRY.ZA, KGEnums.COUNTRY.ZM] },
+  [KGEnums.BRAND.SUPERSPORTBET]: { name: KGEnums.BRAND.SUPERSPORTBET, primary: '#040B67', accent: '#F1C72F', country: [KGEnums.COUNTRY.ZA, KGEnums.COUNTRY.ZM] },
 });
 
 const BRAND_THEME = Object.freeze({
@@ -124,7 +124,7 @@ const BRAND_THEME = Object.freeze({
     logoWidth: 88,
   },
   [KGEnums.BRAND.SUPERSPORTBET]: {
-    name: 'SuperSportBet',
+    name: KGEnums.BRAND.SUPERSPORTBET,
     topbar: '#040B67',
     topbarBorder: 'rgba(241, 199, 47, 0.20)',
     sidebar: '#03084F',
@@ -160,7 +160,7 @@ const COUNTRY_NAMES = Object.freeze({
 
 const BRAND_OPTIONS = Object.freeze([
   { value: KGEnums.BRAND.BETKING, label: KGEnums.BRAND.BETKING },
-  { value: KGEnums.BRAND.SUPERSPORTBET, label: 'SuperSportBet' },
+  { value: KGEnums.BRAND.SUPERSPORTBET, label: KGEnums.BRAND.SUPERSPORTBET },
 ]);
 
 const COUNTRY_OPTIONS = Object.freeze([
