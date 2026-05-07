@@ -128,10 +128,9 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
         
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
         <DepositActivityCard data={rangeData.deposits} brand={brand} total={brand === 'supersportbet' ? rangeData.depositTotalSS : rangeData.depositTotal} growth={rangeData.depositGrowth} rangeLabel={rangeData.rangeLabel} deltaLabel={rangeData.deltaLabel} rangeKey={effectiveRange} dist={dist} mau={mau} />
         <TopMoversCard movers={rangeData.movers} brand={brand} country={country} onPlayerClick={onPlayerClick} />
-        <AttentionCard players={filtered.filter((p) => p.status).slice(0, 6)} onPlayerClick={onPlayerClick} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -262,7 +261,16 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
               <path d={area} fill={color} fillOpacity="0.10"/>
               <path d={line} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="3" fill={color} stroke="#fff" strokeWidth="1.5"/>
-              {data.map((d, i) => <text key={i} x={pts[i][0]} y={SH-4} fontSize="12" textAnchor="middle" fill="#94A3B8">{d.d}</text>)}
+              {(() => {
+                const n = data.length;
+                const step = Math.max(1, Math.ceil((n - 1) / 6));
+                const idxs = new Set(Array.from({ length: n }, (_, i) => i).filter(i => i % step === 0));
+                return data.map((d, i) => {
+                  if (!idxs.has(i)) return null;
+                  return <text key={i} x={pts[i][0]} y={SH-4} fontSize="12"
+                    textAnchor={i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'} fill="#94A3B8">{d.d}</text>;
+                });
+              })()}
             </svg>
           </div>
         ) : (
@@ -287,10 +295,9 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
 
   return (
     <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexShrink: 0 }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Risk distribution trend · {rangeLabel}</div>
-          <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600 }}>How risk is moving across the player base</div>
         </div>
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
           {[
@@ -357,11 +364,16 @@ function RiskTrendCard({ data, rangeLabel, growth }) {
                 </g>
               );
             })}
-            {data.map((d, i) =>
-              <text key={i} x={PAD_L + i * xStep} y={H - 8} fontSize="12" textAnchor="middle" fill="#94A3B8">
-                {d.d}
-              </text>
-            )}
+            {(() => {
+              const n = data.length;
+              const step = Math.max(1, Math.ceil((n - 1) / 6));
+              const idxs = new Set(Array.from({ length: n }, (_, i) => i).filter(i => i % step === 0));
+              return data.map((d, i) => {
+                if (!idxs.has(i)) return null;
+                return <text key={i} x={PAD_L + i * xStep} y={H - 8} fontSize="12"
+                  textAnchor={i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'} fill="#94A3B8">{d.d}</text>;
+              });
+            })()}
           </svg>
         </div>
       </>}
@@ -560,11 +572,8 @@ Tone: calm, professional, operational. No emojis. No preamble. No closing summar
             boxShadow: '0 2px 6px rgba(67,56,202,0.25)', flexShrink: 0
           }}>★</div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, marginBottom: 1 }}>
+            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
               King's Guard AI
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#0F172A', letterSpacing: '-0.005em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Key callouts · {rangeLabel}
             </div>
           </div>
         </div>
@@ -664,8 +673,7 @@ function RiskDistributionCard({ dist, total }) {
 
   return (
     <div style={cardStyle}>
-      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Distribution snapshot</div>
-      <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginBottom: 16 }}>Current player population</div>
+      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>Distribution snapshot</div>
 
       {/* Stacked bar */}
       <div style={{ display: 'flex', height: 12, borderRadius: 4, overflow: 'hidden', marginBottom: 16 }}>
@@ -714,23 +722,107 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
   const fmtSpeed  = m => m < 60 ? `${Math.round(m)}m` : m < 1440 ? `${(m/60).toFixed(1)}h` : `${(m/1440).toFixed(1)}d`;
   const speedSub  = m => m < 60 ? 'minutes avg' : m < 1440 ? 'hours avg' : 'days avg';
 
-  // Scale bars by tier share with a stable per-tier shape (no Math.random)
-  const scaledBars = data.map((v, i) => {
-    const shape = filter === 'high' ? 1 + Math.sin(i * 0.7) * 0.15
-                : filter === 'med'  ? 1 + Math.sin(i * 0.4) * 0.08
-                : filter === 'low'  ? 1 - Math.sin(i * 0.3) * 0.05 : 1;
-    return Math.max(3, Math.round(v * DEPOSIT_SHARES[filter] * shape));
-  });
-  const maxBar      = Math.max(...scaledBars);
-  const spikeWindow = Math.min(7, Math.floor(scaledBars.length / 4));
+  const TIER_COLORS = { high: '#DC2626', med: '#D97706', low: '#16A34A' };
 
-  const COLORS = {
-    all:  { bar: '#CBD5E1', spike: '#DC2626', accent: '#DC2626' },
-    high: { bar: '#FECACA', spike: '#DC2626', accent: '#DC2626' },
-    med:  { bar: '#FDE68A', spike: '#D97706', accent: '#D97706' },
-    low:  { bar: '#BBF7D0', spike: '#16A34A', accent: '#16A34A' },
+  // Generate date labels counting back from today
+  const numPts = data.length;
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dateLabels = data.map((_, i) => {
+    const d = new Date(2026, 4, 6);
+    d.setDate(d.getDate() - (numPts - 1 - i));
+    return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+  });
+
+  // Build per-tier series with stable shape variation
+  const buildSeries = (tier) => data.map((v, i) => {
+    const shape = tier === 'high' ? 1 + Math.sin(i * 0.7) * 0.15
+                : tier === 'med'  ? 1 + Math.sin(i * 0.4) * 0.08
+                :                   1 - Math.sin(i * 0.3) * 0.05;
+    return Math.max(3, Math.round(v * DEPOSIT_SHARES[tier] * shape));
+  });
+
+  const tierSeries = { high: buildSeries('high'), med: buildSeries('med'), low: buildSeries('low') };
+
+  // SVG dimensions — match RiskTrendCard
+  const W = 720, H = 180;
+  const PAD_L = 44, PAD_B = 28, PAD_T = 12, PAD_R = 12;
+  const innerW = W - PAD_L - PAD_R;
+  const innerH = H - PAD_T - PAD_B;
+
+  const buildPath = (vals, mn, rng) => {
+    const pts = vals.map((v, i) => [
+      PAD_L + (i / (vals.length - 1)) * innerW,
+      PAD_T + innerH - ((v - mn) / rng) * innerH,
+    ]);
+    const line = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+    const area = line + ` L${pts[pts.length-1][0].toFixed(1)},${PAD_T+innerH} L${PAD_L},${PAD_T+innerH} Z`;
+    return { pts, line, area };
   };
-  const { bar: barColor, spike: spikeColor, accent } = COLORS[filter];
+
+  const fmtY = v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : `${v}`;
+  // Pick label positions at a fixed step so every gap is equal
+  const xLabelStep = Math.max(1, Math.ceil((numPts - 1) / 6));
+  const labelIndices = new Set(Array.from({ length: numPts }, (_, i) => i).filter(i => i % xLabelStep === 0));
+
+  // Build the SVG chart
+  let chartEl;
+  if (filter === 'all') {
+    // Overview — all 3 tiers as overlaid lines
+    const allVals = [...tierSeries.high, ...tierSeries.med, ...tierSeries.low];
+    const mn = Math.min(...allVals), mx = Math.max(...allVals), rng = mx - mn || 1;
+    const paths = { high: buildPath(tierSeries.high, mn, rng), med: buildPath(tierSeries.med, mn, rng), low: buildPath(tierSeries.low, mn, rng) };
+    const gridVals = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(mn + (mx - mn) * (1 - t)));
+
+    chartEl = (
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+        {gridVals.map((v, i) => {
+          const y = PAD_T + innerH - ((v - mn) / rng) * innerH;
+          return <g key={i}>
+            <line x1={PAD_L} y1={y} x2={W-PAD_R} y2={y} stroke="#E2E8F0" strokeWidth="1"/>
+            <text x={PAD_L-4} y={y+4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(v)}</text>
+          </g>;
+        })}
+        {['low','med','high'].map(t => <path key={t+'a'} d={paths[t].area} fill={TIER_COLORS[t]} fillOpacity="0.07"/>)}
+        {['low','med','high'].map(t => <path key={t+'l'} d={paths[t].line} fill="none" stroke={TIER_COLORS[t]} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>)}
+        {['low','med','high'].map(t => {
+          const last = paths[t].pts[paths[t].pts.length - 1];
+          return <circle key={t+'d'} cx={last[0]} cy={last[1]} r="3" fill={TIER_COLORS[t]} stroke="#fff" strokeWidth="1.5"/>;
+        })}
+        {dateLabels.map((lbl, i) => {
+          if (!labelIndices.has(i)) return null;
+          const x = PAD_L + (i / (numPts - 1)) * innerW;
+          return <text key={i} x={x} y={H-4} fontSize="11" textAnchor={i === 0 ? 'start' : i === numPts-1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}</text>;
+        })}
+      </svg>
+    );
+  } else {
+    // Single-tier full-width sparkline
+    const vals = tierSeries[filter];
+    const mn = Math.min(...vals), mx = Math.max(...vals), rng = mx - mn || 1;
+    const { pts, line, area } = buildPath(vals, mn, rng);
+    const color = TIER_COLORS[filter];
+    const gridVals = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(mn + (mx - mn) * (1 - t)));
+
+    chartEl = (
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+        {gridVals.map((v, i) => {
+          const y = PAD_T + innerH - ((v - mn) / rng) * innerH;
+          return <g key={i}>
+            <line x1={PAD_L} y1={y} x2={W-PAD_R} y2={y} stroke={`${color}20`} strokeWidth="1"/>
+            <text x={PAD_L-4} y={y+4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(v)}</text>
+          </g>;
+        })}
+        <path d={area} fill={color} fillOpacity="0.10"/>
+        <path d={line} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="3" fill={color} stroke="#fff" strokeWidth="1.5"/>
+        {dateLabels.map((lbl, i) => {
+          if (!labelIndices.has(i)) return null;
+          const x = PAD_L + (i / (numPts - 1)) * innerW;
+          return <text key={i} x={x} y={H-4} fontSize="11" textAnchor={i === 0 ? 'start' : i === numPts-1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}</text>;
+        })}
+      </svg>
+    );
+  }
 
   const miniCard = (label, value, sub, accentColor) => (
     <div style={{ padding: '10px 12px', borderRadius: 6, background: accentColor ? `${accentColor}08` : '#F8FAFC', border: `1px solid ${accentColor ? accentColor + '20' : '#F1F5F9'}` }}>
@@ -743,10 +835,10 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
   return (
     <div style={cardStyle}>
       {/* Header + risk filter tabs */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 12 }}>
         <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, flexShrink: 0 }}>Deposit activity · {rangeLabel}</div>
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
-          {[['all','All players',null],['high','High risk','#DC2626'],['med','Medium','#D97706'],['low','Low risk','#16A34A']].map(([v, lbl, dot]) => (
+          {[['all','Overview',null],['high','High risk','#DC2626'],['med','Medium','#D97706'],['low','Low risk','#16A34A']].map(([v, lbl, dot]) => (
             <button key={v} onClick={() => setFilter(v)} style={{
               flex: 1, padding: '4px 10px', borderRadius: 4, border: 'none', cursor: 'pointer',
               fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
@@ -767,63 +859,80 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
         {miniCard('Total value',      fmtCompact(Math.round(filteredTotal), brand), filter === 'all' ? 'all players' : `${filter} risk tier`)}
         {miniCard('Avg / player',     fmtCompact(Math.round(avgPerPlayer), brand),  `${filteredCount.toLocaleString()} players`)}
-        {miniCard('Re-deposit speed', fmtSpeed(speedMins), speedSub(speedMins), filter !== 'all' ? accent : null)}
+        {miniCard('Re-deposit speed', fmtSpeed(speedMins), speedSub(speedMins), filter !== 'all' ? TIER_COLORS[filter] : null)}
       </div>
 
-      {/* Bar chart */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 64, marginBottom: 6 }}>
-        {scaledBars.map((v, i) => (
-          <div key={i} style={{
-            flex: 1, minHeight: 2, borderRadius: 1,
-            height: `${(v / maxBar) * 100}%`,
-            background: i >= scaledBars.length - spikeWindow ? spikeColor : barColor,
-            transition: 'background 0.2s, height 0.2s',
-          }} />
-        ))}
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#94A3B8' }}>
-        <span>{rangeLabel} ago</span>
-        <span style={{ color: spikeColor, fontWeight: 600 }}>Last {spikeWindow}d (spike)</span>
-      </div>
+      {/* Legend (overview only) */}
+      {filter === 'all' && (
+        <div style={{ display: 'flex', gap: 14, marginBottom: 8 }}>
+          {[['high','High risk','#DC2626'],['med','Medium risk','#D97706'],['low','Low risk','#16A34A']].map(([t, lbl, c]) => (
+            <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ width: 18, height: 2, background: c, borderRadius: 1 }}/>
+              <span style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>{lbl}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Line chart */}
+      {chartEl}
     </div>
   );
 }
 
 function TopMoversCard({ movers, brand, country, onPlayerClick }) {
-  const filtered = movers.filter((m) => (brand === 'all' || m.brand === brand) && (country === 'ALL' || m.country === country)).slice(0, 5);
+  const filtered = movers.filter((m) => (brand === 'all' || m.brand === brand) && (country === 'ALL' || m.country === country)).slice(0, 8);
+  const riskColor = { high: '#DC2626', medium: '#D97706', med: '#D97706', low: '#16A34A', unrated: '#94A3B8' };
+
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <div>
-          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Top risk movers</div>
-          <div style={{ fontSize: 14, color: '#94A3B8' }}>Largest score increases since last refresh</div>
-        </div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {filtered.map((m) =>
-        <button key={m.id} onClick={() => onPlayerClick && onPlayerClick(m.id)} style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          padding: '10px 8px', borderRadius: 6, background: 'transparent',
-          border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.background = '#F8FAFC'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-          
-            <div style={{ flex: 1, fontFamily: "'Roboto Mono', monospace", fontSize: 14, color: '#0F172A', fontWeight: 500 }}>
-              {m.id}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748B', fontFamily: "'Roboto Mono', monospace" }}>
-              <span>{m.from}</span>
-              <Icon name="arrow-right" size={10} color="#94A3B8" />
-              <span style={{ color: '#0F172A', fontWeight: 600 }}>{m.to}</span>
-            </div>
-            <div style={{
-            padding: '2px 7px', borderRadius: 4,
-            background: 'rgba(220, 38, 38, 0.1)', color: '#DC2626',
-            fontSize: 13, fontWeight: 700, fontFamily: "'Roboto Mono', monospace"
-          }}>+{m.delta}</div>
-          </button>
-        )}
+      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 16 }}>Top risk movers</div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {filtered.map((m, idx) => {
+          const rc = riskColor[m.risk] || '#94A3B8';
+          const isLast = idx === filtered.length - 1;
+          return (
+            <button key={m.id} onClick={() => onPlayerClick && onPlayerClick(m.id)}
+              style={{
+                display: 'flex', flexDirection: 'column',
+                padding: '8px 8px', borderRadius: 6, background: 'transparent',
+                border: 'none', borderBottom: isLast ? 'none' : '1px solid #F8FAFC',
+                cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', width: '100%',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#F8FAFC'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+              {/* Score row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, width: '100%' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: rc, flexShrink: 0 }} />
+                <span style={{ flex: 1, fontFamily: "'Roboto Mono', monospace", fontSize: 12.5, color: '#0F172A', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {m.id}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, color: '#64748B', fontFamily: "'Roboto Mono', monospace", flexShrink: 0 }}>
+                  <span>{m.from}</span>
+                  <Icon name="arrow-right" size={9} color="#94A3B8" />
+                  <span style={{ color: '#0F172A', fontWeight: 600 }}>{m.to}</span>
+                </span>
+                <span style={{
+                  padding: '2px 5px', borderRadius: 3,
+                  background: 'rgba(220,38,38,0.10)', color: '#DC2626',
+                  fontSize: 11, fontWeight: 700, fontFamily: "'Roboto Mono', monospace", flexShrink: 0,
+                }}>+{m.delta}</span>
+              </div>
+              {/* Signal chips */}
+              {m.signals && m.signals.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginTop: 4, paddingLeft: 13 }}>
+                  {m.signals.map((s, si) => (
+                    <span key={si} style={{
+                      fontSize: 9.5, fontWeight: 700, padding: '2px 5px', borderRadius: 3,
+                      background: '#F1F5F9', color: '#475569',
+                      textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap',
+                    }}>{s}</span>
+                  ))}
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>);
 
@@ -832,10 +941,9 @@ function TopMoversCard({ movers, brand, country, onPlayerClick }) {
 function AttentionCard({ players, onPlayerClick }) {
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Requires attention</div>
-          <div style={{ fontSize: 14, color: '#94A3B8' }}>Flagged but not yet actioned</div>
         </div>
         <span style={{ fontSize: 13, padding: '3px 8px', background: 'rgba(217, 119, 6, 0.1)', color: '#D97706', borderRadius: 10, fontWeight: 700 }}>{players.length} open</span>
       </div>
@@ -868,31 +976,108 @@ function AttentionCard({ players, onPlayerClick }) {
 }
 
 function RGAdoptionCard({ items, rangeLabel }) {
+  const W = 720, H = 170;
+  const PAD_L = 44, PAD_B = 26, PAD_T = 10, PAD_R = 12;
+  const innerW = W - PAD_L - PAD_R;
+  const innerH = H - PAD_T - PAD_B;
+
+  const numPts = items[0]?.trend?.length || 1;
+  const allVals = items.flatMap(i => (i.trend || []).map(p => p.v));
+  const mn = Math.min(...allVals);
+  const mx = Math.max(...allVals);
+  const rng = mx - mn || 1;
+  const xStep = innerW / (numPts - 1 || 1);
+  const fmtY = v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`;
+
+  const buildPath = (vals) => {
+    const pts = vals.map((v, i) => [
+      PAD_L + i * xStep,
+      PAD_T + innerH - ((v - mn) / rng) * innerH,
+    ]);
+    const line = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+    const area = line + ` L${pts[pts.length-1][0].toFixed(1)},${PAD_T+innerH} L${PAD_L},${PAD_T+innerH} Z`;
+    return { pts, line, area };
+  };
+
+  const gridVals = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(mn + (mx - mn) * (1 - t)));
+  const labels = items[0]?.trend?.map(p => p.d) || [];
+  const xLabelStep = Math.max(1, Math.ceil((numPts - 1) / 6));
+  const labelSet = new Set(Array.from({ length: numPts }, (_, i) => i).filter(i => i % xLabelStep === 0));
+
   return (
     <div style={cardStyle}>
-      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>RG tool adoption</div>
-      <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginBottom: 16 }}>Soft tools picked up by players · {rangeLabel}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-        {items.map((i) =>
-        <div key={i.tool} style={{ padding: 12, background: '#F8FAFC', borderRadius: 6, border: '1px solid #F1F5F9' }}>
-            <div style={{ fontSize: 13, color: '#64748B', marginBottom: 6 }}>{i.tool}</div>
-            <div style={{ fontSize: 22, fontWeight: 600, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", letterSpacing: '-0.01em', marginBottom: 4 }}>
+      {/* Header */}
+      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>
+        Responsible Gaming tools used by players · {rangeLabel}
+      </div>
+
+      {/* Stat mini-cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
+        {items.map(i => (
+          <div key={i.tool} style={{ padding: '10px 12px', background: `${i.color}09`, borderRadius: 6, border: `1px solid ${i.color}28` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: i.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 10.5, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1.2 }}>{i.tool}</span>
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", letterSpacing: '-0.02em', lineHeight: 1 }}>
               {i.count.toLocaleString()}
             </div>
-            <div style={{ fontSize: 13, color: '#16A34A', fontWeight: 600 }}>↑ {i.delta}%</div>
+            <div style={{ fontSize: 11.5, color: '#16A34A', fontWeight: 700, marginTop: 3 }}>↑ {i.delta}%</div>
           </div>
-        )}
+        ))}
       </div>
-    </div>);
 
+      {/* Multi-line trend chart */}
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+        {/* Grid lines + y-axis labels */}
+        {gridVals.map((v, i) => {
+          const y = PAD_T + innerH - ((v - mn) / rng) * innerH;
+          return (
+            <g key={i}>
+              <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#F1F5F9" strokeWidth="1" />
+              <text x={PAD_L - 4} y={y + 4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(v)}</text>
+            </g>
+          );
+        })}
+
+        {/* Area fills */}
+        {items.map(item => {
+          const { area } = buildPath((item.trend || []).map(p => p.v));
+          return <path key={item.tool + 'a'} d={area} fill={item.color} fillOpacity="0.07" />;
+        })}
+
+        {/* Lines + end dots */}
+        {items.map(item => {
+          const { pts, line } = buildPath((item.trend || []).map(p => p.v));
+          const last = pts[pts.length - 1];
+          return (
+            <g key={item.tool}>
+              <path d={line} fill="none" stroke={item.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx={last[0]} cy={last[1]} r="3" fill={item.color} stroke="#fff" strokeWidth="1.5" />
+            </g>
+          );
+        })}
+
+        {/* X-axis date labels */}
+        {labels.map((lbl, i) => {
+          if (!labelSet.has(i)) return null;
+          const x = PAD_L + i * xStep;
+          return (
+            <text key={i} x={x} y={H - 4} fontSize="11"
+              textAnchor={i === 0 ? 'start' : i === numPts - 1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
 }
 
 function SignalsBreakdownCard({ signals, rangeLabel }) {
   const max = Math.max(...signals.map((s) => s.count));
   return (
     <div style={cardStyle}>
-      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 2 }}>Active risk signals · {rangeLabel}</div>
-      <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginBottom: 16 }}>What's triggering flags right now</div>
+      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>Active risk signals · {rangeLabel}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {signals.map((s) =>
         <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

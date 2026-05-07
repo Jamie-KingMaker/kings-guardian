@@ -345,45 +345,123 @@ function buildRangeData(rangeKey, brandKey) {
     high: endHigh, med: endMed, low: endLow,
   };
 
-  // Deposit bars — one per day in range
+  // Deposit bars — one per day in range, with realistic sports-betting cadence.
+  // Weekend pattern: Sat (busiest, all-day football) > Fri > Sun > Thu > Wed > Tue > Mon.
+  // UCL knockout-round match nights spike Tue/Wed above the weekend floor.
+  //
+  // Today in data = May 5 2026 = Tuesday (dow 2).
+  // UCL 2025-26 knockout nights (days ago from May 5):
+  //   SF 2nd legs  : May 5 Tue (0)
+  //   SF 1st legs  : Apr 29 Wed (6),  Apr 28 Tue (7)
+  //   QF 2nd legs  : Apr 8  Wed (27), Apr 7  Tue (28)
+  //   QF 1st legs  : Apr 1  Wed (34), Mar 31 Tue (35)
+  //   R16 2nd legs : Mar 11 Wed (55), Mar 10 Tue (56)
+  //   R16 1st legs : Mar 4  Wed (62), Mar 3  Tue (63)
+  const DOW_MUL     = [1.20, 0.65, 0.75, 0.78, 0.88, 1.35, 1.60]; // Sun Mon Tue Wed Thu Fri Sat
+  const TODAY_DOW   = 2; // Tuesday
+  const UCL_DAYS    = new Set([0, 6, 7, 27, 28, 34, 35, 55, 56, 62, 63]);
   const numBars = cfg.days;
   const deposits = [];
   for (let i = 0; i < numBars; i++) {
-    const t = i / (numBars - 1);
-    const base = 35 + t * 70;
-    const wobble = Math.sin(i * 0.5) * 8 + (rnd() - 0.5) * 12;
-    const spike = i >= numBars - 7 ? 12 : 0;
-    deposits.push(Math.max(20, Math.round(base + wobble + spike)));
+    const daysAgo  = numBars - 1 - i;
+    const dow      = ((TODAY_DOW - daysAgo) % 7 + 7) % 7;
+    const t        = i / (numBars - 1 || 1);
+    const base     = 38 + t * 65;                                          // gentle upward trend
+    const shaped   = base * DOW_MUL[dow];                                  // day-of-week shape
+    const uclBoost = UCL_DAYS.has(daysAgo) && (dow === 2 || dow === 3)     // UCL match-night spike
+                     ? base * 0.55 : 0;
+    const wobble   = (rnd() - 0.5) * 6;                                    // small deterministic noise
+    deposits.push(Math.max(15, Math.round(shaped + uclBoost + wobble)));
   }
 
   // Top movers — pulled directly from PLAYERS list so the dashboard
   // and player list reference the exact same records.
   const moverScale = rangeKey === '7d' ? 1 : rangeKey === '14d' ? 1.2 : rangeKey === '30d' ? 1.5 : rangeKey === '90d' ? 1.9 : 2.2;
-  const movers = ['BK-4827193', 'SS-7283910', 'BK-3918274', 'BK-5621847', 'SS-9012384']
+  // fromScore overrides for players missing a riskFrom on their record
+  const MOVER_FROM = {
+    'BK-4827193': 62, 'SS-7283910': 71, 'BK-3918274': 58,
+    'BK-9374821': 65, 'BK-5621847': 41, 'SS-2647193': 55,
+    'BK-1738294': 52, 'SS-9012384': 38, 'BK-2847362': 33,
+  };
+  const movers = [
+    'BK-4827193', 'SS-7283910', 'BK-3918274',
+    'BK-9374821', 'BK-5621847', 'SS-2647193',
+    'BK-1738294', 'SS-9012384', 'BK-2847362',
+  ]
     .map(id => PLAYERS.find(p => p.id === id))
     .filter(Boolean)
     .map(p => {
-      const baseDelta = (p.riskScore || 0) - (p.riskFrom || 0);
+      const from = MOVER_FROM[p.id] ?? (p.riskFrom || 0);
+      const baseDelta = (p.riskScore || 0) - from;
       const delta = Math.round(baseDelta * moverScale);
       return {
-        id: p.id, brand: p.brand, country: p.country,
-        from: p.riskFrom, to: Math.min(99, (p.riskFrom || 0) + delta),
-        delta,
+        id: p.id, brand: p.brand, country: p.country, risk: p.risk,
+        from, to: Math.min(99, from + delta),
+        delta, signals: p.signals || [],
       };
     });
 
   // RG tool adoption — scales with MAU and window
   const rgScale = (mau / 1000000) * cfg.depositMul;
+  const RG_TOOL_DEFS = [
+    { tool: 'Deposit Limits',   base: 33000, deltaBase: 18, color: '#0891B2', startFrac: 0.74, noise: 0.05, spikes: [0.58] },
+    { tool: '24-Hour Cool-Off', base: 16500, deltaBase: 24, color: '#DB2777', startFrac: 0.68, noise: 0.13, spikes: [0.30, 0.72] },
+    { tool: 'Account Closure',  base: 8250,  deltaBase: 6,  color: '#F59E0B', startFrac: 0.91, noise: 0.09, spikes: [0.85] },
+  ];
+
+  // Self-Exclusion: sharp step-change from April 18 onwards (18 days ago).
+  // Pre-spike: low flat baseline (~45% of current). Post-spike: elevated (~85→100%).
+  // For short ranges entirely within the post-spike window (7d, 14d), show the
+  // already-elevated plateau so the stat card still reflects the jump.
+  const SELF_EX_SPIKE_DAYS_AGO = 18; // April 18 2026
+  const selfExCount = Math.max(1, Math.round(41200 * rgScale));
+  const selfExDelta = 11 + (rangeKey === '90d' || rangeKey === 'ytd' ? 5 : 0);
+  const tSpike = 1 - SELF_EX_SPIKE_DAYS_AGO / cfg.days; // 0-1 position of Apr 18 in this range
+  const selfExTrend = [];
+  for (let i = 0; i < numPoints; i++) {
+    const t = i / (numPoints - 1 || 1);
+    const d = new Date(today);
+    d.setDate(today.getDate() - Math.round((1 - t) * cfg.days));
+    let v;
+    if (tSpike <= 0) {
+      // Whole range is post-spike — show slightly elevated plateau rising to count
+      v = selfExCount * (0.91 + 0.09 * t);
+    } else if (t < tSpike) {
+      // Pre-spike: gently drifting low baseline
+      v = selfExCount * (0.44 + 0.07 * (t / tSpike));
+    } else {
+      // Post-spike: rapid rise from 82% → 100%
+      const postT = (t - tSpike) / (1 - tSpike || 0.001);
+      v = selfExCount * (0.82 + 0.18 * postT);
+    }
+    const noise = (rnd() - 0.5) * selfExCount * 0.03;
+    selfExTrend.push({ d: fmtDate(d), v: Math.max(1, Math.round(v + noise)) });
+  }
+  selfExTrend[selfExTrend.length - 1].v = selfExCount;
+
   const rgAdoption = [
-    { tool: 'Self-Exclusion',   base: 41200, deltaBase: 11 },
-    { tool: 'Deposit Limits',   base: 33000, deltaBase: 18 },
-    { tool: '24-Hour Cool-Off', base: 16500, deltaBase: 24 },
-    { tool: 'Account Closure',  base: 8250,  deltaBase: 6  },
-  ].map(i => ({
-    tool: i.tool,
-    count: Math.max(1, Math.round(i.base * rgScale)),
-    delta: i.deltaBase + (rangeKey === '90d' || rangeKey === 'ytd' ? 5 : 0)
-  }));
+    { tool: 'Self-Exclusion', count: selfExCount, delta: selfExDelta, color: '#6366F1', trend: selfExTrend },
+    ...RG_TOOL_DEFS.map(toolDef => {
+      const count = Math.max(1, Math.round(toolDef.base * rgScale));
+      const delta = toolDef.deltaBase + (rangeKey === '90d' || rangeKey === 'ytd' ? 5 : 0);
+      const trend = [];
+      for (let i = 0; i < numPoints; i++) {
+        const t = i / (numPoints - 1 || 1);
+        const eased = t * t * (3 - 2 * t);
+        const base = count * (toolDef.startFrac + (1 - toolDef.startFrac) * eased);
+        const spike = toolDef.spikes.reduce((acc, sp) => {
+          const dist = Math.abs(t - sp);
+          return acc + (dist < 1.2 / numPoints ? count * 0.20 * (1 - dist * numPoints / 1.2) : 0);
+        }, 0);
+        const noise = (rnd() - 0.5) * count * toolDef.noise;
+        const d = new Date(today);
+        d.setDate(today.getDate() - Math.round((1 - t) * cfg.days));
+        trend.push({ d: fmtDate(d), v: Math.max(1, Math.round(base + spike + noise)) });
+      }
+      trend[trend.length - 1].v = count;
+      return { tool: toolDef.tool, count, delta, color: toolDef.color, trend };
+    }),
+  ];
 
   // Risk signals — proportional to high+med population
   const signalScale = (dist.high + dist.med) / 2631; // 2631 = baseline all-brand 7d (high+med)
