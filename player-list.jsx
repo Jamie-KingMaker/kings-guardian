@@ -216,6 +216,22 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
     }).length
   , [statusOverrides]);
 
+  // Base counts always from full population — unaffected by shortcuts or filters
+  const baseCounts = useMemoList(() => {
+    const pop = getPlayerPopulation(brand, range);
+    const bc = pop.bucketCounts();
+    const m = countryShareTotal;
+    return {
+      all:     Math.round((bc.high + bc.medium + bc.low + bc.unrated) * m),
+      high:    Math.round(bc.high * m),
+      medium:  Math.round(bc.medium * m),
+      low:     Math.round(bc.low * m),
+      unrated: Math.round(bc.unrated * m),
+    };
+  }, [brand, range, countryShareTotal]);
+
+  const fmtBase = (n) => n >= 1000000 ? (n / 1000000).toFixed(1) + 'M' : n >= 1000 ? Math.round(n / 1000) + 'k' : n.toLocaleString();
+
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
@@ -237,6 +253,15 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
           <button style={btnSecondary}><Icon name="export" size={14}/> Export CSV</button>
           <button style={btnPrimary}><Icon name="filter" size={14}/> Save view</button>
         </div>
+      </div>
+
+      {/* Population stat cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
+        <StatCard label="Active base"       value={fmtBase(baseCounts.all)}     subtext={`${baseCounts.all.toLocaleString()} ${data.activeUnit}`} delta="" tone="unrated" />
+        <StatCard label="High risk"         value={baseCounts.high.toLocaleString()}    subtext={`${(baseCounts.high / baseCounts.all * 100).toFixed(1)}% of base`}   delta="" tone="high" />
+        <StatCard label="Medium risk"       value={baseCounts.medium.toLocaleString()}  subtext={`${(baseCounts.medium / baseCounts.all * 100).toFixed(1)}% of base`} delta="" tone="medium" />
+        <StatCard label="Low risk"          value={baseCounts.low.toLocaleString()}     subtext={`${(baseCounts.low / baseCounts.all * 100).toFixed(1)}% of base`}    delta="" tone="low" />
+        <StatCard label="Insufficient data" value={baseCounts.unrated.toLocaleString()} subtext="<7 days history"                                                      delta="" tone="unrated" />
       </div>
 
       {/* Dashboard-context shortcuts + needs-action call-out */}

@@ -1207,5 +1207,5 @@ function SignalsBreakdownCard({ signals, rangeLabel }) {
   );
 }
 
-Object.assign(window, { HomeDashboard, btnPrimary, btnSecondary, cardStyle });
+Object.assign(window, { HomeDashboard, StatCard, btnPrimary, btnSecondary, cardStyle });
 
