@@ -1131,32 +1131,30 @@ function SignalsBreakdownCard({ signals, rangeLabel }) {
 
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
           Active risk signals · {rangeLabel}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
-            {[['all','Overview',null],['high','High','#DC2626'],['med','Medium','#D97706'],['low','Low','#16A34A']].map(([v, lbl, dot]) => (
-              <button key={v} onClick={() => setView(v)} style={{
-                padding: '4px 10px', borderRadius: 4, border: 'none', cursor: 'pointer',
-                background: view === v ? '#FFFFFF' : 'transparent',
-                color: view === v ? '#0F172A' : '#64748B',
-                fontSize: 13, fontWeight: view === v ? 600 : 500,
-                boxShadow: view === v ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5,
-              }}>
-                {dot && <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot, flexShrink: 0 }} />}
-                {lbl}
-              </button>
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: 0 }}>
-            {[['Customers', 96], ['vs prior', 72]].map(([h, w]) => (
-              <div key={h} style={{ width: w, textAlign: 'right', fontSize: 11, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</div>
-            ))}
-          </div>
+        <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
+          {[['all','Overview',null],['high','High','#DC2626'],['med','Medium','#D97706'],['low','Low','#16A34A']].map(([v, lbl, dot]) => (
+            <button key={v} onClick={() => setView(v)} style={{
+              padding: '4px 10px', borderRadius: 4, border: 'none', cursor: 'pointer',
+              background: view === v ? '#FFFFFF' : 'transparent',
+              color: view === v ? '#0F172A' : '#64748B',
+              fontSize: 13, fontWeight: view === v ? 600 : 500,
+              boxShadow: view === v ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5,
+            }}>
+              {dot && <span style={{ width: 6, height: 6, borderRadius: '50%', background: dot, flexShrink: 0 }} />}
+              {lbl}
+            </button>
+          ))}
         </div>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+        {[['Customers', 96], ['vs prior', 72]].map(([h, w]) => (
+          <div key={h} style={{ width: w, textAlign: 'right', fontSize: 11, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</div>
+        ))}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
