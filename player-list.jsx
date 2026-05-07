@@ -444,7 +444,19 @@ function Segment({ value, setValue, options, colors = {}, compact }) {
 
 function StatusCell({ playerId, status, onUpdate }) {
   const [editing, setEditing] = React.useState(false);
+  const selectRef = React.useRef(null);
   const cfg = STATUS_CFG[status];
+
+  // Open the native dropdown as soon as the select mounts
+  React.useEffect(() => {
+    if (editing && selectRef.current) {
+      try {
+        selectRef.current.showPicker();
+      } catch (e) {
+        selectRef.current.click();
+      }
+    }
+  }, [editing]);
 
   const stopPropAndEdit = (e) => {
     e.stopPropagation();
@@ -454,7 +466,7 @@ function StatusCell({ playerId, status, onUpdate }) {
   if (editing) {
     return (
       <select
-        autoFocus
+        ref={selectRef}
         value={status || ''}
         onClick={e => e.stopPropagation()}
         onChange={e => { onUpdate(e.target.value || null); setEditing(false); }}
