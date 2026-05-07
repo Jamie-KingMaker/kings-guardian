@@ -166,13 +166,12 @@ function App() {
   const handleCustomerSearch = (rawCustomerId) => {
     const matchedCustomerId = resolveCustomerId(rawCustomerId, brand, country);
 
-    // Mimic opening Player List from the sidebar before selecting a customer row.
-    setActiveView(KGEnums.VIEW.PLAYERS);
-
     if (!matchedCustomerId) {
-      setSelectedPlayer(null);
       return false;
     }
+
+    // Mimic opening Player List from the sidebar before selecting a customer row.
+    setActiveView(KGEnums.VIEW.PLAYERS);
 
     handlePlayerClick(matchedCustomerId);
     return true;

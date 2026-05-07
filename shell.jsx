@@ -3,22 +3,78 @@
 const { useState } = React;
 const { KGEnums, KGConstants } = window;
 
+const CUSTOMER_SEARCH_FEEDBACK = Object.freeze({
+  IDLE: 'idle',
+  MISS: 'miss',
+  HIT: 'hit',
+});
+
+const CUSTOMER_SEARCH_SUGGESTION_LIMIT = 8;
+
 function TopBar({ brand, setBrand, country, setCountry, lastRefresh, onCustomerSearch }) {
   const theme = getBrandTheme(brand);
   const isBrand = brand === KGEnums.BRAND.BETKING || brand === KGEnums.BRAND.SUPERSPORTBET;
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
-  const [isCustomerSearchMiss, setIsCustomerSearchMiss] = useState(false);
+  const [customerSearchFeedback, setCustomerSearchFeedback] = useState(CUSTOMER_SEARCH_FEEDBACK.IDLE);
+  const [customerSearchFlashSeq, setCustomerSearchFlashSeq] = useState(0);
+  const clearCustomerSearchRef = React.useRef(null);
+
+  React.useEffect(() => () => {
+    if (clearCustomerSearchRef.current) clearTimeout(clearCustomerSearchRef.current);
+  }, []);
+
+  const customerIdSuggestions = React.useMemo(() => {
+    const query = (customerSearchQuery || '').trim().toUpperCase();
+    if (!query) return [];
+
+    const compactQuery = query.replace(/[^A-Z0-9]/g, '');
+    if (!compactQuery) return [];
+
+    const players = window.KGData?.PLAYERS || [];
+    const suggestionSet = new Set();
+    const suggestions = [];
+
+    for (const player of players) {
+      if (brand !== KGEnums.BRAND.ALL && player.brand !== brand) continue;
+      if (country !== KGEnums.COUNTRY.ALL && player.country !== country) continue;
+
+      const playerId = (player.id || '').toUpperCase();
+      if (!playerId) continue;
+
+      const compactPlayerId = playerId.replace(/[^A-Z0-9]/g, '');
+      const isMatch = playerId.includes(query) || compactPlayerId.includes(compactQuery);
+      if (!isMatch || suggestionSet.has(playerId)) continue;
+
+      suggestionSet.add(playerId);
+      suggestions.push(playerId);
+      if (suggestions.length >= CUSTOMER_SEARCH_SUGGESTION_LIMIT) break;
+    }
+
+    return suggestions;
+  }, [brand, country, customerSearchQuery]);
 
   const handleCustomerSearchSubmit = (event) => {
     event.preventDefault();
+    if (clearCustomerSearchRef.current) clearTimeout(clearCustomerSearchRef.current);
+
     if (!customerSearchQuery.trim()) {
-      setIsCustomerSearchMiss(false);
+      setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.IDLE);
       return;
     }
+
     if (!onCustomerSearch) return;
     const didOpenCustomer = onCustomerSearch(customerSearchQuery);
-    setIsCustomerSearchMiss(!didOpenCustomer);
-    if (didOpenCustomer) setCustomerSearchQuery('');
+
+    if (didOpenCustomer) {
+      setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.HIT);
+      setCustomerSearchFlashSeq(seq => seq + 1);
+      clearCustomerSearchRef.current = setTimeout(() => {
+        setCustomerSearchQuery('');
+      }, 620);
+    } else {
+      setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.MISS);
+      setCustomerSearchFlashSeq(seq => seq + 1);
+    }
   };
 
   return (
@@ -94,27 +150,45 @@ function TopBar({ brand, setBrand, country, setCountry, lastRefresh, onCustomerS
         }}>
           <Icon name="search" size={14} color="#94A3B8" />
           <input
+            key={customerSearchFlashSeq}
             id={KGEnums.COMPONENT_ID.TOPBAR_CUSTOMER_SEARCH_INPUT}
+            list={KGEnums.COMPONENT_ID.TOPBAR_CUSTOMER_SEARCH_DATALIST}
+              autoComplete="off"
             value={customerSearchQuery}
             onChange={(event) => {
               setCustomerSearchQuery(event.target.value);
-              if (isCustomerSearchMiss) setIsCustomerSearchMiss(false);
+              if (customerSearchFeedback !== CUSTOMER_SEARCH_FEEDBACK.IDLE) {
+                setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.IDLE);
+              }
+            }}
+            onAnimationEnd={() => {
+              if (customerSearchFeedback !== CUSTOMER_SEARCH_FEEDBACK.IDLE) {
+                setCustomerSearchFeedback(CUSTOMER_SEARCH_FEEDBACK.IDLE);
+              }
             }}
             placeholder="Search Customer ID…"
             style={{
               background: 'transparent', border: 'none', outline: 'none',
-              color: '#E2E8F0', fontSize: 15, flex: 1, fontFamily: 'inherit',
+              color: customerSearchFeedback === CUSTOMER_SEARCH_FEEDBACK.HIT
+                ? '#86EFAC'
+                : customerSearchFeedback === CUSTOMER_SEARCH_FEEDBACK.MISS
+                  ? '#FCA5A5'
+                  : '#E2E8F0',
+              animation: customerSearchFeedback === CUSTOMER_SEARCH_FEEDBACK.HIT
+                ? 'kg-customer-search-hit 190ms ease-in-out 0s 3'
+                : customerSearchFeedback === CUSTOMER_SEARCH_FEEDBACK.MISS
+                  ? 'kg-customer-search-miss 190ms ease-in-out 0s 3'
+                  : 'none',
+              fontSize: 15, flex: 1, fontFamily: 'inherit',
             }}
           />
           <kbd style={{ fontSize: 12, color: '#64748B', padding: '1px 5px', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 3 }}>⌘K</kbd>
         </form>
-        {isCustomerSearchMiss && (
-          <span style={{
-            position: 'absolute', left: 8, top: 'calc(100% + 3px)',
-            fontSize: 11, fontWeight: 600, color: '#FCA5A5',
-            whiteSpace: 'nowrap',
-          }}>Customer not found</span>
-        )}
+        <datalist id={KGEnums.COMPONENT_ID.TOPBAR_CUSTOMER_SEARCH_DATALIST}>
+          {customerIdSuggestions.map((customerId) => (
+            <option key={customerId} value={customerId}></option>
+          ))}
+        </datalist>
       </div>
 
       {/* Refresh */}
@@ -136,6 +210,18 @@ function TopBar({ brand, setBrand, country, setCountry, lastRefresh, onCustomerS
         fontSize: 13, fontWeight: 700, color: '#E2E8F0',
         border: '1px solid rgba(148,163,184,0.24)',
       }}>OA</div>
+
+      <style>{`
+        @keyframes kg-customer-search-hit {
+          0%, 100% { color: #E2E8F0; }
+          50% { color: #86EFAC; }
+        }
+
+        @keyframes kg-customer-search-miss {
+          0%, 100% { color: #E2E8F0; }
+          50% { color: #FCA5A5; }
+        }
+      `}</style>
     </div>
   );
 }

@@ -53,6 +53,7 @@ const KGEnums = Object.freeze({
   }),
   COMPONENT_ID: Object.freeze({
     TOPBAR_CUSTOMER_SEARCH_INPUT: 'topbar-customer-search-input',
+    TOPBAR_CUSTOMER_SEARCH_DATALIST: 'topbar-customer-search-datalist',
   }),
   PLAYER_LIST: Object.freeze({
     SHORTCUT_MOVERS: 'movers',
