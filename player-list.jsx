@@ -472,9 +472,12 @@ function StatusCell({ playerId, status, onUpdate }) {
         onChange={e => { onUpdate(e.target.value || null); setEditing(false); }}
         onBlur={() => setEditing(false)}
         style={{
-          padding: '3px 6px', borderRadius: 4, border: '1px solid #6366F1',
-          fontSize: 12, fontWeight: 600, color: '#0F172A', fontFamily: 'inherit',
-          cursor: 'pointer', background: '#FFFFFF', minWidth: 160,
+          padding: '3px 8px', borderRadius: 4,
+          border: `1px solid ${cfg ? cfg.bg : '#CBD5E1'}`,
+          fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+          cursor: 'pointer', minWidth: 160,
+          background: cfg ? cfg.bg : '#FFFFFF',
+          color: cfg ? cfg.color : '#475569',
         }}
       >
         <option value="">— No status</option>
