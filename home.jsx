@@ -982,14 +982,22 @@ function RGAdoptionCard({ items, rangeLabel }) {
   const innerW = W - PAD_L - PAD_R;
   const innerH = H - PAD_T - PAD_B;
 
-  // Scale factors by risk cohort (approximate proportions of tool usage)
-  const cohortScale = { all: 1, high: 0.18, med: 0.34, low: 0.48 };
-  const scale = cohortScale[view] || 1;
-  const scaledItems = items.map(i => ({
-    ...i,
-    count: Math.round(i.count * scale),
-    trend: (i.trend || []).map(p => ({ ...p, v: Math.round(p.v * scale) })),
-  }));
+  // Per-cohort tool multipliers — high-risk skews to severe tools, low-risk to soft limits
+  const cohortToolScale = {
+    all:  { 'Self-Exclusion': 1.00, 'Deposit Limits': 1.00, '24-Hour Cool-Off': 1.00, 'Account Closure': 1.00 },
+    high: { 'Self-Exclusion': 0.38, 'Deposit Limits': 0.09, '24-Hour Cool-Off': 0.14, 'Account Closure': 0.31 },
+    med:  { 'Self-Exclusion': 0.11, 'Deposit Limits': 0.28, '24-Hour Cool-Off': 0.22, 'Account Closure': 0.07 },
+    low:  { 'Self-Exclusion': 0.04, 'Deposit Limits': 0.33, '24-Hour Cool-Off': 0.19, 'Account Closure': 0.03 },
+  };
+  const toolScales = cohortToolScale[view] || cohortToolScale.all;
+  const scaledItems = items.map(i => {
+    const s = toolScales[i.tool] ?? 1;
+    return {
+      ...i,
+      count: Math.round(i.count * s),
+      trend: (i.trend || []).map(p => ({ ...p, v: Math.round(p.v * s) })),
+    };
+  });
 
   const numPts = scaledItems[0]?.trend?.length || 1;
   const allVals = scaledItems.flatMap(i => (i.trend || []).map(p => p.v));
