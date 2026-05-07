@@ -13,7 +13,6 @@ function playerSeed(id) {
 }
 
 // Derive 3–5 risk-insight objects from a player's existing data fields.
-// All source data lives solely in data.jsx PLAYERS — nothing is hardcoded here.
 function generatePlayerInsights(player) {
   const { signals = [], insight, spendDelta, riskScore, spend, deposits, brand } = player;
   const cur  = fmtCompact(spend, brand);
@@ -23,46 +22,152 @@ function generatePlayerInsights(player) {
   if (signals.includes('Rapid re-deposit')) {
     out.push({ sev: 'high', title: 'Rapid re-deposit pattern', detail: `Player re-deposited within minutes of depleting session balance on multiple occasions. Average re-deposit window within high-risk criteria.`, time: '2h ago' });
   }
-
   if ((spendDelta || 0) >= 50) {
     out.push({ sev: 'high', title: `Spend up ${spendDelta}% vs prior 7 days`, detail: `Weekly spend has escalated from ${prev} to ${cur} — a material week-on-week increase.`, time: '6h ago' });
   }
-
   if (signals.includes('Late-night activity shift')) {
     out.push({ sev: 'medium', title: 'Late-night session activity shift', detail: 'Significant proportion of bets placed between 22:00–04:00, up sharply vs the prior 7-day window.', time: '2d ago' });
   }
-
   if (signals.includes('Deposit frequency surge')) {
     out.push({ sev: 'medium', title: 'Deposit frequency surge', detail: 'Number of deposits per session has risen well above the 28-day baseline. Velocity is a primary model driver.', time: '1d ago' });
   }
-
   if (signals.includes('Multiple deposits/session')) {
     out.push({ sev: 'medium', title: 'Multiple deposits in single session', detail: `${deposits} deposits recorded this week, with several occurring within the same session window.`, time: '1d ago' });
   }
-
   if (signals.includes('Sports → Casino shift')) {
     out.push({ sev: 'medium', title: 'Product migration: Sports → Casino', detail: 'Player has materially shifted activity from sports into casino products over the last 14 days.', time: '3d ago' });
   }
-
   if (signals.includes('Loss-chasing pattern')) {
     out.push({ sev: 'high', title: 'Loss-chasing pattern detected', detail: 'Behavioural model identified a sequence of escalating bets following losses — a key harm indicator.', time: '4h ago' });
   }
-
   if (signals.includes('Failed deposit attempts')) {
     out.push({ sev: 'low', title: 'Failed deposit attempts', detail: 'Several failed payment attempts recorded. May indicate payment friction or limit-circumvention behaviour.', time: '3d ago' });
   }
-
-  // Fallback: always surface the primary insight from the player record
   if (out.length === 0 && insight) {
     out.push({ sev: 'high', title: insight, detail: `Risk score: ${riskScore ?? '—'}. No additional signal detail available — model is still calibrating for this player.`, time: '1h ago' });
   }
-
-  // Risk score threshold note if we still have room
   if (out.length < 3 && riskScore != null) {
     out.push({ sev: 'low', title: 'Risk score above monitoring threshold', detail: `Current score of ${riskScore} places this player in the high-risk bucket. Continued monitoring recommended.`, time: '1d ago' });
   }
-
   return out.slice(0, 5);
+}
+
+// Generate a plausible interaction history from the player's status and signals.
+function generateInteractionLog(player) {
+  const rnd = pdSeeded(playerSeed(player.id) + 99);
+  const AGENTS = ['Amara Okafor', 'Chioma Eze', 'Emeka Nwosu', 'Fatima Al-Hassan', 'Ngozi Adeyemi'];
+  const agent = AGENTS[Math.floor(rnd() * AGENTS.length)];
+  const agent2 = AGENTS[Math.floor(rnd() * AGENTS.length)];
+
+  const entries = [];
+  const now = Date.now();
+  const day = 86400000;
+
+  // Automated model flag — always present
+  entries.push({
+    type: 'auto',
+    title: 'Automated risk flag triggered',
+    detail: `Risk model score crossed the 70-point threshold. Player automatically added to the high-risk monitoring queue.`,
+    agent: 'King\'s Guard AI',
+    time: new Date(now - Math.floor(7 + rnd() * 5) * day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+    badge: 'System',
+    badgeColor: '#475569',
+  });
+
+  // Signal-driven entries
+  if ((player.signals || []).includes('Rapid re-deposit')) {
+    entries.push({
+      type: 'flag',
+      title: 'Rapid re-deposit signal triggered',
+      detail: 'Behavioural model detected multiple re-deposit events within 10 minutes of session loss. Signal elevated to high severity.',
+      agent: 'King\'s Guard AI',
+      time: new Date(now - Math.floor(5 + rnd() * 3) * day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      badge: 'Signal',
+      badgeColor: '#DC2626',
+    });
+  }
+
+  if ((player.signals || []).includes('Loss-chasing pattern')) {
+    entries.push({
+      type: 'flag',
+      title: 'Loss-chasing pattern identified',
+      detail: 'Model identified 3+ escalating bet sequences following consecutive losses within the same session. Primary harm indicator.',
+      agent: 'King\'s Guard AI',
+      time: new Date(now - Math.floor(4 + rnd() * 2) * day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      badge: 'Signal',
+      badgeColor: '#DC2626',
+    });
+  }
+
+  // Account manager review
+  if (player.status && player.status !== KGEnums.PLAYER_STATUS.MONITOR) {
+    entries.push({
+      type: 'review',
+      title: 'Account reviewed by RG team',
+      detail: `Player profile reviewed by ${agent}. Behavioural indicators assessed. Player escalated to outreach queue given score trajectory.`,
+      agent,
+      time: new Date(now - Math.floor(3 + rnd() * 2) * day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      badge: 'Review',
+      badgeColor: '#D97706',
+    });
+  }
+
+  // Status-specific interaction
+  if (player.status === KGEnums.PLAYER_STATUS.OUTREACH || player.status === 'outreach-rec') {
+    entries.push({
+      type: 'outreach',
+      title: 'Outreach call attempted — no answer',
+      detail: `${agent} attempted to contact the player via registered phone number. No answer recorded. Follow-up scheduled in 48 hours.`,
+      agent,
+      time: new Date(now - Math.floor(2 + rnd() * 1) * day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      badge: 'Outreach',
+      badgeColor: '#7C3AED',
+    });
+    if (rnd() > 0.5) {
+      entries.push({
+        type: 'outreach',
+        title: 'Responsible gambling resources sent',
+        detail: `RG information email sent to registered address. Included deposit limit guidance and self-exclusion pathway.`,
+        agent,
+        time: new Date(now - Math.floor(1) * day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+        badge: 'Outreach',
+        badgeColor: '#7C3AED',
+      });
+    }
+  } else if (player.status === KGEnums.PLAYER_STATUS.MONITOR) {
+    entries.push({
+      type: 'review',
+      title: 'Added to enhanced monitoring',
+      detail: `${agent2} added player to the enhanced monitoring cohort. Score trajectory and deposit velocity to be reviewed at next weekly cycle.`,
+      agent: agent2,
+      time: new Date(now - Math.floor(2 + rnd() * 2) * day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      badge: 'Monitor',
+      badgeColor: '#D97706',
+    });
+  } else if (player.status === KGEnums.PLAYER_STATUS.FLAGGED) {
+    entries.push({
+      type: 'flag',
+      title: 'Player manually flagged for senior review',
+      detail: `${agent} escalated the case to senior RG officer following score trajectory review. Pending team assessment.`,
+      agent,
+      time: new Date(now - Math.floor(1 + rnd() * 2) * day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+      badge: 'Escalated',
+      badgeColor: '#DC2626',
+    });
+  }
+
+  // Most recent: note added
+  entries.push({
+    type: 'note',
+    title: 'Case note added',
+    detail: `Player has shown consistent escalation pattern over the 7-day window. Deposit velocity and session frequency are primary model drivers. No player contact established yet.`,
+    agent,
+    time: new Date(now - Math.floor(rnd() * 18) * 3600000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' today',
+    badge: 'Note',
+    badgeColor: '#64748B',
+  });
+
+  return entries;
 }
 
 function PlayerDetail({ playerId, onBack }) {
@@ -70,10 +175,9 @@ function PlayerDetail({ playerId, onBack }) {
   const player = getPlayerById(playerId) || PLAYERS[0];
   const [tab, setTab] = useStatePD('overview');
 
-  // All insights derived from the player's own data — no hardcoded values.
   const insights = generatePlayerInsights(player);
+  const interactionLog = generateInteractionLog(player);
 
-  // MicroStat deltas — derived from player.spendDelta so they reflect the selected player.
   const sd = player.spendDelta || 0;
   const depositsGrowthPct = Math.round(sd * 0.62);
   const betsGrowthPct     = Math.round(sd * 0.71);
@@ -84,6 +188,238 @@ function PlayerDetail({ playerId, onBack }) {
     medium: KGConstants.RISK_COLORS.medium.main,
     low: KGConstants.RISK_COLORS.low.main,
   };
+
+  const TABS = [
+    ['overview',  'Overview'],
+    ['insights',  `Risk insights · ${insights.length}`],
+    ['behaviour', 'Behaviour'],
+    ['log',       `Interaction log · ${interactionLog.length}`],
+  ];
+
+  // ── Tab bodies ────────────────────────────────────────────────────────────
+
+  const overviewBody = (
+    <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16 }}>
+      {/* Left */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          <MicroStat label="Spend / 7d"    value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`}               tone="high" />
+          <MicroStat label="Deposits / 7d" value={player.deposits}                        delta={`+${depositsGrowthPct}%`} tone="high" />
+          <MicroStat label="Bets / 7d"     value={player.bets}                            delta={`+${betsGrowthPct}%`}     tone="high" />
+          <MicroStat label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
+        </div>
+        <div style={{ ...cardStyle }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div>
+              <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Spend & deposits over time</div>
+              <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginTop: 2 }}>30-day behavioural trace</div>
+            </div>
+            <div style={{ display: 'flex', gap: 12, fontSize: 13 }}>
+              <span style={{ color: '#475569', display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 2, background: '#0F172A' }}></span>Spend</span>
+              <span style={{ color: '#475569', display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 8, background: '#DC2626', borderRadius: 1 }}></span>Deposits</span>
+            </div>
+          </div>
+          <BehaviourChart player={player} />
+        </div>
+        <div style={{ ...cardStyle }}>
+          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Product distribution · 30d</div>
+          <ProductDistribution player={player} />
+        </div>
+      </div>
+      {/* Right: insights summary */}
+      <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '14px 16px', borderBottom: '1px solid #E2E8F0' }}>
+          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Why this player is flagged</div>
+          <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginTop: 2 }}>Risk insights · explainability</div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {insights.map((ins, idx) => (
+            <div key={idx} style={{ padding: '14px 16px', borderBottom: idx < insights.length - 1 ? '1px solid #F1F5F9' : 'none', borderLeft: `3px solid ${sevColor[ins.sev]}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 3, background: `${sevColor[ins.sev]}1A`, color: sevColor[ins.sev], fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{ins.sev} severity</span>
+                <span style={{ fontSize: 13, color: '#94A3B8' }}>{ins.time}</span>
+              </div>
+              <div style={{ fontSize: 15, color: '#0F172A', fontWeight: 600, marginBottom: 4 }}>{ins.title}</div>
+              <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.5 }}>{ins.detail}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: '12px 16px', background: 'rgba(245,158,11,0.06)', borderTop: '1px solid #E2E8F0', fontSize: 14, color: '#475569' }}>
+          <strong style={{ color: '#0F172A' }}>Suggested action:</strong> Players with this signal pattern often respond well to a deposit-limit conversation.
+        </div>
+      </div>
+    </div>
+  );
+
+  const insightsBody = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Score context bar */}
+      <div style={{ ...cardStyle, padding: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 4 }}>Risk score</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#DC2626', fontFamily: "'Roboto Mono', monospace" }}>{player.riskScore ?? '—'}<span style={{ fontSize: 14, color: '#94A3B8', fontWeight: 400 }}> / 100</span></div>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 4 }}>Trend</div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: '#0F172A', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}><TrendArrow trend={player.trend} />{player.trend ? player.trend.charAt(0).toUpperCase() + player.trend.slice(1) : '—'}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 4 }}>Active signals</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace" }}>{(player.signals || []).length}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 4 }}>Risk bucket</div>
+            <div style={{ marginTop: 4 }}><RiskPill level={player.risk} /></div>
+          </div>
+        </div>
+        {/* Score bar */}
+        <div style={{ marginTop: 14 }}>
+          <div style={{ height: 6, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${player.riskScore ?? 0}%`, background: player.riskScore >= 70 ? '#DC2626' : player.riskScore >= 40 ? '#D97706' : '#16A34A', borderRadius: 3 }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#94A3B8', marginTop: 4 }}>
+            <span>0 — Low risk</span><span>40 — Medium risk</span><span>70 — High risk</span><span>100</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Signal summary */}
+      {(player.signals || []).length > 0 && (
+        <div style={{ ...cardStyle, padding: 16 }}>
+          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Active signals</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {(player.signals || []).map((s, i) => (
+              <span key={i} style={{ padding: '5px 10px', background: '#FEF2F2', color: '#DC2626', borderRadius: 5, fontSize: 13, fontWeight: 600, border: '1px solid #FECACA' }}>{s}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Full insight cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {insights.map((ins, idx) => (
+          <div key={idx} style={{ ...cardStyle, padding: 0, overflow: 'hidden', borderLeft: `4px solid ${sevColor[ins.sev]}` }}>
+            <div style={{ padding: '14px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 11, padding: '2px 7px', borderRadius: 3, background: `${sevColor[ins.sev]}1A`, color: sevColor[ins.sev], fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{ins.sev} severity</span>
+                <span style={{ fontSize: 12, color: '#94A3B8' }}>{ins.time}</span>
+              </div>
+              <div style={{ fontSize: 15, color: '#0F172A', fontWeight: 600, marginBottom: 6 }}>{ins.title}</div>
+              <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.55 }}>{ins.detail}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Suggested action */}
+      <div style={{ ...cardStyle, padding: 16, background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.2)' }}>
+        <div style={{ fontSize: 13, color: '#D97706', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Suggested action</div>
+        <div style={{ fontSize: 15, color: '#0F172A', lineHeight: 1.6 }}>
+          Players with this signal pattern often respond well to a <strong>deposit-limit conversation</strong>. Consider a proactive outreach call to discuss responsible gambling tools. If no contact in 72h, escalate to senior RG officer.
+        </div>
+      </div>
+    </div>
+  );
+
+  const behaviourBody = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Micro stats row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+        <MicroStat label="Spend / 7d"    value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`}               tone="high" />
+        <MicroStat label="Deposits / 7d" value={player.deposits}                        delta={`+${depositsGrowthPct}%`} tone="high" />
+        <MicroStat label="Bets / 7d"     value={player.bets}                            delta={`+${betsGrowthPct}%`}     tone="high" />
+        <MicroStat label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
+      </div>
+
+      {/* Full-width spend chart */}
+      <div style={{ ...cardStyle }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div>
+            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Spend & deposits over time</div>
+            <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginTop: 2 }}>30-day behavioural trace</div>
+          </div>
+          <div style={{ display: 'flex', gap: 12, fontSize: 13 }}>
+            <span style={{ color: '#475569', display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 2, background: '#0F172A' }}></span>Spend</span>
+            <span style={{ color: '#475569', display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 8, height: 8, background: '#DC2626', borderRadius: 1 }}></span>Deposits</span>
+          </div>
+        </div>
+        <BehaviourChart player={player} tall />
+      </div>
+
+      {/* Session timing + product split side by side */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {/* Session timing */}
+        <div style={{ ...cardStyle }}>
+          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>Session timing distribution</div>
+          <SessionTimingChart player={player} />
+        </div>
+        {/* Product distribution */}
+        <div style={{ ...cardStyle }}>
+          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Product distribution · 30d</div>
+          <ProductDistribution player={player} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const logBody = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, ...cardStyle, padding: 0, overflow: 'hidden' }}>
+      <div style={{ padding: '14px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Interaction log</div>
+          <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginTop: 2 }}>All recorded actions for this player</div>
+        </div>
+        <button style={btnPrimary}><Icon name="note" size={14}/> Add note</button>
+      </div>
+
+      {interactionLog.map((entry, idx) => {
+        const typeIcon = { auto: '⚙', flag: '⚑', review: '◎', outreach: '☎', note: '✎' }[entry.type] || '•';
+        return (
+          <div key={idx} style={{
+            display: 'flex', gap: 16, padding: '18px 20px',
+            borderBottom: idx < interactionLog.length - 1 ? '1px solid #F1F5F9' : 'none',
+            background: idx === 0 ? '#FAFAFA' : '#FFFFFF',
+          }}>
+            {/* Timeline dot */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 32 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: `${entry.badgeColor}15`,
+                border: `2px solid ${entry.badgeColor}40`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 14, color: entry.badgeColor, flexShrink: 0,
+              }}>{typeIcon}</div>
+              {idx < interactionLog.length - 1 && (
+                <div style={{ width: 1, flex: 1, background: '#E2E8F0', marginTop: 6 }} />
+              )}
+            </div>
+            {/* Content */}
+            <div style={{ flex: 1, paddingBottom: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{
+                  fontSize: 11, padding: '2px 7px', borderRadius: 3,
+                  background: `${entry.badgeColor}15`, color: entry.badgeColor,
+                  fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+                }}>{entry.badge}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: '#0F172A' }}>{entry.title}</span>
+              </div>
+              <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.55, marginBottom: 8 }}>{entry.detail}</div>
+              <div style={{ display: 'flex', gap: 16, fontSize: 12, color: '#94A3B8' }}>
+                <span>{entry.agent}</span>
+                <span>{entry.time}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const tabContent = tab === 'overview' ? overviewBody
+    : tab === 'insights'  ? insightsBody
+    : tab === 'behaviour' ? behaviourBody
+    : logBody;
 
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -131,86 +467,18 @@ function PlayerDetail({ playerId, onBack }) {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #E2E8F0' }}>
-        {[['overview', 'Overview'], ['insights', 'Risk insights · 5'], ['behaviour', 'Behaviour'], ['log', 'Interaction log']].map(([id, l]) => (
+        {TABS.map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)} style={{
             padding: '10px 16px', background: 'transparent', border: 'none',
             borderBottom: tab === id ? '2px solid #0F172A' : '2px solid transparent',
             color: tab === id ? '#0F172A' : '#64748B',
             fontSize: 15, fontWeight: tab === id ? 600 : 500, cursor: 'pointer', fontFamily: 'inherit',
             marginBottom: -1,
-          }}>{l}</button>
+          }}>{label}</button>
         ))}
       </div>
 
-      {/* Body — Overview shows everything in one view */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16 }}>
-        {/* Left: Behaviour metrics + chart */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-            <MicroStat label="Spend / 7d"   value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`}              tone="high"   />
-            <MicroStat label="Deposits / 7d" value={player.deposits}                        delta={`+${depositsGrowthPct}%`} tone="high"   />
-            <MicroStat label="Bets / 7d"     value={player.bets}                            delta={`+${betsGrowthPct}%`}     tone="high"   />
-            <MicroStat label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
-          </div>
-
-          <div style={{ ...cardStyle }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
-              <div>
-                <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Spend & deposits over time</div>
-                <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginTop: 2 }}>30-day behavioural trace</div>
-              </div>
-              <div style={{ display: 'flex', gap: 12, fontSize: 13 }}>
-                <span style={{ color: '#475569', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  <span style={{ width: 8, height: 2, background: '#0F172A' }}></span>Spend
-                </span>
-                <span style={{ color: '#475569', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  <span style={{ width: 8, height: 8, background: '#DC2626', borderRadius: 1 }}></span>Deposits
-                </span>
-              </div>
-            </div>
-            <BehaviourChart player={player} />
-          </div>
-
-          <div style={{ ...cardStyle }}>
-            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Product distribution · 30d</div>
-            <ProductDistribution player={player} />
-          </div>
-        </div>
-
-        {/* Right: Risk insights panel */}
-        <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Why this player is flagged</div>
-              <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginTop: 2 }}>Risk insights · explainability</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {insights.map((i, idx) => (
-              <div key={idx} style={{
-                padding: '14px 16px', borderBottom: idx < insights.length - 1 ? '1px solid #F1F5F9' : 'none',
-                borderLeft: `3px solid ${sevColor[i.sev]}`,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{
-                      fontSize: 11, padding: '2px 6px', borderRadius: 3,
-                      background: `${sevColor[i.sev]}1A`, color: sevColor[i.sev],
-                      fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
-                    }}>{i.sev} severity</span>
-                    <span style={{ fontSize: 13, color: '#94A3B8' }}>{i.time}</span>
-                  </div>
-                </div>
-                <div style={{ fontSize: 15, color: '#0F172A', fontWeight: 600, marginBottom: 4 }}>{i.title}</div>
-                <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.5 }}>{i.detail}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ padding: '12px 16px', background: 'rgba(245,158,11,0.06)', borderTop: '1px solid #E2E8F0', fontSize: 14, color: '#475569' }}>
-            <strong style={{ color: '#0F172A' }}>Suggested action:</strong> Players with this signal pattern often respond well to a deposit-limit conversation.
-          </div>
-        </div>
-      </div>
+      {tabContent}
     </div>
   );
 }
@@ -226,15 +494,10 @@ function MicroStat({ label, value, delta, tone }) {
   );
 }
 
-function BehaviourChart({ player }) {
-  // Seeded RNG keyed to the player ID — chart shape is stable and unique per player,
-  // no Math.random(), so the detail view is consistent on every render.
+function BehaviourChart({ player, tall }) {
   const rnd = pdSeeded(playerSeed(player.id));
-
   const days = 30;
-  // Escalation point: high-risk players show a spike in the last ~8 days.
-  // Shift the inflection slightly per player so each chart looks distinct.
-  const escalationDay = 18 + Math.floor(rnd() * 6); // 18–23
+  const escalationDay = 18 + Math.floor(rnd() * 6);
   const depositFreq   = player.risk === KGEnums.RISK.HIGH ? 0.55 : player.risk === KGEnums.RISK.MEDIUM ? 0.30 : 0.15;
   const spend = Array.from({ length: days }, (_, i) => {
     const trend    = 70 + Math.sin(i * (0.35 + rnd() * 0.1)) * 15;
@@ -246,7 +509,7 @@ function BehaviourChart({ player }) {
     rnd() < (i > escalationDay ? depositFreq * 2 : depositFreq) ? 1 + Math.floor(rnd() * 3) : 0
   );
 
-  const W = 600, H = 180, PAD_L = 30, PAD_B = 22, PAD_T = 8;
+  const W = 600, H = tall ? 240 : 180, PAD_L = 30, PAD_B = 22, PAD_T = 8;
   const max = Math.max(...spend);
   const innerW = W - PAD_L - 8;
   const innerH = H - PAD_T - PAD_B;
@@ -265,14 +528,7 @@ function BehaviourChart({ player }) {
       <path d={area} fill="#0F172A" fillOpacity="0.06" />
       <path d={path} fill="none" stroke="#0F172A" strokeWidth="1.5" />
       {dep.map((d, i) => d > 0 && (
-        <rect key={i}
-          x={PAD_L + i * xStep - 1.5}
-          y={PAD_T + innerH - d * 12}
-          width="3"
-          height={d * 12}
-          fill="#DC2626"
-          rx="1"
-        />
+        <rect key={i} x={PAD_L + i * xStep - 1.5} y={PAD_T + innerH - d * 12} width="3" height={d * 12} fill="#DC2626" rx="1" />
       ))}
       <line x1={PAD_L + escalationDay * xStep} y1={PAD_T} x2={PAD_L + escalationDay * xStep} y2={PAD_T + innerH} stroke="#D97706" strokeWidth="1" strokeDasharray="3,3" />
       <text x={PAD_L + escalationDay * xStep + 4} y={PAD_T + 10} fontSize="11" fill="#D97706" fontWeight="600">Risk score: medium → high</text>
@@ -285,20 +541,52 @@ function BehaviourChart({ player }) {
   );
 }
 
+function SessionTimingChart({ player }) {
+  const rnd = pdSeeded(playerSeed(player.id) + 77);
+  const isLateNight = (player.signals || []).includes('Late-night activity shift');
+
+  // 6 time bands: 06-10, 10-14, 14-18, 18-22, 22-02, 02-06
+  const bands = ['06–10', '10–14', '14–18', '18–22', '22–02', '02–06'];
+  const baseWeights = isLateNight
+    ? [0.05, 0.08, 0.10, 0.18, 0.42, 0.17]
+    : [0.08, 0.15, 0.22, 0.35, 0.14, 0.06];
+  const vals = baseWeights.map(w => Math.max(1, Math.round(w * 100 + (rnd() - 0.5) * 6)));
+  const maxVal = Math.max(...vals);
+  const lateIdx = [4, 5];
+
+  return (
+    <div>
+      {bands.map((b, i) => (
+        <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <span style={{ fontSize: 12, color: '#64748B', minWidth: 40, fontFamily: "'Roboto Mono', monospace" }}>{b}</span>
+          <div style={{ flex: 1, height: 10, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{
+              height: '100%', width: `${(vals[i] / maxVal) * 100}%`,
+              background: lateIdx.includes(i) && isLateNight ? '#DC2626' : '#3B82F6',
+              borderRadius: 3,
+            }} />
+          </div>
+          <span style={{ fontSize: 12, color: lateIdx.includes(i) && isLateNight ? '#DC2626' : '#475569', fontWeight: lateIdx.includes(i) && isLateNight ? 700 : 400, minWidth: 28, textAlign: 'right', fontFamily: "'Roboto Mono', monospace" }}>{vals[i]}%</span>
+        </div>
+      ))}
+      {isLateNight && (
+        <div style={{ marginTop: 8, padding: '6px 10px', background: '#FEF2F2', borderRadius: 5, fontSize: 13, color: '#DC2626', fontWeight: 600, borderLeft: '2px solid #DC2626' }}>
+          Late-night activity elevated — 22:00–06:00 accounts for {vals[4] + vals[5]}% of sessions
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ProductDistribution({ player }) {
-  // Generate a plausible 8-week product-share trend from the player's current products
-  // and risk profile. Uses seeded RNG so the chart is stable across renders.
   const rnd    = pdSeeded(playerSeed(player.id) + 1);
   const prods  = player.products || [KGEnums.PRODUCT.SPORTS];
   const hasCasino   = prods.includes(KGEnums.PRODUCT.CASINO);
   const hasVirtuals = prods.includes(KGEnums.PRODUCT.VIRTUALS);
   const hasShift    = (player.signals || []).includes('Sports → Casino shift');
 
-  // End-state shares driven by the player's current products
   const endCasino   = hasCasino   ? (hasShift ? 68 + Math.floor(rnd() * 12) : 30 + Math.floor(rnd() * 20)) : 0;
   const endVirtuals = hasVirtuals ? 3 + Math.floor(rnd() * 5) : 0;
-
-  // Start-state: sports dominant, casino/virtuals lower
   const startCasino   = hasCasino   ? Math.max(5, endCasino   - (hasShift ? 55 : 15) + Math.floor(rnd() * 10)) : 0;
   const startVirtuals = hasVirtuals ? Math.max(1, endVirtuals - 2) : 0;
 
