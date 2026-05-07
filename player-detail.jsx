@@ -263,33 +263,8 @@ function PlayerDetail({ playerId, onBack }) {
           <MicroStat label="Bets / 7d"     value={player.bets}                            delta={`+${betsGrowthPct}%`}     tone="high" />
           <MicroStat label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
         </div>
-        {/* Two separate chart widgets side by side */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {/* Spend widget */}
-          <div style={{ ...cardStyle }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-              <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 10, height: 2, background: '#0F172A', display: 'inline-block' }}></span>Spend
-              </div>
-              <PlayerRangeSelector range={playerRange} setRange={setPlayerRange} />
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", marginBottom: 2 }}>{fmtCompact(player.spend, player.brand)}</div>
-            <div style={{ fontSize: 13, color: '#DC2626', fontWeight: 600, marginBottom: 12 }}>+{sd}% vs prior period</div>
-            <SpendChart player={player} range={playerRange} />
-          </div>
-
-          {/* Deposits widget */}
-          <div style={{ ...cardStyle }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-              <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 10, height: 10, background: '#DC2626', borderRadius: 2, display: 'inline-block' }}></span>Deposits
-              </div>
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", marginBottom: 2 }}>{player.deposits}</div>
-            <div style={{ fontSize: 13, color: '#DC2626', fontWeight: 600, marginBottom: 12 }}>+{depositsGrowthPct}% vs prior period</div>
-            <DepositsChart player={player} range={playerRange} />
-          </div>
-        </div>
+        {/* Combined spend + deposits chart */}
+        <SpendDepositsCard player={player} range={playerRange} setRange={setPlayerRange} />
         <div style={{ ...cardStyle }}>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Product distribution · 30d</div>
           <ProductDistribution player={player} />
@@ -402,33 +377,8 @@ function PlayerDetail({ playerId, onBack }) {
         <MicroStat label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
       </div>
 
-      {/* Two separate chart widgets */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {/* Spend widget */}
-        <div style={{ ...cardStyle }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 10, height: 2, background: '#0F172A', display: 'inline-block' }}></span>Spend
-            </div>
-            <PlayerRangeSelector range={playerRange} setRange={setPlayerRange} />
-          </div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", marginBottom: 2 }}>{fmtCompact(player.spend, player.brand)}</div>
-          <div style={{ fontSize: 13, color: '#DC2626', fontWeight: 600, marginBottom: 12 }}>+{sd}% vs prior period</div>
-          <SpendChart player={player} range={playerRange} tall />
-        </div>
-
-        {/* Deposits widget */}
-        <div style={{ ...cardStyle }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 10, height: 10, background: '#DC2626', borderRadius: 2, display: 'inline-block' }}></span>Deposits
-            </div>
-          </div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", marginBottom: 2 }}>{player.deposits}</div>
-          <div style={{ fontSize: 13, color: '#DC2626', fontWeight: 600, marginBottom: 12 }}>+{depositsGrowthPct}% vs prior period</div>
-          <DepositsChart player={player} range={playerRange} tall />
-        </div>
-      </div>
+      {/* Combined spend + deposits chart */}
+      <SpendDepositsCard player={player} range={playerRange} setRange={setPlayerRange} tall />
 
       {/* Session timing + product split side by side */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -814,6 +764,108 @@ function PlayerRangeSelector({ range, setRange }) {
           {label}
         </button>
       ))}
+    </div>
+  );
+}
+
+// ── SpendDepositsCard — combined spend line + deposits bars (RiskTrendCard style) ──
+function SpendDepositsCard({ player, range, setRange, tall }) {
+  const { spend, dep, labels, escAt, escLabel } = getPlayerChartData(player, range);
+
+  const W = 600, H = tall ? 260 : 200;
+  const PAD_L = 36, PAD_B = 24, PAD_T = 10, PAD_R = 8;
+  const iW = W - PAD_L - PAD_R;
+  const iH = H - PAD_T - PAD_B;
+
+  // Spend line — normalise to its own min/max
+  const maxSpend = Math.max(...spend);
+  const minSpend = Math.min(...spend);
+  const spendRng = maxSpend - minSpend || 1;
+  const xStep = iW / (spend.length - 1);
+
+  const spendPts = spend.map((v, i) => [
+    PAD_L + i * xStep,
+    PAD_T + iH - ((v - minSpend) / spendRng) * iH,
+  ]);
+  const spendLine = spendPts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+  const spendArea = spendLine + ` L${spendPts[spendPts.length - 1][0].toFixed(1)},${PAD_T + iH} L${PAD_L},${PAD_T + iH}Z`;
+
+  // Deposits bars — pinned to the bottom, max height = 28% of chart area
+  const maxDep = Math.max(...dep, 1);
+  const barMaxH = iH * 0.28;
+  const barW = Math.max(4, xStep * 0.52);
+
+  // Y-axis grid labels (spend axis)
+  const gridVals = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(minSpend + spendRng * (1 - t)));
+  const fmtY = v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`;
+
+  const rangeLabelMap = { '24h': 'Last 24 hours', '7d': 'Last 7 days', '30d': 'Last 30 days' };
+
+  return (
+    <div style={{ ...cardStyle }}>
+      {/* Header: title + tabs — identical pattern to RiskTrendCard */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+          Spend &amp; Deposits · {rangeLabelMap[range]}
+        </div>
+        <PlayerRangeSelector range={range} setRange={setRange} />
+      </div>
+
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: 14, fontSize: 13, marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#475569', fontWeight: 500 }}>
+          <svg width="18" height="10" style={{ flexShrink: 0 }}>
+            <line x1="0" y1="5" x2="18" y2="5" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+          Spend
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#475569', fontWeight: 500 }}>
+          <svg width="10" height="10" style={{ flexShrink: 0 }}>
+            <rect x="0" y="0" width="10" height="10" fill="#DC2626" rx="2" />
+          </svg>
+          Deposits
+        </div>
+      </div>
+
+      {/* SVG chart */}
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+        {/* Horizontal grid lines */}
+        {gridVals.map((v, i) => {
+          const y = PAD_T + iH - ((v - minSpend) / spendRng) * iH;
+          return (
+            <g key={i}>
+              <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#F1F5F9" strokeWidth="1" />
+              <text x={PAD_L - 4} y={y + 4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(v)}</text>
+            </g>
+          );
+        })}
+
+        {/* Spend: filled area + line + endpoint dot */}
+        <path d={spendArea} fill="#0F172A" fillOpacity="0.06" />
+        <path d={spendLine} fill="none" stroke="#0F172A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx={spendPts[spendPts.length - 1][0]} cy={spendPts[spendPts.length - 1][1]} r="3" fill="#0F172A" stroke="#fff" strokeWidth="1.5" />
+
+        {/* Deposits: bars anchored to bottom */}
+        {dep.map((d, i) => d > 0 && (
+          <rect key={i}
+            x={PAD_L + i * xStep - barW / 2}
+            y={PAD_T + iH - (d / maxDep) * barMaxH}
+            width={barW} height={(d / maxDep) * barMaxH}
+            fill={i > escAt ? '#DC2626' : '#94A3B8'} rx="2" fillOpacity="0.85"
+          />
+        ))}
+
+        {/* Escalation threshold marker */}
+        <line x1={PAD_L + escAt * xStep} y1={PAD_T} x2={PAD_L + escAt * xStep} y2={PAD_T + iH} stroke="#D97706" strokeWidth="1" strokeDasharray="3,3" />
+        <text x={PAD_L + escAt * xStep + 4} y={PAD_T + 10} fontSize="10" fill="#D97706" fontWeight="600">{escLabel}</text>
+
+        {/* X-axis labels */}
+        {labels.map((l, i) => l && (
+          <text key={i} x={PAD_L + i * xStep} y={H - 6} fontSize="11"
+            textAnchor={i === 0 ? 'start' : i === spend.length - 1 ? 'end' : 'middle'}
+            fill="#94A3B8">{l}</text>
+        ))}
+      </svg>
     </div>
   );
 }
