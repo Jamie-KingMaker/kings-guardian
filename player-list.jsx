@@ -226,9 +226,10 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
     }).length
   , [statusOverrides]);
 
-  // Base counts always from full population — unaffected by shortcuts or filters
+  // Base counts always from full population — use 30d range (activeMul=1.0) so we
+  // show the true total player base, not a windowed (DAU/WAU) subset
   const baseCounts = useMemoList(() => {
-    const pop = getPlayerPopulation(brand, range);
+    const pop = getPlayerPopulation(brand, KGEnums.DATE_RANGE.LAST_30_DAYS);
     const bc = pop.bucketCounts();
     const m = countryShareTotal;
     return {
