@@ -158,8 +158,9 @@ function PopulationRisk({ brand, dateRange: dateRangeProp = KGConstants.DATE_RAN
     };
   }, [rgAdoption]);
 
-  const dHigh = parseInt((statDeltas.high   || '+0').replace(/[^0-9]/g, '')) * (statDeltas.high?.startsWith('+')   ? 1 : -1);
-  const dMed  = parseInt((statDeltas.medium || '+0').replace(/[^0-9]/g, '')) * (statDeltas.medium?.startsWith('+') ? 1 : -1);
+  const dHigh = parseInt((statDeltas.high || '+0').replace(/[^0-9]/g, '')) * (statDeltas.high?.startsWith('+') ? 1 : -1);
+  const medDelta = statDeltas.med || statDeltas.medium || '+0';
+  const dMed = parseInt(medDelta.replace(/[^0-9]/g, '')) * (medDelta.startsWith('+') ? 1 : -1);
 
 
   return (
