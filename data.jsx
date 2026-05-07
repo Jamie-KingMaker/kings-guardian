@@ -568,13 +568,13 @@ function buildRangeData(rangeKey, brandKey) {
   // Hourly activity shape: low overnight, builds through morning, peaks evening
   const RG_HOUR_MUL = [0.42, 0.38, 0.35, 0.33, 0.32, 0.34, 0.40, 0.54, 0.68, 0.80, 0.90, 0.96, 1.00, 1.01, 1.03, 1.06, 1.12, 1.20, 1.32, 1.50, 1.65, 1.58, 1.30, 0.98];
   const TODAY_HOUR_RG = 23;
-  const fmtHour = (h) => `${String(h).padStart(2, '0')}:00`;
+  const fmtHourOfDay = (h) => `${String(h).padStart(2, '0')}:00`;
 
   const getRgLabel = (i) => {
     if (isHourlyRg) {
       const hoursAgo = rgNumPts - 1 - i;
       const hour = ((TODAY_HOUR_RG - hoursAgo) % 24 + 24) % 24;
-      return fmtHour(hour);
+      return fmtHourOfDay(hour);
     }
     const d = new Date(today);
     d.setDate(today.getDate() - Math.round((1 - i / (rgNumPts - 1 || 1)) * cfg.days));
@@ -627,14 +627,6 @@ function buildRangeData(rangeKey, brandKey) {
         }
         const noise = (rnd() - 0.5) * count * toolDef.noise;
         trend.push({ d: getRgLabel(i), v: Math.max(1, Math.round(v + noise)) });
-        const d = new Date(today);
-        if (isHourlyTrendRange) {
-          d.setHours(23, 0, 0, 0);
-          d.setHours(d.getHours() - (numPoints - 1 - i));
-        } else {
-          d.setDate(today.getDate() - Math.round((1 - t) * cfg.days));
-        }
-        trend.push({ d: isHourlyTrendRange ? fmtHour(d) : fmtDate(d), v: Math.max(1, Math.round(base + spike + noise)) });
       }
       trend[trend.length - 1].v = count;
       return { tool: toolDef.tool, count, delta, color: toolDef.color, trend };
