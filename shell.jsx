@@ -188,7 +188,7 @@ function Sidebar({ activeView, setActiveView, brand, country, dateRange }) {
             textAlign: 'left', marginBottom: 2,
             borderLeft: activeView === item.id ? `2px solid ${theme.accent}` : '2px solid transparent',
             paddingLeft: activeView === item.id ? 12 : 14,
-            opacity: item.disabled ? 0.45 : 1,
+            opacity: item.disabled ? 0.55 : 1,
           }}
           onMouseEnter={e => { if (!item.disabled && activeView !== item.id) e.currentTarget.style.background = 'rgba(148,163,184,0.06)'; }}
           onMouseLeave={e => { if (!item.disabled && activeView !== item.id) e.currentTarget.style.background = 'transparent'; }}
