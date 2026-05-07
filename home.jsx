@@ -838,7 +838,7 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 12 }}>
         <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, flexShrink: 0 }}>Deposit activity · {rangeLabel}</div>
         <div style={{ display: 'flex', background: '#F1F5F9', borderRadius: 6, padding: 2, gap: 2 }}>
-          {[['all','Overview',null],['high','High risk','#DC2626'],['med','Medium','#D97706'],['low','Low risk','#16A34A']].map(([v, lbl, dot]) => (
+          {[['all','Overview',null],['high','High','#DC2626'],['med','Medium','#D97706'],['low','Low','#16A34A']].map(([v, lbl, dot]) => (
             <button key={v} onClick={() => setFilter(v)} style={{
               flex: 1, padding: '4px 10px', borderRadius: 4, border: 'none', cursor: 'pointer',
               fontSize: 13, fontWeight: 600, fontFamily: 'inherit',
@@ -1008,7 +1008,7 @@ function RGAdoptionCard({ items, rangeLabel }) {
     <div style={cardStyle}>
       {/* Header */}
       <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>
-        Responsible Gaming Tool Usage · {rangeLabel}
+        RG Tool Usage · {rangeLabel}
       </div>
 
       {/* Stat mini-cards */}
