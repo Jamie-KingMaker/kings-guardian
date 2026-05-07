@@ -32,9 +32,7 @@ const KGEnums = Object.freeze({
   }),
   DATE_RANGE: Object.freeze({
     LAST_24_HOURS: '24h',
-    LAST_14_DAYS: '14d',
     LAST_30_DAYS: '30d',
-    LAST_90_DAYS: '90d',
     YTD: 'ytd',
     CUSTOM: 'custom',
   }),
@@ -180,16 +178,12 @@ function getCountryOptions(brand, includeAll = true) {
 
 // Convenience constants for date range keys (tied to RANGE_CONFIG)
 const DATE_RANGE_24H = KGEnums.DATE_RANGE.LAST_24_HOURS;
-const DATE_RANGE_14D = KGEnums.DATE_RANGE.LAST_14_DAYS;
 const DATE_RANGE_30D = KGEnums.DATE_RANGE.LAST_30_DAYS;
-const DATE_RANGE_90D = KGEnums.DATE_RANGE.LAST_90_DAYS;
 const DATE_RANGE_YTD = KGEnums.DATE_RANGE.YTD;
 
 const DATE_RANGE_OPTIONS = Object.freeze([
   { value: DATE_RANGE_24H, label: 'Last 24 hours' },
-  { value: DATE_RANGE_14D, label: 'Last 14 days' },
   { value: DATE_RANGE_30D, label: 'Last 30 days' },
-  { value: DATE_RANGE_90D, label: 'Last 90 days' },
   { value: DATE_RANGE_YTD, label: 'Year to date' },
 ]);
 
@@ -307,9 +301,7 @@ const SEVERITY_STYLE = Object.freeze({
 window.KGEnums = KGEnums;
 window.KGConstants = {
   DATE_RANGE_24H,
-  DATE_RANGE_14D,
   DATE_RANGE_30D,
-  DATE_RANGE_90D,
   DATE_RANGE_YTD,
   RISK_COLORS,
   RISK_LABELS,
@@ -332,4 +324,3 @@ window.KGConstants = {
   SIGNAL_META,
   SEVERITY_STYLE,
 };
-

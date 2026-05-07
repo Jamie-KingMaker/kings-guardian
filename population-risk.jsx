@@ -95,7 +95,7 @@ function PopulationRisk({ brand, dateRange: dateRangeProp = KGConstants.DATE_RAN
   const effectiveRange = React.useMemo(() => {
     if (dateRange !== 'custom' || !customRange?.start || !customRange?.end) return dateRange || KGConstants.DATE_RANGE_24H;
     const days = Math.round((customRange.end - customRange.start) / 86400000) + 1;
-    return days <= 7 ? KGConstants.DATE_RANGE_24H : days <= 14 ? KGConstants.DATE_RANGE_14D : days <= 30 ? KGConstants.DATE_RANGE_30D : days <= 90 ? KGConstants.DATE_RANGE_90D : KGConstants.DATE_RANGE_YTD;
+    return days <= 1 ? KGConstants.DATE_RANGE_24H : days <= 30 ? KGConstants.DATE_RANGE_30D : KGConstants.DATE_RANGE_YTD;
   }, [dateRange, customRange]);
 
   const data = useMemoRR(() => buildRangeData(effectiveRange, effectiveBrand), [effectiveRange, effectiveBrand]);
@@ -480,7 +480,7 @@ function PopulationRisk({ brand, dateRange: dateRangeProp = KGConstants.DATE_RAN
       </div>
 
       <div style={{ fontSize: 12, color: '#94A3B8', textAlign: 'center' }}>
-        Scores recompute {refreshLabel} · Model v3.2 · Outcome metrics based on 90-day cohort analysis
+        Scores recompute {refreshLabel} · Model v3.2 · Outcome metrics based on current selected range
       </div>
     </div>
   );

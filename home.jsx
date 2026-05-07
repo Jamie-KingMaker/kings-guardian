@@ -10,9 +10,7 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
     if (dateRange !== KGEnums.DATE_RANGE.CUSTOM || !customRange?.start || !customRange?.end) return dateRange || KGConstants.DATE_RANGE_24H;
     const days = Math.round((customRange.end - customRange.start) / 86400000) + 1;
     if (days <= 1) return KGConstants.DATE_RANGE_24H;
-    if (days <= 10) return KGConstants.DATE_RANGE_14D;
     if (days <= 60) return KGConstants.DATE_RANGE_30D;
-    if (days <= 120) return KGConstants.DATE_RANGE_90D;
     return KGConstants.DATE_RANGE_YTD;
   }, [dateRange, customRange]);
   const rangeData = useMemoHome(() => buildRangeData(effectiveRange, brand), [effectiveRange, brand]);
@@ -713,10 +711,10 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
 
    // Avg minutes between deposits — faster = higher risk
    const REDEPOSIT = {
-     all:  { [KGConstants.DATE_RANGE_24H]: 82,   [KGConstants.DATE_RANGE_14D]: 106,  [KGConstants.DATE_RANGE_30D]: 128,  [KGConstants.DATE_RANGE_90D]: 145,  [KGConstants.DATE_RANGE_YTD]: 178  },
-     high: { [KGConstants.DATE_RANGE_24H]: 9,    [KGConstants.DATE_RANGE_14D]: 13,   [KGConstants.DATE_RANGE_30D]: 14,   [KGConstants.DATE_RANGE_90D]: 16,   [KGConstants.DATE_RANGE_YTD]: 18   },
-     med:  { [KGConstants.DATE_RANGE_24H]: 118,  [KGConstants.DATE_RANGE_14D]: 162,  [KGConstants.DATE_RANGE_30D]: 180,  [KGConstants.DATE_RANGE_90D]: 210,  [KGConstants.DATE_RANGE_YTD]: 250  },
-     low:  { [KGConstants.DATE_RANGE_24H]: 2240, [KGConstants.DATE_RANGE_14D]: 3720, [KGConstants.DATE_RANGE_30D]: 4320, [KGConstants.DATE_RANGE_90D]: 5040, [KGConstants.DATE_RANGE_YTD]: 6480 },
+     all:  { [KGConstants.DATE_RANGE_24H]: 82,   [KGConstants.DATE_RANGE_30D]: 128,  [KGConstants.DATE_RANGE_YTD]: 178  },
+     high: { [KGConstants.DATE_RANGE_24H]: 9,    [KGConstants.DATE_RANGE_30D]: 14,   [KGConstants.DATE_RANGE_YTD]: 18   },
+     med:  { [KGConstants.DATE_RANGE_24H]: 118,  [KGConstants.DATE_RANGE_30D]: 180,  [KGConstants.DATE_RANGE_YTD]: 250  },
+     low:  { [KGConstants.DATE_RANGE_24H]: 2240, [KGConstants.DATE_RANGE_30D]: 4320, [KGConstants.DATE_RANGE_YTD]: 6480 },
    };
   const speedMins = (REDEPOSIT[filter] || REDEPOSIT.all)[rangeKey] || 94;
   const fmtSpeed  = m => m < 60 ? `${Math.round(m)}m` : m < 1440 ? `${(m/60).toFixed(1)}h` : `${(m/1440).toFixed(1)}d`;
@@ -1129,3 +1127,4 @@ function SignalsBreakdownCard({ signals, rangeLabel }) {
 }
 
 Object.assign(window, { HomeDashboard, btnPrimary, btnSecondary, cardStyle });
+
