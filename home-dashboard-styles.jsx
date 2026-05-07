@@ -161,10 +161,20 @@ const HOME_DASHBOARD_RG_ADOPTION_SCALES = Object.freeze({
   low: { 'Self-Exclusion': 0.04, 'Deposit Limits': 0.33, '24-Hour Cool-Off': 0.19, 'Account Closure': 0.03 },
 });
 
+// Convenience shorthands — used across PlayerList, PlayerDetail, InteractionLog
+// Single source of truth lives in HOME_DASHBOARD_STYLES above
+const cardStyle    = HOME_DASHBOARD_STYLES.CARD;
+const btnPrimary   = HOME_DASHBOARD_STYLES.BUTTON_PRIMARY;
+const btnSecondary = HOME_DASHBOARD_STYLES.BUTTON_SECONDARY;
+
 Object.assign(window, {
   HOME_DASHBOARD_STYLES,
   HOME_DASHBOARD_COLORS,
   HOME_DASHBOARD_CHART_CONFIG,
   HOME_DASHBOARD_DEPOSIT_CONFIG,
+  // Global style tokens shared across screens
+  cardStyle,
+  btnPrimary,
+  btnSecondary,
 });
 

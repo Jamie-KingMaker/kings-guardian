@@ -140,24 +140,8 @@ function Icon({ name, size = 16, color = 'currentColor' }) {
   }
 }
 
-// Shared button style tokens — used across PlayerList, PlayerDetail, InteractionLog
-const btnPrimary = {
-  display: 'inline-flex', alignItems: 'center', gap: 6,
-  padding: '7px 14px', borderRadius: 6, border: 'none',
-  background: '#0F172A', color: '#F8FAFC',
-  fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-};
-
-const btnSecondary = {
-  display: 'inline-flex', alignItems: 'center', gap: 6,
-  padding: '7px 14px', borderRadius: 6,
-  border: '1px solid #E2E8F0', background: '#FFFFFF', color: '#334155',
-  fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-};
-
 Object.assign(window, {
   RISK_COLORS, RiskDot, RiskPill, TrendArrow, Sparkline,
   fmtCurrency, fmtCompact, BRAND_ACCENTS, BRAND_THEME, getBrandTheme, COUNTRY_NAMES,
   GuardLogo, Icon,
-  btnPrimary, btnSecondary,
 });
