@@ -79,6 +79,65 @@ window.claude = {
 const { useState, useEffect } = React;
 const { KGEnums, KGConstants } = window;
 
+const CUSTOMER_ID_PREFIX = Object.freeze({
+  [KGEnums.BRAND.BETKING]: 'BK',
+  [KGEnums.BRAND.SUPERSPORTBET]: 'SS',
+});
+
+function resolveCustomerId(rawCustomerId, brand, country) {
+  const normalizedInput = (rawCustomerId || '').trim().toUpperCase();
+  const compactInput = normalizedInput.replace(/\s+/g, '').replace(/_/g, '-');
+  if (!compactInput) return null;
+
+  const data = window.KGData || {};
+  const players = data.PLAYERS || [];
+  const getPlayerById = data.getPlayerById || (() => null);
+
+  const candidateIds = [];
+  const addCandidate = (candidate) => {
+    if (!candidate || candidateIds.includes(candidate)) return;
+    candidateIds.push(candidate);
+  };
+
+  addCandidate(compactInput);
+  addCandidate(compactInput.replace(/-/g, ''));
+
+  const prefixedIdMatch = compactInput.replace(/-/g, '').match(/^(BK|SS)(\d+)$/);
+  if (prefixedIdMatch) {
+    addCandidate(`${prefixedIdMatch[1]}-${prefixedIdMatch[2]}`);
+  }
+
+  const directMatchId = candidateIds.find(candidate => getPlayerById(candidate));
+  if (directMatchId) return directMatchId;
+
+  const numericInput = compactInput.replace(/-/g, '');
+  if (/^\d+$/.test(numericInput)) {
+    const preferredPrefixes = brand === KGEnums.BRAND.BETKING
+      ? [CUSTOMER_ID_PREFIX[KGEnums.BRAND.BETKING], CUSTOMER_ID_PREFIX[KGEnums.BRAND.SUPERSPORTBET]]
+      : brand === KGEnums.BRAND.SUPERSPORTBET
+        ? [CUSTOMER_ID_PREFIX[KGEnums.BRAND.SUPERSPORTBET], CUSTOMER_ID_PREFIX[KGEnums.BRAND.BETKING]]
+        : [CUSTOMER_ID_PREFIX[KGEnums.BRAND.BETKING], CUSTOMER_ID_PREFIX[KGEnums.BRAND.SUPERSPORTBET]];
+
+    const preferredMatch = preferredPrefixes
+      .map(prefix => `${prefix}-${numericInput}`)
+      .find(candidate => {
+        const player = getPlayerById(candidate);
+        if (!player) return false;
+        if (country === KGEnums.COUNTRY.ALL) return true;
+        return player.country === country;
+      });
+    if (preferredMatch) return preferredMatch;
+
+    const suffixMatches = players.filter(player => player.id.endsWith(`-${numericInput}`));
+    if (suffixMatches.length === 1) return suffixMatches[0].id;
+    const brandScopedMatch = suffixMatches.find(player => brand === KGEnums.BRAND.ALL || player.brand === brand);
+    if (brandScopedMatch) return brandScopedMatch.id;
+  }
+
+  const looseMatch = players.find(player => player.id.toUpperCase() === compactInput);
+  return looseMatch ? looseMatch.id : null;
+}
+
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "density": "comfortable",
   "showSpeakerNotes": false
@@ -102,6 +161,21 @@ function App() {
   const handlePlayerClick = (id) => {
     setSelectedPlayer(id);
     setActiveView(KGEnums.VIEW.PLAYER_DETAIL);
+  };
+
+  const handleCustomerSearch = (rawCustomerId) => {
+    const matchedCustomerId = resolveCustomerId(rawCustomerId, brand, country);
+
+    // Mimic opening Player List from the sidebar before selecting a customer row.
+    setActiveView(KGEnums.VIEW.PLAYERS);
+
+    if (!matchedCustomerId) {
+      setSelectedPlayer(null);
+      return false;
+    }
+
+    handlePlayerClick(matchedCustomerId);
+    return true;
   };
 
   let body;
@@ -128,7 +202,7 @@ function App() {
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <TopBar brand={brand} setBrand={setBrand} country={country} setCountry={setCountry} dateRange={dateRange} setDateRange={setDateRange} customRange={customRange} setCustomRange={setCustomRange} lastRefresh="3h ago" />
+      <TopBar brand={brand} setBrand={setBrand} country={country} setCountry={setCountry} dateRange={dateRange} setDateRange={setDateRange} customRange={customRange} setCustomRange={setCustomRange} lastRefresh="3h ago" onCustomerSearch={handleCustomerSearch} />
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <Sidebar activeView={activeView === KGEnums.VIEW.PLAYER_DETAIL ? KGEnums.VIEW.PLAYERS : activeView} setActiveView={(v) => { setActiveView(v); setSelectedPlayer(null); }} brand={brand} country={country} dateRange={dateRange} />
         <div style={{ flex: 1, overflow: 'auto', background: '#F1F5F9' }}>

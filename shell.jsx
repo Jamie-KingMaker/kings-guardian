@@ -3,9 +3,24 @@
 const { useState } = React;
 const { KGEnums, KGConstants } = window;
 
-function TopBar({ brand, setBrand, country, setCountry, lastRefresh }) {
+function TopBar({ brand, setBrand, country, setCountry, lastRefresh, onCustomerSearch }) {
   const theme = getBrandTheme(brand);
   const isBrand = brand === KGEnums.BRAND.BETKING || brand === KGEnums.BRAND.SUPERSPORTBET;
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [isCustomerSearchMiss, setIsCustomerSearchMiss] = useState(false);
+
+  const handleCustomerSearchSubmit = (event) => {
+    event.preventDefault();
+    if (!customerSearchQuery.trim()) {
+      setIsCustomerSearchMiss(false);
+      return;
+    }
+    if (!onCustomerSearch) return;
+    const didOpenCustomer = onCustomerSearch(customerSearchQuery);
+    setIsCustomerSearchMiss(!didOpenCustomer);
+    if (didOpenCustomer) setCustomerSearchQuery('');
+  };
+
   return (
     <div style={{
       height: 64, background: theme.topbar,
@@ -70,21 +85,36 @@ function TopBar({ brand, setBrand, country, setCountry, lastRefresh }) {
       <div style={{ flex: 1 }}></div>
 
       {/* Search */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        background: 'rgba(148,163,184,0.08)', borderRadius: 6,
-        padding: '6px 10px', width: 280,
-        border: '1px solid rgba(148,163,184,0.12)',
-      }}>
-        <Icon name="search" size={14} color="#94A3B8" />
-        <input
-          placeholder="Search Customer ID…"
-          style={{
-            background: 'transparent', border: 'none', outline: 'none',
-            color: '#E2E8F0', fontSize: 15, flex: 1, fontFamily: 'inherit',
-          }}
-        />
-        <kbd style={{ fontSize: 12, color: '#64748B', padding: '1px 5px', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 3 }}>⌘K</kbd>
+      <div style={{ position: 'relative' }}>
+        <form onSubmit={handleCustomerSearchSubmit} style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: 'rgba(148,163,184,0.08)', borderRadius: 6,
+          padding: '6px 10px', width: 280,
+          border: '1px solid rgba(148,163,184,0.12)',
+        }}>
+          <Icon name="search" size={14} color="#94A3B8" />
+          <input
+            id={KGEnums.COMPONENT_ID.TOPBAR_CUSTOMER_SEARCH_INPUT}
+            value={customerSearchQuery}
+            onChange={(event) => {
+              setCustomerSearchQuery(event.target.value);
+              if (isCustomerSearchMiss) setIsCustomerSearchMiss(false);
+            }}
+            placeholder="Search Customer ID…"
+            style={{
+              background: 'transparent', border: 'none', outline: 'none',
+              color: '#E2E8F0', fontSize: 15, flex: 1, fontFamily: 'inherit',
+            }}
+          />
+          <kbd style={{ fontSize: 12, color: '#64748B', padding: '1px 5px', border: '1px solid rgba(148,163,184,0.2)', borderRadius: 3 }}>⌘K</kbd>
+        </form>
+        {isCustomerSearchMiss && (
+          <span style={{
+            position: 'absolute', left: 8, top: 'calc(100% + 3px)',
+            fontSize: 11, fontWeight: 600, color: '#FCA5A5',
+            whiteSpace: 'nowrap',
+          }}>Customer not found</span>
+        )}
       </div>
 
       {/* Refresh */}
@@ -178,6 +208,7 @@ function Sidebar({ activeView, setActiveView, brand, country, dateRange }) {
       <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', color: '#64748B', textTransform: 'uppercase', padding: '8px 8px 12px' }}>Workspace</div>
       {items.map(item => (
         <button key={item.id}
+                id={item.id}
           onClick={() => !item.disabled && setActiveView(item.id)}
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
