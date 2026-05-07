@@ -34,13 +34,13 @@ const PLAYERS = [
     insight: 'Deposit frequency up 180% vs prior 7d',
     signals: ['Deposit frequency surge', 'Spend spike (>50% w/w)'],
     country: KGEnums.COUNTRY.NG, brand: KGEnums.BRAND.BETKING, tier: 8, products: [KGEnums.PRODUCT.SPORTS],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
   { id: 'BK-5621847', risk: 'medium', riskScore: 61, riskFrom: 41, trend: 'up', spend: 412800, spendDelta: 67,
     deposits: 7, bets: 98, lastActive: '1h ago',
     insight: 'Shift from Sports → Casino (4d trend)',
     signals: ['Sports → Casino shift'],
     country: KGEnums.COUNTRY.NG, brand: KGEnums.BRAND.BETKING, tier: 4, products: [KGEnums.PRODUCT.SPORTS, KGEnums.PRODUCT.CASINO],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
   { id: 'SS-9012384', risk: 'medium', riskScore: 53, riskFrom: 38, trend: 'up', spend: 8740, spendDelta: 54,
     deposits: 6, bets: 73, lastActive: '3h ago',
     insight: 'Late-night activity up 4× this week',
@@ -54,19 +54,19 @@ const PLAYERS = [
     insight: '2 failed deposit attempts last 24h',
     signals: ['Failed deposit attempts'],
     country: KGEnums.COUNTRY.ZM, brand: KGEnums.BRAND.SUPERSPORTBET, tier: 2, products: [KGEnums.PRODUCT.SPORTS],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
   { id: 'BK-2847362', risk: 'medium', riskScore: 44, trend: 'stable', spend: 287400, spendDelta: 38,
     deposits: 5, bets: 64, lastActive: '5h ago',
     insight: 'Spend up 38% vs prior 7d',
     signals: ['Spend spike (>50% w/w)'],
     country: KGEnums.COUNTRY.NG, brand: KGEnums.BRAND.BETKING, tier: 5, products: [KGEnums.PRODUCT.SPORTS],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
   { id: 'BK-7382910', risk: 'medium', riskScore: 41, trend: 'down', spend: 198400, spendDelta: 22,
     deposits: 4, bets: 47, lastActive: '8h ago',
     insight: 'Bet frequency doubled this week',
     signals: ['Deposit frequency surge'],
     country: KGEnums.COUNTRY.NG, brand: KGEnums.BRAND.BETKING, tier: 4, products: [KGEnums.PRODUCT.SPORTS, KGEnums.PRODUCT.CASINO],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
 
   // ===== Additional high risk =====
   { id: 'BK-9374821', risk: 'high', riskScore: 84, trend: 'up', spend: 762400, spendDelta: 118,
@@ -80,7 +80,7 @@ const PLAYERS = [
     insight: 'Deposit limit increased 3× in 14 days',
     signals: ['Deposit frequency surge'],
     country: KGEnums.COUNTRY.ZA, brand: KGEnums.BRAND.SUPERSPORTBET, tier: 5, products: [KGEnums.PRODUCT.SPORTS, KGEnums.PRODUCT.CASINO],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
   { id: 'BK-1738294', risk: 'high', riskScore: 76, trend: 'up', spend: 654200, spendDelta: 76,
     deposits: 8, bets: 132, lastActive: '3h ago',
     insight: 'Session length up 240% — 6h avg this week',
@@ -92,7 +92,7 @@ const PLAYERS = [
     insight: 'Removed deposit limit, spend doubled within 48h',
     signals: ['Spend spike (>50% w/w)', 'Rapid re-deposit'],
     country: KGEnums.COUNTRY.ZA, brand: KGEnums.BRAND.SUPERSPORTBET, tier: 5, products: [KGEnums.PRODUCT.CASINO],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
 
   // ===== Additional medium =====
   { id: 'BK-8273619', risk: 'medium', riskScore: 58, trend: 'up', spend: 167300, spendDelta: 48,
@@ -106,7 +106,7 @@ const PLAYERS = [
     insight: 'Deposit pattern: bursts of 3-4 within 30min',
     signals: ['Multiple deposits/session'],
     country: KGEnums.COUNTRY.ZA, brand: KGEnums.BRAND.SUPERSPORTBET, tier: 3, products: [KGEnums.PRODUCT.SPORTS],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
   { id: 'BK-3927461', risk: 'medium', riskScore: 51, trend: 'stable', spend: 124600, spendDelta: 28,
     deposits: 4, bets: 52, lastActive: '9h ago',
     insight: 'Steady increase over rolling 14d',
@@ -182,7 +182,7 @@ const PLAYERS = [
     insight: '4.2 h continuous late-night session; cooling-off elected',
     signals: ['Late-night activity shift', 'Spend spike (>50% w/w)'],
     country: KGEnums.COUNTRY.NG, brand: KGEnums.BRAND.BETKING, tier: 5, products: [KGEnums.PRODUCT.CASINO],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
   { id: 'BK-4873494', risk: 'high',   riskScore: 79, trend: 'up',     spend: 498700,  spendDelta: 97,
     deposits: 9,  bets: 183, lastActive: '3h ago',
     insight: 'Declined two outreach attempts; 6 deposits in 4 hours',
@@ -200,7 +200,7 @@ const PLAYERS = [
     insight: '5 deposits in 28 min totalling ₦95,000 — record velocity',
     signals: ['Deposit frequency surge', 'Spend spike (>50% w/w)'],
     country: KGEnums.COUNTRY.NG, brand: KGEnums.BRAND.BETKING, tier: 4, products: [KGEnums.PRODUCT.SPORTS],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
   { id: 'BK-6735223', risk: 'high',   riskScore: 85, trend: 'up',     spend: 1124000, spendDelta: 133,
     deposits: 13, bets: 309, lastActive: '30m ago',
     insight: 'VIP — 3am session pattern persists despite claimed windfall',
@@ -218,7 +218,7 @@ const PLAYERS = [
     insight: 'Self-set ₦20,000/day deposit limit via app nudge',
     signals: ['Rapid re-deposit', 'Spend spike (>50% w/w)'],
     country: KGEnums.COUNTRY.NG, brand: KGEnums.BRAND.BETKING, tier: 5, products: [KGEnums.PRODUCT.CASINO],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
   { id: 'BK-2398779', risk: 'high',   riskScore: 83, trend: 'up',     spend: 764100,  spendDelta: 115,
     deposits: 11, bets: 237, lastActive: '55m ago',
     insight: '9 failed deposit attempts in 2 h; twice declined RG intervention',
@@ -230,7 +230,7 @@ const PLAYERS = [
     insight: 'Spend spike: ₦142,000 across 7 transactions in one day',
     signals: ['Spend spike (>50% w/w)', 'Deposit frequency surge'],
     country: KGEnums.COUNTRY.NG, brand: KGEnums.BRAND.BETKING, tier: 3, products: [KGEnums.PRODUCT.SPORTS],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
   { id: 'BK-7336219', risk: 'high',   riskScore: 79, trend: 'up',     spend: 398400,  spendDelta: 88,
     deposits: 8,  bets: 162, lastActive: '2h ago',
     insight: 'Persistent chasing-loss signals over rolling 7d',
@@ -254,7 +254,7 @@ const PLAYERS = [
     insight: '78% of bets shifted to Casino in past 3 days (was Sports-only)',
     signals: ['Sports → Casino shift'],
     country: KGEnums.COUNTRY.NG, brand: KGEnums.BRAND.BETKING, tier: 4, products: [KGEnums.PRODUCT.SPORTS, KGEnums.PRODUCT.CASINO],
-    status: 'monitor' },
+    status: KGEnums.PLAYER_STATUS.MONITOR },
 
   // ===== Unrated (insufficient history) =====
   { id: 'BK-9182734', risk: 'unrated', riskScore: null, trend: null, spend: 12400, spendDelta: null,
@@ -772,9 +772,9 @@ function synthPlayer(brandKey, bucket, i, seed) {
   let status = null;
   if (bucket === 'high') {
     const r = rnd();
-    status = r < 0.18 ? 'outreach' : r < 0.45 ? 'monitor' : null;
+    status = r < 0.18 ? 'outreach' : r < 0.45 ? KGEnums.PLAYER_STATUS.MONITOR : null;
   } else if (bucket === 'medium') {
-    status = rnd() < 0.10 ? 'monitor' : null;
+    status = rnd() < 0.10 ? KGEnums.PLAYER_STATUS.MONITOR : null;
   }
 
   // Tiers 1-9: 1=lowest stake, 9=VIP
