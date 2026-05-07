@@ -228,7 +228,7 @@ function PlayerDetail({ playerId, onBack }) {
             <span style={{ padding: '3px 10px', borderRadius: 4, background: `${scoreColor}15`, color: scoreColor, fontSize: 14, fontWeight: 700 }}>{scoreZoneLabel}</span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, color: '#475569' }}><TrendArrow trend={player.trend} /></span>
           </div>
-          <div style={{ gridColumn: 5, gridRow: 2 }}>
+          <div style={{ gridColumn: 5, gridRow: 2, paddingTop: 10 }}>
             <div style={{ position: 'relative' }}>
               <div style={{ display: 'flex', height: 10, borderRadius: 5, overflow: 'hidden', gap: 2 }}>
                 <div style={{ width: '40%', background: 'linear-gradient(90deg, #BBF7D0, #86EFAC)', borderRadius: '5px 0 0 5px' }} />
