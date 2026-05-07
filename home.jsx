@@ -132,7 +132,7 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
         <TopMoversCard movers={rangeData.movers} brand={brand} country={country} onPlayerClick={onPlayerClick} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
         <RGAdoptionCard items={rangeData.rgAdoption} rangeLabel={rangeData.rangeLabel} />
         <SignalsBreakdownCard signals={rangeData.signals} rangeLabel={rangeData.rangeLabel} />
       </div>
@@ -984,7 +984,7 @@ function AttentionCard({ players, onPlayerClick }) {
 
 function RGAdoptionCard({ items, rangeLabel }) {
   const [view, setView] = React.useState('all');
-  const W = 720, H = 170;
+  const W = 720, H = 280;
   const PAD_L = 44, PAD_B = 26, PAD_T = 10, PAD_R = 12;
   const innerW = W - PAD_L - PAD_R;
   const innerH = H - PAD_T - PAD_B;
@@ -1030,9 +1030,9 @@ function RGAdoptionCard({ items, rangeLabel }) {
   const labelSet = new Set(Array.from({ length: numPts }, (_, i) => i).filter(i => i % xLabelStep === 0));
 
   return (
-    <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column' }}>
+    <div style={cardStyle}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
         <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
           RG Tool Usage · {rangeLabel}
         </div>
@@ -1054,7 +1054,7 @@ function RGAdoptionCard({ items, rangeLabel }) {
       </div>
 
       {/* Stat mini-cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14, flexShrink: 0 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
         {scaledItems.map(i => (
           <div key={i.tool} style={{ padding: '10px 12px', background: `${i.color}09`, borderRadius: 6, border: `1px solid ${i.color}28` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
@@ -1069,51 +1069,48 @@ function RGAdoptionCard({ items, rangeLabel }) {
         ))}
       </div>
 
-      {/* Multi-line trend chart — flex-grows to fill remaining card height */}
-      <div style={{ flex: 1, position: 'relative', minHeight: 120 }}>
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet"
-          style={{ display: 'block', position: 'absolute', inset: 0 }}>
-          {/* Grid lines + y-axis labels */}
-          {gridVals.map((v, i) => {
-            const y = PAD_T + innerH - ((v - mn) / rng) * innerH;
-            return (
-              <g key={i}>
-                <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#F1F5F9" strokeWidth="1" />
-                <text x={PAD_L - 4} y={y + 4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(v)}</text>
-              </g>
-            );
-          })}
+      {/* Multi-line trend chart */}
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+        {/* Grid lines + y-axis labels */}
+        {gridVals.map((v, i) => {
+          const y = PAD_T + innerH - ((v - mn) / rng) * innerH;
+          return (
+            <g key={i}>
+              <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#F1F5F9" strokeWidth="1" />
+              <text x={PAD_L - 4} y={y + 4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(v)}</text>
+            </g>
+          );
+        })}
 
-          {/* Area fills */}
-          {scaledItems.map(item => {
-            const { area } = buildPath((item.trend || []).map(p => p.v));
-            return <path key={item.tool + 'a'} d={area} fill={item.color} fillOpacity="0.07" />;
-          })}
+        {/* Area fills */}
+        {scaledItems.map(item => {
+          const { area } = buildPath((item.trend || []).map(p => p.v));
+          return <path key={item.tool + 'a'} d={area} fill={item.color} fillOpacity="0.07" />;
+        })}
 
-          {/* Lines + end dots */}
-          {scaledItems.map(item => {
-            const { pts, line } = buildPath((item.trend || []).map(p => p.v));
-            const last = pts[pts.length - 1];
-            return (
-              <g key={item.tool}>
-                <path d={line} fill="none" stroke={item.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx={last[0]} cy={last[1]} r="3" fill={item.color} stroke="#fff" strokeWidth="1.5" />
-              </g>
-            );
-          })}
+        {/* Lines + end dots */}
+        {scaledItems.map(item => {
+          const { pts, line } = buildPath((item.trend || []).map(p => p.v));
+          const last = pts[pts.length - 1];
+          return (
+            <g key={item.tool}>
+              <path d={line} fill="none" stroke={item.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx={last[0]} cy={last[1]} r="3" fill={item.color} stroke="#fff" strokeWidth="1.5" />
+            </g>
+          );
+        })}
 
-          {/* X-axis date labels */}
-          {labels.map((lbl, i) => {
-            if (!labelSet.has(i)) return null;
-            const x = PAD_L + i * xStep;
-            return (
-              <text key={i} x={x} y={H - 4} fontSize="11"
-                textAnchor={i === 0 ? 'start' : i === numPts - 1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}
-              </text>
-            );
-          })}
-        </svg>
-      </div>
+        {/* X-axis date labels */}
+        {labels.map((lbl, i) => {
+          if (!labelSet.has(i)) return null;
+          const x = PAD_L + i * xStep;
+          return (
+            <text key={i} x={x} y={H - 4} fontSize="11"
+              textAnchor={i === 0 ? 'start' : i === numPts - 1 ? 'end' : 'middle'} fill="#94A3B8">{lbl}
+            </text>
+          );
+        })}
+      </svg>
     </div>
   );
 }
