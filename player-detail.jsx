@@ -263,27 +263,31 @@ function PlayerDetail({ playerId, onBack }) {
           <MicroStat label="Bets / 7d"     value={player.bets}                            delta={`+${betsGrowthPct}%`}     tone="high" />
           <MicroStat label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
         </div>
-        {/* Behavioural trend — split charts with range selector */}
-        <div style={{ ...cardStyle }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <div>
-              <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Behavioural trend</div>
-            </div>
-            <PlayerRangeSelector range={playerRange} setRange={setPlayerRange} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div>
-              <div style={{ fontSize: 12, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+        {/* Two separate chart widgets side by side */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {/* Spend widget */}
+          <div style={{ ...cardStyle }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+              <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 10, height: 2, background: '#0F172A', display: 'inline-block' }}></span>Spend
               </div>
-              <SpendChart player={player} range={playerRange} />
+              <PlayerRangeSelector range={playerRange} setRange={setPlayerRange} />
             </div>
-            <div>
-              <div style={{ fontSize: 12, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", marginBottom: 2 }}>{fmtCompact(player.spend, player.brand)}</div>
+            <div style={{ fontSize: 13, color: '#DC2626', fontWeight: 600, marginBottom: 12 }}>+{sd}% vs prior period</div>
+            <SpendChart player={player} range={playerRange} />
+          </div>
+
+          {/* Deposits widget */}
+          <div style={{ ...cardStyle }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+              <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 10, height: 10, background: '#DC2626', borderRadius: 2, display: 'inline-block' }}></span>Deposits
               </div>
-              <DepositsChart player={player} range={playerRange} />
             </div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", marginBottom: 2 }}>{player.deposits}</div>
+            <div style={{ fontSize: 13, color: '#DC2626', fontWeight: 600, marginBottom: 12 }}>+{depositsGrowthPct}% vs prior period</div>
+            <DepositsChart player={player} range={playerRange} />
           </div>
         </div>
         <div style={{ ...cardStyle }}>
@@ -398,27 +402,32 @@ function PlayerDetail({ playerId, onBack }) {
         <MicroStat label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
       </div>
 
-      {/* Spend chart */}
-      <div style={{ ...cardStyle }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ width: 10, height: 2, background: '#0F172A', display: 'inline-block' }}></span>
-            <span style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Spend over time</span>
+      {/* Two separate chart widgets */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {/* Spend widget */}
+        <div style={{ ...cardStyle }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 10, height: 2, background: '#0F172A', display: 'inline-block' }}></span>Spend
+            </div>
+            <PlayerRangeSelector range={playerRange} setRange={setPlayerRange} />
           </div>
-          <PlayerRangeSelector range={playerRange} setRange={setPlayerRange} />
+          <div style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", marginBottom: 2 }}>{fmtCompact(player.spend, player.brand)}</div>
+          <div style={{ fontSize: 13, color: '#DC2626', fontWeight: 600, marginBottom: 12 }}>+{sd}% vs prior period</div>
+          <SpendChart player={player} range={playerRange} tall />
         </div>
-        <SpendChart player={player} range={playerRange} tall />
-      </div>
 
-      {/* Deposits chart */}
-      <div style={{ ...cardStyle }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ width: 10, height: 10, background: '#DC2626', borderRadius: 2, display: 'inline-block' }}></span>
-            <span style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Deposit activity</span>
+        {/* Deposits widget */}
+        <div style={{ ...cardStyle }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 10, height: 10, background: '#DC2626', borderRadius: 2, display: 'inline-block' }}></span>Deposits
+            </div>
           </div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", marginBottom: 2 }}>{player.deposits}</div>
+          <div style={{ fontSize: 13, color: '#DC2626', fontWeight: 600, marginBottom: 12 }}>+{depositsGrowthPct}% vs prior period</div>
+          <DepositsChart player={player} range={playerRange} tall />
         </div>
-        <DepositsChart player={player} range={playerRange} tall />
       </div>
 
       {/* Session timing + product split side by side */}
