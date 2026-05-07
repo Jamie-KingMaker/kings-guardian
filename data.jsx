@@ -743,9 +743,21 @@ const COUNTRIES_BY_BRAND = {
   [KGEnums.BRAND.SUPERSPORTBET]: [KGEnums.COUNTRY.ZA, KGEnums.COUNTRY.ZA, KGEnums.COUNTRY.ZA, KGEnums.COUNTRY.ZA, KGEnums.COUNTRY.ZM], // ZA-weighted (392k vs 97k)
 };
 
+// First element = primary product (drives product-filter matching in the player list).
+// Distribution: ~50% sports-primary, ~30% casino-primary, ~20% virtuals-primary.
 const PRODUCTS_LIBRARY = [
-  [KGEnums.PRODUCT.SPORTS], [KGEnums.PRODUCT.SPORTS], [KGEnums.PRODUCT.SPORTS], [KGEnums.PRODUCT.SPORTS, KGEnums.PRODUCT.CASINO], [KGEnums.PRODUCT.CASINO],
-  [KGEnums.PRODUCT.SPORTS, KGEnums.PRODUCT.VIRTUALS], [KGEnums.PRODUCT.CASINO, KGEnums.PRODUCT.VIRTUALS], [KGEnums.PRODUCT.SPORTS, KGEnums.PRODUCT.CASINO, KGEnums.PRODUCT.VIRTUALS],
+  [KGEnums.PRODUCT.SPORTS],
+  [KGEnums.PRODUCT.SPORTS],
+  [KGEnums.PRODUCT.SPORTS],
+  [KGEnums.PRODUCT.SPORTS, KGEnums.PRODUCT.CASINO],
+  [KGEnums.PRODUCT.SPORTS, KGEnums.PRODUCT.VIRTUALS],
+  [KGEnums.PRODUCT.SPORTS, KGEnums.PRODUCT.CASINO, KGEnums.PRODUCT.VIRTUALS],
+  [KGEnums.PRODUCT.CASINO],
+  [KGEnums.PRODUCT.CASINO],
+  [KGEnums.PRODUCT.CASINO, KGEnums.PRODUCT.SPORTS],
+  [KGEnums.PRODUCT.CASINO, KGEnums.PRODUCT.VIRTUALS],
+  [KGEnums.PRODUCT.VIRTUALS],
+  [KGEnums.PRODUCT.VIRTUALS, KGEnums.PRODUCT.SPORTS],
 ];
 
 const TRENDS = { high: ['up','up','up','up','stable'], medium: ['up','up','stable','stable','down'], low: ['stable','stable','down','down','up'], unrated: [null] };

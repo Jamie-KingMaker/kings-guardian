@@ -100,7 +100,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
 
   const matchesPostFilter = (p) => {
     if (effectiveCountry !== 'ALL' && p.country !== effectiveCountry) return false;
-    if (productFilter !== FILTER_ALL && !p.products.includes(productFilter)) return false;
+    if (productFilter !== FILTER_ALL && p.products[0] !== productFilter) return false;
     if (statusFilter !== FILTER_ALL) {
       const es = effectiveStatus(p);
       if (statusFilter === STATUS_FILTER_NEEDS_ACTION) {
