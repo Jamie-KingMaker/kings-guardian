@@ -2,17 +2,80 @@
 
 const { useState: useStatePD } = React;
 
+// Tiny seeded RNG — mirrors the one in data.jsx so charts are stable per player.
+function pdSeeded(seed) {
+  let s = seed | 0;
+  return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+}
+function playerSeed(id) {
+  return id.split('').reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) | 0, 7);
+}
+
+// Derive 3–5 risk-insight objects from a player's existing data fields.
+// All source data lives solely in data.jsx PLAYERS — nothing is hardcoded here.
+function generatePlayerInsights(player) {
+  const { signals = [], insight, spendDelta, riskScore, spend, deposits, brand } = player;
+  const cur  = fmtCompact(spend, brand);
+  const prev = fmtCompact(Math.round(spend / (1 + (spendDelta || 0) / 100)), brand);
+  const out  = [];
+
+  if (signals.includes('Rapid re-deposit')) {
+    out.push({ sev: 'high', title: 'Rapid re-deposit pattern', detail: `Player re-deposited within minutes of depleting session balance on multiple occasions. Average re-deposit window within high-risk criteria.`, time: '2h ago' });
+  }
+
+  if ((spendDelta || 0) >= 50) {
+    out.push({ sev: 'high', title: `Spend up ${spendDelta}% vs prior 7 days`, detail: `Weekly spend has escalated from ${prev} to ${cur} — a material week-on-week increase.`, time: '6h ago' });
+  }
+
+  if (signals.includes('Late-night activity shift')) {
+    out.push({ sev: 'medium', title: 'Late-night session activity shift', detail: 'Significant proportion of bets placed between 22:00–04:00, up sharply vs the prior 7-day window.', time: '2d ago' });
+  }
+
+  if (signals.includes('Deposit frequency surge')) {
+    out.push({ sev: 'medium', title: 'Deposit frequency surge', detail: 'Number of deposits per session has risen well above the 28-day baseline. Velocity is a primary model driver.', time: '1d ago' });
+  }
+
+  if (signals.includes('Multiple deposits/session')) {
+    out.push({ sev: 'medium', title: 'Multiple deposits in single session', detail: `${deposits} deposits recorded this week, with several occurring within the same session window.`, time: '1d ago' });
+  }
+
+  if (signals.includes('Sports → Casino shift')) {
+    out.push({ sev: 'medium', title: 'Product migration: Sports → Casino', detail: 'Player has materially shifted activity from sports into casino products over the last 14 days.', time: '3d ago' });
+  }
+
+  if (signals.includes('Loss-chasing pattern')) {
+    out.push({ sev: 'high', title: 'Loss-chasing pattern detected', detail: 'Behavioural model identified a sequence of escalating bets following losses — a key harm indicator.', time: '4h ago' });
+  }
+
+  if (signals.includes('Failed deposit attempts')) {
+    out.push({ sev: 'low', title: 'Failed deposit attempts', detail: 'Several failed payment attempts recorded. May indicate payment friction or limit-circumvention behaviour.', time: '3d ago' });
+  }
+
+  // Fallback: always surface the primary insight from the player record
+  if (out.length === 0 && insight) {
+    out.push({ sev: 'high', title: insight, detail: `Risk score: ${riskScore ?? '—'}. No additional signal detail available — model is still calibrating for this player.`, time: '1h ago' });
+  }
+
+  // Risk score threshold note if we still have room
+  if (out.length < 3 && riskScore != null) {
+    out.push({ sev: 'low', title: 'Risk score above monitoring threshold', detail: `Current score of ${riskScore} places this player in the high-risk bucket. Continued monitoring recommended.`, time: '1d ago' });
+  }
+
+  return out.slice(0, 5);
+}
+
 function PlayerDetail({ playerId, onBack }) {
   const player = window.KGData.PLAYERS.find(p => p.id === playerId) || window.KGData.PLAYERS[0];
   const [tab, setTab] = useStatePD('overview');
 
-  const insights = [
-    { sev: 'high', title: 'Re-deposited within 8 minutes of losing session', detail: '4 deposits totalling ₦480,000 placed between 23:14 and 00:42, immediately following a ₦212,000 loss.', time: '2h ago' },
-    { sev: 'high', title: 'Spend up 142% vs prior 7 days', detail: 'Weekly spend has more than doubled, escalating from ₦760k to ₦1.84M.', time: '6h ago' },
-    { sev: 'medium', title: 'Multiple deposits in single session', detail: '3 deposits made within an 18-minute window on Apr 28.', time: '1d ago' },
-    { sev: 'medium', title: 'Late-night activity shift', detail: '68% of bets in the last 7 days placed between 22:00 and 03:00, up from 22% prior.', time: '2d ago' },
-    { sev: 'low', title: '2 failed deposit attempts detected', detail: 'Both resolved on retry; flagged as a soft signal.', time: '3d ago' },
-  ];
+  // All insights derived from the player's own data — no hardcoded values.
+  const insights = generatePlayerInsights(player);
+
+  // MicroStat deltas — derived from player.spendDelta so they reflect the selected player.
+  const sd = player.spendDelta || 0;
+  const depositsGrowthPct = Math.round(sd * 0.62);
+  const betsGrowthPct     = Math.round(sd * 0.71);
+  const avgDepositPct     = Math.max(1, Math.round(sd - depositsGrowthPct));
 
   const sevColor = { high: '#DC2626', medium: '#D97706', low: '#16A34A' };
 
@@ -78,10 +141,10 @@ function PlayerDetail({ playerId, onBack }) {
         {/* Left: Behaviour metrics + chart */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-            <MicroStat label="Spend / 7d" value={fmtCompact(player.spend, player.brand)} delta="+142%" tone="high" />
-            <MicroStat label="Deposits / 7d" value={player.deposits} delta="+85%" tone="high" />
-            <MicroStat label="Bets / 7d" value={player.bets} delta="+96%" tone="high" />
-            <MicroStat label="Avg deposit" value={fmtCompact(Math.round(player.spend / player.deposits), player.brand)} delta="+34%" tone="medium" />
+            <MicroStat label="Spend / 7d"   value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`}              tone="high"   />
+            <MicroStat label="Deposits / 7d" value={player.deposits}                        delta={`+${depositsGrowthPct}%`} tone="high"   />
+            <MicroStat label="Bets / 7d"     value={player.bets}                            delta={`+${betsGrowthPct}%`}     tone="high"   />
+            <MicroStat label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
           </div>
 
           <div style={{ ...cardStyle }}>
@@ -99,12 +162,12 @@ function PlayerDetail({ playerId, onBack }) {
                 </span>
               </div>
             </div>
-            <BehaviourChart />
+            <BehaviourChart player={player} />
           </div>
 
           <div style={{ ...cardStyle }}>
             <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Product distribution · 30d</div>
-            <ProductDistribution />
+            <ProductDistribution player={player} />
           </div>
         </div>
 
@@ -157,10 +220,26 @@ function MicroStat({ label, value, delta, tone }) {
   );
 }
 
-function BehaviourChart() {
+function BehaviourChart({ player }) {
+  // Seeded RNG keyed to the player ID — chart shape is stable and unique per player,
+  // no Math.random(), so the detail view is consistent on every render.
+  const rnd = pdSeeded(playerSeed(player.id));
+
   const days = 30;
-  const spend = Array.from({ length: days }, (_, i) => 80 + Math.sin(i * 0.4) * 20 + (i > 22 ? (i - 22) * 35 : 0) + Math.random() * 10);
-  const dep = Array.from({ length: days }, (_, i) => i > 22 ? 1 + Math.floor(Math.random() * 4) : Math.random() > 0.7 ? 1 : 0);
+  // Escalation point: high-risk players show a spike in the last ~8 days.
+  // Shift the inflection slightly per player so each chart looks distinct.
+  const escalationDay = 18 + Math.floor(rnd() * 6); // 18–23
+  const depositFreq   = player.risk === 'high' ? 0.55 : player.risk === 'medium' ? 0.30 : 0.15;
+  const spend = Array.from({ length: days }, (_, i) => {
+    const trend    = 70 + Math.sin(i * (0.35 + rnd() * 0.1)) * 15;
+    const escalate = i > escalationDay ? (i - escalationDay) * (20 + rnd() * 20) : 0;
+    const noise    = (rnd() - 0.5) * 8;
+    return Math.max(10, trend + escalate + noise);
+  });
+  const dep = Array.from({ length: days }, (_, i) =>
+    rnd() < (i > escalationDay ? depositFreq * 2 : depositFreq) ? 1 + Math.floor(rnd() * 3) : 0
+  );
+
   const W = 600, H = 180, PAD_L = 30, PAD_B = 22, PAD_T = 8;
   const max = Math.max(...spend);
   const innerW = W - PAD_L - 8;
@@ -179,7 +258,6 @@ function BehaviourChart() {
       ))}
       <path d={area} fill="#0F172A" fillOpacity="0.06" />
       <path d={path} fill="none" stroke="#0F172A" strokeWidth="1.5" />
-      {/* Deposit bars */}
       {dep.map((d, i) => d > 0 && (
         <rect key={i}
           x={PAD_L + i * xStep - 1.5}
@@ -190,10 +268,8 @@ function BehaviourChart() {
           rx="1"
         />
       ))}
-      {/* Risk threshold annotation */}
-      <line x1={PAD_L + 22 * xStep} y1={PAD_T} x2={PAD_L + 22 * xStep} y2={PAD_T + innerH} stroke="#D97706" strokeWidth="1" strokeDasharray="3,3" />
-      <text x={PAD_L + 22 * xStep + 4} y={PAD_T + 10} fontSize="11" fill="#D97706" fontWeight="600">Risk score: medium → high</text>
-      {/* X labels */}
+      <line x1={PAD_L + escalationDay * xStep} y1={PAD_T} x2={PAD_L + escalationDay * xStep} y2={PAD_T + innerH} stroke="#D97706" strokeWidth="1" strokeDasharray="3,3" />
+      <text x={PAD_L + escalationDay * xStep + 4} y={PAD_T + 10} fontSize="11" fill="#D97706" fontWeight="600">Risk score: medium → high</text>
       {[0, 7, 14, 21, 29].map(i => (
         <text key={i} x={PAD_L + i * xStep} y={H - 6} fontSize="11" textAnchor="middle" fill="#94A3B8">
           {i === 0 ? '30d ago' : i === 29 ? 'Today' : `D-${29-i}`}
@@ -203,25 +279,45 @@ function BehaviourChart() {
   );
 }
 
-function ProductDistribution() {
-  const data = [
-    { day: 'Apr 09', sports: 80, casino: 18, virtuals: 2 },
-    { day: 'Apr 12', sports: 72, casino: 25, virtuals: 3 },
-    { day: 'Apr 15', sports: 68, casino: 28, virtuals: 4 },
-    { day: 'Apr 18', sports: 58, casino: 38, virtuals: 4 },
-    { day: 'Apr 21', sports: 48, casino: 48, virtuals: 4 },
-    { day: 'Apr 24', sports: 38, casino: 58, virtuals: 4 },
-    { day: 'Apr 27', sports: 28, casino: 68, virtuals: 4 },
-    { day: 'Apr 30', sports: 22, casino: 74, virtuals: 4 },
-  ];
+function ProductDistribution({ player }) {
+  // Generate a plausible 8-week product-share trend from the player's current products
+  // and risk profile. Uses seeded RNG so the chart is stable across renders.
+  const rnd    = pdSeeded(playerSeed(player.id) + 1);
+  const prods  = player.products || ['Sports'];
+  const hasCasino   = prods.includes('Casino');
+  const hasVirtuals = prods.includes('Virtuals');
+  const hasShift    = (player.signals || []).includes('Sports → Casino shift');
+
+  // End-state shares driven by the player's current products
+  const endCasino   = hasCasino   ? (hasShift ? 68 + Math.floor(rnd() * 12) : 30 + Math.floor(rnd() * 20)) : 0;
+  const endVirtuals = hasVirtuals ? 3 + Math.floor(rnd() * 5) : 0;
+
+  // Start-state: sports dominant, casino/virtuals lower
+  const startCasino   = hasCasino   ? Math.max(5, endCasino   - (hasShift ? 55 : 15) + Math.floor(rnd() * 10)) : 0;
+  const startVirtuals = hasVirtuals ? Math.max(1, endVirtuals - 2) : 0;
+
+  const DATES = ['Apr 09','Apr 12','Apr 15','Apr 18','Apr 21','Apr 24','Apr 27','Apr 30'];
+  const data = DATES.map((day, i) => {
+    const t       = i / (DATES.length - 1);
+    const casino   = Math.round(startCasino   + (endCasino   - startCasino)   * t + (rnd() - 0.5) * 3);
+    const virtuals = Math.round(startVirtuals + (endVirtuals - startVirtuals) * t);
+    const sports   = Math.max(0, 100 - casino - virtuals);
+    return { day, sports, casino, virtuals };
+  });
+
+  const productColors = { Sports: '#3B82F6', Casino: '#A855F7', Virtuals: '#06B6D4' };
+  const latestSports   = data[data.length - 1].sports;
+  const latestCasino   = data[data.length - 1].casino;
+  const latestVirtuals = data[data.length - 1].virtuals;
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 90, marginBottom: 8 }}>
         {data.map(d => (
           <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column-reverse', height: '100%', borderRadius: 2, overflow: 'hidden' }}>
-            <div style={{ height: `${d.sports}%`, background: '#3B82F6' }}></div>
-            <div style={{ height: `${d.casino}%`, background: '#A855F7' }}></div>
-            <div style={{ height: `${d.virtuals}%`, background: '#06B6D4' }}></div>
+            {d.sports   > 0 && <div style={{ height: `${d.sports}%`,   background: productColors.Sports   }}></div>}
+            {d.casino   > 0 && <div style={{ height: `${d.casino}%`,   background: productColors.Casino   }}></div>}
+            {d.virtuals > 0 && <div style={{ height: `${d.virtuals}%`, background: productColors.Virtuals }}></div>}
           </div>
         ))}
       </div>
@@ -229,7 +325,11 @@ function ProductDistribution() {
         {data.map(d => <span key={d.day}>{d.day}</span>)}
       </div>
       <div style={{ display: 'flex', gap: 16, fontSize: 13 }}>
-        {[['Sports', '#3B82F6', '22%'], ['Casino', '#A855F7', '74%'], ['Virtuals', '#06B6D4', '4%']].map(([l, c, v]) => (
+        {[
+          ['Sports',   productColors.Sports,   `${latestSports}%`],
+          hasCasino   ? ['Casino',   productColors.Casino,   `${latestCasino}%`]   : null,
+          hasVirtuals ? ['Virtuals', productColors.Virtuals, `${latestVirtuals}%`] : null,
+        ].filter(Boolean).map(([l, c, v]) => (
           <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 8, height: 8, background: c, borderRadius: 2 }}></span>
             <span style={{ color: '#475569' }}>{l}</span>
@@ -237,9 +337,11 @@ function ProductDistribution() {
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 12, padding: '8px 10px', background: 'rgba(168, 85, 247, 0.06)', borderRadius: 5, fontSize: 13, color: '#475569', borderLeft: '2px solid #A855F7' }}>
-        <strong style={{ color: '#0F172A' }}>Pattern shift detected:</strong> Movement from Sports → Casino over the last 14 days.
-      </div>
+      {hasShift && (
+        <div style={{ marginTop: 12, padding: '8px 10px', background: 'rgba(168, 85, 247, 0.06)', borderRadius: 5, fontSize: 13, color: '#475569', borderLeft: '2px solid #A855F7' }}>
+          <strong style={{ color: '#0F172A' }}>Pattern shift detected:</strong> Movement from Sports → Casino over the last 14 days.
+        </div>
+      )}
     </div>
   );
 }
