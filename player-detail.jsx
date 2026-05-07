@@ -255,10 +255,8 @@ function PlayerDetail({ playerId, onBack }) {
             {/* Threshold labels */}
             <div style={{ position: 'relative', height: 20, marginTop: 4 }}>
               <span style={{ position: 'absolute', left: 0, fontSize: 11, color: '#16A34A', fontWeight: 600 }}>0 · Low</span>
-              <span style={{ position: 'absolute', left: '40%', transform: 'translateX(-50%)', fontSize: 11, color: '#94A3B8' }}>40</span>
-              <span style={{ position: 'absolute', left: '40%', transform: 'translateX(4px)', fontSize: 11, color: '#D97706', fontWeight: 600 }}>Medium</span>
-              <span style={{ position: 'absolute', left: '70%', transform: 'translateX(-50%)', fontSize: 11, color: '#94A3B8' }}>70</span>
-              <span style={{ position: 'absolute', left: '70%', transform: 'translateX(4px)', fontSize: 11, color: '#DC2626', fontWeight: 600 }}>High</span>
+              <span style={{ position: 'absolute', left: '40%', transform: 'translateX(-50%)', fontSize: 11, color: '#D97706', fontWeight: 600 }}>40 · Medium</span>
+              <span style={{ position: 'absolute', left: '70%', transform: 'translateX(-50%)', fontSize: 11, color: '#DC2626', fontWeight: 600 }}>70 · High</span>
               <span style={{ position: 'absolute', right: 0, fontSize: 11, color: '#94A3B8' }}>100</span>
             </div>
           </div>
