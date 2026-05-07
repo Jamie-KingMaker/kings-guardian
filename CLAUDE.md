@@ -1,6 +1,7 @@
 # Code style
 - always use enums to avoid repeated string literals
 - always aim to use the SOLID principles when writing code to ensure that the code is maintainable, scalable, and easy to understand
+- on most components we need to add an ID which is a unique identifier for the component, this is important for tracking and debugging purposes. We will have to use an enum for these ID's to ensure that they are consistent across the codebase and to avoid any potential issues with hardcoded string literals. The ID should be descriptive and meaningful, and should follow a consistent naming convention to make it easy to understand what the component is and what it does.
 
 [//]: # (TODO: Add more details about code style, e.g. naming conventions, formatting, using SOLID Principles, etc.)
 
