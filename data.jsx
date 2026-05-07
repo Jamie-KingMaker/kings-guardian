@@ -9,7 +9,7 @@
 const { KGEnums, KGConstants } = window;
 
 // Range key constants — single source of truth for date ranges
-const RANGE_7D = KGConstants.DATE_RANGE_7D;
+const RANGE_24H = KGConstants.DATE_RANGE_24H;
 const RANGE_14D = KGConstants.DATE_RANGE_14D;
 const RANGE_30D = KGConstants.DATE_RANGE_30D;
 const RANGE_90D = KGConstants.DATE_RANGE_90D;
@@ -356,7 +356,7 @@ function buildBaseDist(brandKey) {
 //   ytd ≈ 1.68 — year-to-date actives (May 5 → ~125 days)
 // activeUnit / activeUnitFull = the metric label that fits the window.
 const RANGE_CONFIG = {
-  '7d':  { days: 7,   label: '7 days',       pointStep: 1, distMul: 1.00, depositMul: 0.25,  activeMul: 0.55, activeUnit: 'WAU',  activeUnitFull: 'weekly active users',     deltaLabel: 'vs prior 7d',     refreshLabel: 'daily',  trendStart: 0.95, trendGrowth: 0.23 },
+  '24h': { days: 1,   label: '24 hours',     pointStep: 1, distMul: 1.00, depositMul: 0.034, activeMul: 0.12, activeUnit: 'DAU',  activeUnitFull: 'daily active users',      deltaLabel: 'vs prior 24h',    refreshLabel: 'hourly', trendStart: 0.98, trendGrowth: 0.03 },
   '14d': { days: 14,  label: '14 days',      pointStep: 2, distMul: 1.00, depositMul: 0.50,  activeMul: 0.78, activeUnit: '14dAU', activeUnitFull: '14-day active users',    deltaLabel: 'vs prior 14d',    refreshLabel: 'daily',  trendStart: 0.92, trendGrowth: 0.40 },
   '30d': { days: 30,  label: '30 days',      pointStep: 3, distMul: 1.00, depositMul: 1.05,  activeMul: 1.00, activeUnit: 'MAU',  activeUnitFull: 'monthly active users',    deltaLabel: 'vs prior 30d',    refreshLabel: 'daily',  trendStart: 0.85, trendGrowth: 0.81 },
   '90d': { days: 90,  label: '90 days',      pointStep: 7, distMul: 1.00, depositMul: 3.06,  activeMul: 1.42, activeUnit: 'QAU',  activeUnitFull: 'quarterly active users',  deltaLabel: 'vs prior 90d',    refreshLabel: 'weekly', trendStart: 0.70, trendGrowth: 1.30 },
@@ -370,7 +370,7 @@ function seeded(seed) {
 }
 
 function buildRangeData(rangeKey, brandKey) {
-  const cfg = RANGE_CONFIG[rangeKey] || RANGE_CONFIG[RANGE_7D];
+  const cfg = RANGE_CONFIG[rangeKey] || RANGE_CONFIG[RANGE_24H];
   const rnd = seeded(rangeKey.charCodeAt(0) * 17 + (brandKey || '').length);
 
   // Brand-scoped MAU + distribution.
@@ -501,7 +501,7 @@ function buildRangeData(rangeKey, brandKey) {
 
    // Top movers — pulled directly from PLAYERS list so the dashboard
    // and player list reference the exact same records.
-   const moverScale = rangeKey === RANGE_7D ? 1 : rangeKey === RANGE_14D ? 1.2 : rangeKey === RANGE_30D ? 1.5 : rangeKey === RANGE_90D ? 1.9 : 2.2;
+   const moverScale = rangeKey === RANGE_24H ? 0.6 : rangeKey === RANGE_14D ? 1.2 : rangeKey === RANGE_30D ? 1.5 : rangeKey === RANGE_90D ? 1.9 : 2.2;
   // fromScore overrides for players missing a riskFrom on their record
   const MOVER_FROM = {
     'BK-4827193': 62, 'SS-7283910': 71, 'BK-3918274': 58,
@@ -604,20 +604,20 @@ function buildRangeData(rangeKey, brandKey) {
   ].map(s => ({ label: s.label, color: KGConstants.SIGNAL_META[s.label]?.color || '#D97706', count: Math.max(1, Math.round(s.base * signalScale)) }));
 
    // Stat-card deltas (vs yesterday on 7d, vs prior period on longer windows)
-   const dailyVs = rangeKey === RANGE_7D ? 'vs yesterday' : 'vs prior period';
-   const dHigh = Math.round(dist.high * (rangeKey === RANGE_7D ? 0.025 : rangeKey === RANGE_14D ? 0.06 : rangeKey === RANGE_30D ? 0.18 : rangeKey === RANGE_90D ? 0.34 : 0.42));
-   const dMed  = Math.round(dist.med  * (rangeKey === RANGE_7D ? 0.018 : rangeKey === RANGE_14D ? 0.06 : rangeKey === RANGE_30D ? 0.20 : rangeKey === RANGE_90D ? 0.30 : 0.36));
-   const dLow  = Math.round(dist.low  * (rangeKey === RANGE_7D ? 0.003 : rangeKey === RANGE_14D ? 0.010 : rangeKey === RANGE_30D ? 0.022 : rangeKey === RANGE_90D ? 0.13 : 0.17));
+   const dailyVs = rangeKey === RANGE_24H ? 'vs yesterday' : 'vs prior period';
+   const dHigh = Math.round(dist.high * (rangeKey === RANGE_24H ? 0.008 : rangeKey === RANGE_14D ? 0.06 : rangeKey === RANGE_30D ? 0.18 : rangeKey === RANGE_90D ? 0.34 : 0.42));
+   const dMed  = Math.round(dist.med  * (rangeKey === RANGE_24H ? 0.006 : rangeKey === RANGE_14D ? 0.06 : rangeKey === RANGE_30D ? 0.20 : rangeKey === RANGE_90D ? 0.30 : 0.36));
+   const dLow  = Math.round(dist.low  * (rangeKey === RANGE_24H ? 0.001 : rangeKey === RANGE_14D ? 0.010 : rangeKey === RANGE_30D ? 0.022 : rangeKey === RANGE_90D ? 0.13 : 0.17));
    const sign = (n, dir) => `${dir === 'down' ? '−' : '+'}${n.toLocaleString()}`;
    const statDeltas = {
      high: sign(dHigh, 'up'),
      med:  sign(dMed,  'up'),
-     low:  rangeKey === RANGE_7D || rangeKey === RANGE_14D || rangeKey === RANGE_30D ? sign(dLow, 'down') : sign(dLow, 'up'),
+     low:  rangeKey === RANGE_24H || rangeKey === RANGE_14D || rangeKey === RANGE_30D ? sign(dLow, 'down') : sign(dLow, 'up'),
      dailyVs,
    };
 
    // Deposit % vs prior
-   const depositGrowth = rangeKey === RANGE_7D ? 14.2 : rangeKey === RANGE_14D ? 17.8 : rangeKey === RANGE_30D ? 24.6 : rangeKey === RANGE_90D ? 38.4 : 47.2;
+   const depositGrowth = rangeKey === RANGE_24H ? 3.8 : rangeKey === RANGE_14D ? 17.8 : rangeKey === RANGE_30D ? 24.6 : rangeKey === RANGE_90D ? 38.4 : 47.2;
 
   return {
     rangeKey,
@@ -807,7 +807,7 @@ function synthPlayer(brandKey, bucket, i, seed) {
 // Bucket counts per brand at the active-base for the given range.
 // These line up with what buildRangeData() shows on the dashboard.
 function bucketCountsForBrand(brandKey, rangeKey) {
-  const cfg = RANGE_CONFIG[rangeKey] || RANGE_CONFIG[RANGE_7D];
+  const cfg = RANGE_CONFIG[rangeKey] || RANGE_CONFIG[RANGE_24H];
   const baseDist = buildBaseDist(brandKey);
   return {
     high:    Math.round(baseDist.high    * cfg.activeMul),
