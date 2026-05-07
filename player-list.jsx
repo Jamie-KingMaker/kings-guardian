@@ -251,13 +251,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
             Player monitoring · {data.rangeLabel} · {data.activeUnit} {data.mau.toLocaleString()}
           </div>
           <h1 style={{ fontSize: 25, fontWeight: 600, color: '#0F172A', margin: 0, letterSpacing: '-0.01em' }}>Player List</h1>
-          <p style={{ fontSize: 15, color: '#64748B', margin: '4px 0 0' }}>
-            <span style={{ fontWeight: 600, color: '#0F172A' }}>{counts.all.toLocaleString()}</span> active base ·{' '}
-            <span style={{ color: '#DC2626', fontWeight: 600 }}>{counts.high.toLocaleString()} high risk</span> ·{' '}
-            <span style={{ color: '#D97706', fontWeight: 600 }}>{counts.medium.toLocaleString()} medium risk</span> ·{' '}
-            <span style={{ color: '#16A34A', fontWeight: 600 }}>{counts.low.toLocaleString()} low risk</span> ·{' '}
-            <span style={{ color: '#94A3B8', fontWeight: 600 }}>{counts.unrated.toLocaleString()} insufficient data</span>
-          </p>
+          <p style={{ fontSize: 15, color: '#64748B', margin: '4px 0 0' }}>{fmtBase(baseCounts.all)} active base</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button style={btnSecondary}><Icon name="export" size={14}/> Export CSV</button>
