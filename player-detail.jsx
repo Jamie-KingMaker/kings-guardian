@@ -235,7 +235,7 @@ function BehaviourChart({ player }) {
   // Escalation point: high-risk players show a spike in the last ~8 days.
   // Shift the inflection slightly per player so each chart looks distinct.
   const escalationDay = 18 + Math.floor(rnd() * 6); // 18–23
-  const depositFreq   = player.risk === 'high' ? 0.55 : player.risk === 'medium' ? 0.30 : 0.15;
+  const depositFreq   = player.risk === KGEnums.RISK.HIGH ? 0.55 : player.risk === KGEnums.RISK.MEDIUM ? 0.30 : 0.15;
   const spend = Array.from({ length: days }, (_, i) => {
     const trend    = 70 + Math.sin(i * (0.35 + rnd() * 0.1)) * 15;
     const escalate = i > escalationDay ? (i - escalationDay) * (20 + rnd() * 20) : 0;

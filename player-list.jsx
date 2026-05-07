@@ -78,10 +78,10 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
     );
     return {
       all: filtered.length,
-      high: filtered.filter(p => p.risk === 'high').length,
-      medium: filtered.filter(p => p.risk === 'medium').length,
-      low: filtered.filter(p => p.risk === 'low').length,
-      unrated: filtered.filter(p => p.risk === 'unrated').length,
+      high: filtered.filter(p => p.risk === KGEnums.RISK.HIGH).length,
+      medium: filtered.filter(p => p.risk === KGEnums.RISK.MEDIUM).length,
+      low: filtered.filter(p => p.risk === KGEnums.RISK.LOW).length,
+      unrated: filtered.filter(p => p.risk === KGEnums.RISK.UNRATED).length,
     };
   }, [useFullPop, fullPop, brand, country, shortcut, moverIds, queueIds]);
 
@@ -512,10 +512,10 @@ function StatusCell({ playerId, status, onUpdate }) {
 }
 
 function PlayerRow({ p, onClick, isMover, isQueue, effectiveStatus, onStatusUpdate }) {
-  const sparkData = p.risk === 'high' ? [12, 14, 13, 18, 22, 28, 35, 42] :
-                    p.risk === 'medium' ? [18, 19, 21, 22, 24, 25, 27, 28] :
+  const sparkData = p.risk === KGEnums.RISK.HIGH ? [12, 14, 13, 18, 22, 28, 35, 42] :
+                    p.risk === KGEnums.RISK.MEDIUM ? [18, 19, 21, 22, 24, 25, 27, 28] :
                     p.trend === 'down' ? [22, 20, 19, 18, 16, 15, 14, 13] : [15, 16, 15, 16, 17, 16, 17, 16];
-  const sparkColor = p.risk === 'high' ? '#DC2626' : p.risk === 'medium' ? '#D97706' : '#16A34A';
+  const sparkColor = p.risk === KGEnums.RISK.HIGH ? '#DC2626' : p.risk === KGEnums.RISK.MEDIUM ? '#D97706' : '#16A34A';
   const scoreColor = p.riskScore == null ? '#94A3B8' : p.riskScore >= 70 ? '#DC2626' : p.riskScore >= 40 ? '#D97706' : '#16A34A';
   const needsAction = ACTION_STATUSES.has(effectiveStatus);
 

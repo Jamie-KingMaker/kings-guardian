@@ -164,7 +164,7 @@ const cardStyle = {
 };
 
 function StatCard({ label, value, subtext, delta, deltaUp, tone }) {
-  const c = RISK_COLORS[tone === 'high' ? 'high' : tone === 'medium' ? 'medium' : tone === 'low' ? 'low' : 'unrated'];
+  const c = RISK_COLORS[tone === KGEnums.RISK.HIGH ? KGEnums.RISK.HIGH : tone === KGEnums.RISK.MEDIUM ? KGEnums.RISK.MEDIUM : tone === KGEnums.RISK.LOW ? KGEnums.RISK.LOW : KGEnums.RISK.UNRATED];
   return (
     <div style={{ ...cardStyle, padding: 16, borderLeft: `3px solid ${c.main}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>

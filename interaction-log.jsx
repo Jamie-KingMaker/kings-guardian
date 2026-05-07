@@ -136,7 +136,7 @@ function enrichLogEntry(entry, playerMap, agentMap) {
     agentName: agent.label,
     agentInitials: agent.initials,
     agentKind: agent.kind,
-    risk: p ? p.risk : 'high',
+    risk: p ? p.risk : KGEnums.RISK.HIGH,
     tier: p ? p.tier : 5,
   };
 }
@@ -310,7 +310,7 @@ function InteractionLog({ brand, country, onPlayerClick }) {
             {displayed.map((e) => {
               const typeCfg = IL_TYPES[e.type] || IL_TYPES.note;
               const outcomeCfg = IL_OUTCOMES[e.outcome];
-              const riskColor = e.risk === 'high' ? '#DC2626' : e.risk === 'medium' ? '#D97706' : '#16A34A';
+              const riskColor = e.risk === KGEnums.RISK.HIGH ? '#DC2626' : e.risk === KGEnums.RISK.MEDIUM ? '#D97706' : '#16A34A';
               const isAuto = e.agentKind === 'system';
               return (
                 <tr key={e.id} style={{ borderBottom: '1px solid #F1F5F9', background: isAuto ? '#FAFAFA' : 'transparent' }}
