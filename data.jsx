@@ -8,6 +8,13 @@
 
 const { KGEnums, KGConstants } = window;
 
+// Range key constants — single source of truth for date ranges
+const RANGE_7D = KGConstants.DATE_RANGE_7D;
+const RANGE_14D = KGConstants.DATE_RANGE_14D;
+const RANGE_30D = KGConstants.DATE_RANGE_30D;
+const RANGE_90D = KGConstants.DATE_RANGE_90D;
+const RANGE_YTD = KGConstants.DATE_RANGE_YTD;
+
 const PLAYERS = [
   // ===== Top movers (also dashboard-surfaced) =====
   { id: 'BK-4827193', risk: 'high', riskScore: 89, riskFrom: 62, trend: 'up', spend: 1842500, spendDelta: 142,
@@ -363,7 +370,7 @@ function seeded(seed) {
 }
 
 function buildRangeData(rangeKey, brandKey) {
-  const cfg = RANGE_CONFIG[rangeKey] || RANGE_CONFIG['7d'];
+  const cfg = RANGE_CONFIG[rangeKey] || RANGE_CONFIG[RANGE_7D];
   const rnd = seeded(rangeKey.charCodeAt(0) * 17 + (brandKey || '').length);
 
   // Brand-scoped MAU + distribution.
@@ -492,9 +499,9 @@ function buildRangeData(rangeKey, brandKey) {
     deposits.push(Math.max(15, Math.round(shaped + uclBoost + wobble)));
   }
 
-  // Top movers — pulled directly from PLAYERS list so the dashboard
-  // and player list reference the exact same records.
-  const moverScale = rangeKey === '7d' ? 1 : rangeKey === '14d' ? 1.2 : rangeKey === '30d' ? 1.5 : rangeKey === '90d' ? 1.9 : 2.2;
+   // Top movers — pulled directly from PLAYERS list so the dashboard
+   // and player list reference the exact same records.
+   const moverScale = rangeKey === RANGE_7D ? 1 : rangeKey === RANGE_14D ? 1.2 : rangeKey === RANGE_30D ? 1.5 : rangeKey === RANGE_90D ? 1.9 : 2.2;
   // fromScore overrides for players missing a riskFrom on their record
   const MOVER_FROM = {
     'BK-4827193': 62, 'SS-7283910': 71, 'BK-3918274': 58,
@@ -527,13 +534,13 @@ function buildRangeData(rangeKey, brandKey) {
     { tool: 'Account Closure',  base: 8250,  deltaBase: 6,  color: '#F59E0B', startFrac: 0.91, noise: 0.09, spikes: [0.85] },
   ];
 
-  // Self-Exclusion: sharp step-change from April 18 onwards (18 days ago).
-  // Pre-spike: low flat baseline (~45% of current). Post-spike: elevated (~85→100%).
-  // For short ranges entirely within the post-spike window (7d, 14d), show the
-  // already-elevated plateau so the stat card still reflects the jump.
-  const SELF_EX_SPIKE_DAYS_AGO = 18; // April 18 2026
-  const selfExCount = Math.max(1, Math.round(41200 * rgScale));
-  const selfExDelta = 11 + (rangeKey === '90d' || rangeKey === 'ytd' ? 5 : 0);
+   // Self-Exclusion: sharp step-change from April 18 onwards (18 days ago).
+   // Pre-spike: low flat baseline (~45% of current). Post-spike: elevated (~85→100%).
+   // For short ranges entirely within the post-spike window (7d, 14d), show the
+   // already-elevated plateau so the stat card still reflects the jump.
+   const SELF_EX_SPIKE_DAYS_AGO = 18; // April 18 2026
+   const selfExCount = Math.max(1, Math.round(41200 * rgScale));
+   const selfExDelta = 11 + (rangeKey === RANGE_90D || rangeKey === RANGE_YTD ? 5 : 0);
   const tSpike = 1 - SELF_EX_SPIKE_DAYS_AGO / cfg.days; // 0-1 position of Apr 18 in this range
   const selfExTrend = [];
   for (let i = 0; i < numPoints; i++) {
@@ -559,10 +566,10 @@ function buildRangeData(rangeKey, brandKey) {
 
   const rgAdoption = [
     { tool: 'Self-Exclusion', count: selfExCount, delta: selfExDelta, color: '#6366F1', trend: selfExTrend },
-    ...RG_TOOL_DEFS.map(toolDef => {
-      const count = Math.max(1, Math.round(toolDef.base * rgScale));
-      const delta = toolDef.deltaBase + (rangeKey === '90d' || rangeKey === 'ytd' ? 5 : 0);
-      const trend = [];
+     ...RG_TOOL_DEFS.map(toolDef => {
+       const count = Math.max(1, Math.round(toolDef.base * rgScale));
+       const delta = toolDef.deltaBase + (rangeKey === RANGE_90D || rangeKey === RANGE_YTD ? 5 : 0);
+       const trend = [];
       for (let i = 0; i < numPoints; i++) {
         const t = i / (numPoints - 1 || 1);
         const eased = t * t * (3 - 2 * t);
@@ -596,21 +603,21 @@ function buildRangeData(rangeKey, brandKey) {
     { label: 'Withdrawal reversal',        base: 16  },
   ].map(s => ({ label: s.label, color: KGConstants.SIGNAL_META[s.label]?.color || '#D97706', count: Math.max(1, Math.round(s.base * signalScale)) }));
 
-  // Stat-card deltas (vs yesterday on 7d, vs prior period on longer windows)
-  const dailyVs = rangeKey === '7d' ? 'vs yesterday' : 'vs prior period';
-  const dHigh = Math.round(dist.high * (rangeKey === '7d' ? 0.025 : rangeKey === '14d' ? 0.06 : rangeKey === '30d' ? 0.18 : rangeKey === '90d' ? 0.34 : 0.42));
-  const dMed  = Math.round(dist.med  * (rangeKey === '7d' ? 0.018 : rangeKey === '14d' ? 0.06 : rangeKey === '30d' ? 0.20 : rangeKey === '90d' ? 0.30 : 0.36));
-  const dLow  = Math.round(dist.low  * (rangeKey === '7d' ? 0.003 : rangeKey === '14d' ? 0.010 : rangeKey === '30d' ? 0.022 : rangeKey === '90d' ? 0.13 : 0.17));
-  const sign = (n, dir) => `${dir === 'down' ? '−' : '+'}${n.toLocaleString()}`;
-  const statDeltas = {
-    high: sign(dHigh, 'up'),
-    med:  sign(dMed,  'up'),
-    low:  rangeKey === '7d' || rangeKey === '14d' || rangeKey === '30d' ? sign(dLow, 'down') : sign(dLow, 'up'),
-    dailyVs,
-  };
+   // Stat-card deltas (vs yesterday on 7d, vs prior period on longer windows)
+   const dailyVs = rangeKey === RANGE_7D ? 'vs yesterday' : 'vs prior period';
+   const dHigh = Math.round(dist.high * (rangeKey === RANGE_7D ? 0.025 : rangeKey === RANGE_14D ? 0.06 : rangeKey === RANGE_30D ? 0.18 : rangeKey === RANGE_90D ? 0.34 : 0.42));
+   const dMed  = Math.round(dist.med  * (rangeKey === RANGE_7D ? 0.018 : rangeKey === RANGE_14D ? 0.06 : rangeKey === RANGE_30D ? 0.20 : rangeKey === RANGE_90D ? 0.30 : 0.36));
+   const dLow  = Math.round(dist.low  * (rangeKey === RANGE_7D ? 0.003 : rangeKey === RANGE_14D ? 0.010 : rangeKey === RANGE_30D ? 0.022 : rangeKey === RANGE_90D ? 0.13 : 0.17));
+   const sign = (n, dir) => `${dir === 'down' ? '−' : '+'}${n.toLocaleString()}`;
+   const statDeltas = {
+     high: sign(dHigh, 'up'),
+     med:  sign(dMed,  'up'),
+     low:  rangeKey === RANGE_7D || rangeKey === RANGE_14D || rangeKey === RANGE_30D ? sign(dLow, 'down') : sign(dLow, 'up'),
+     dailyVs,
+   };
 
-  // Deposit % vs prior
-  const depositGrowth = rangeKey === '7d' ? 14.2 : rangeKey === '14d' ? 17.8 : rangeKey === '30d' ? 24.6 : rangeKey === '90d' ? 38.4 : 47.2;
+   // Deposit % vs prior
+   const depositGrowth = rangeKey === RANGE_7D ? 14.2 : rangeKey === RANGE_14D ? 17.8 : rangeKey === RANGE_30D ? 24.6 : rangeKey === RANGE_90D ? 38.4 : 47.2;
 
   return {
     rangeKey,
@@ -800,7 +807,7 @@ function synthPlayer(brandKey, bucket, i, seed) {
 // Bucket counts per brand at the active-base for the given range.
 // These line up with what buildRangeData() shows on the dashboard.
 function bucketCountsForBrand(brandKey, rangeKey) {
-  const cfg = RANGE_CONFIG[rangeKey] || RANGE_CONFIG['7d'];
+  const cfg = RANGE_CONFIG[rangeKey] || RANGE_CONFIG[RANGE_7D];
   const baseDist = buildBaseDist(brandKey);
   return {
     high:    Math.round(baseDist.high    * cfg.activeMul),

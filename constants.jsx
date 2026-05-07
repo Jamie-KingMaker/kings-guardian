@@ -178,12 +178,19 @@ function getCountryOptions(brand, includeAll = true) {
   return options.concat(COUNTRY_OPTIONS.slice(1));
 }
 
+// Convenience constants for date range keys (tied to RANGE_CONFIG)
+const DATE_RANGE_7D = KGEnums.DATE_RANGE.LAST_7_DAYS;
+const DATE_RANGE_14D = KGEnums.DATE_RANGE.LAST_14_DAYS;
+const DATE_RANGE_30D = KGEnums.DATE_RANGE.LAST_30_DAYS;
+const DATE_RANGE_90D = KGEnums.DATE_RANGE.LAST_90_DAYS;
+const DATE_RANGE_YTD = KGEnums.DATE_RANGE.YTD;
+
 const DATE_RANGE_OPTIONS = Object.freeze([
-  { value: KGEnums.DATE_RANGE.LAST_7_DAYS, label: 'Last 7 days' },
-  { value: KGEnums.DATE_RANGE.LAST_14_DAYS, label: 'Last 14 days' },
-  { value: KGEnums.DATE_RANGE.LAST_30_DAYS, label: 'Last 30 days' },
-  { value: KGEnums.DATE_RANGE.LAST_90_DAYS, label: 'Last 90 days' },
-  { value: KGEnums.DATE_RANGE.YTD, label: 'Year to date' },
+  { value: DATE_RANGE_7D, label: 'Last 7 days' },
+  { value: DATE_RANGE_14D, label: 'Last 14 days' },
+  { value: DATE_RANGE_30D, label: 'Last 30 days' },
+  { value: DATE_RANGE_90D, label: 'Last 90 days' },
+  { value: DATE_RANGE_YTD, label: 'Year to date' },
 ]);
 
 function getDateRangeLabel(value) {
@@ -299,6 +306,11 @@ const SEVERITY_STYLE = Object.freeze({
 
 window.KGEnums = KGEnums;
 window.KGConstants = {
+  DATE_RANGE_7D,
+  DATE_RANGE_14D,
+  DATE_RANGE_30D,
+  DATE_RANGE_90D,
+  DATE_RANGE_YTD,
   RISK_COLORS,
   RISK_LABELS,
   RISK_ORDER,

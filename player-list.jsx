@@ -8,7 +8,7 @@ const STATUS_CFG = KGConstants.PLAYER_STATUS_CFG;
 const ACTION_STATUSES = new Set(KGConstants.ACTION_STATUSES);
 const RISK_ORDER = KGConstants.RISK_ORDER;
 
-function PlayerList({ brand, country, onPlayerClick, range = '7d' }) {
+function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RANGE_7D }) {
   const { PLAYERS, buildRangeData, getPlayerPopulation } = window.KGData;
   const data = useMemoList(() => buildRangeData(range, brand === KGEnums.BRAND.ALL ? null : brand), [range, brand]);
 

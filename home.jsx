@@ -1,19 +1,19 @@
 // Home Dashboard view for King's Guard
 
 const { useMemo: useMemoHome } = React;
-const { KGEnums } = window;
+const { KGEnums, KGConstants } = window;
 
 function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, setCustomRange, onPlayerClick }) {
   const { PLAYERS, buildRangeData, MAU, MAU_TOTALS } = window.KGData;
   // Map 'custom' to nearest preset based on day count
   const effectiveRange = useMemoHome(() => {
-    if (dateRange !== KGEnums.DATE_RANGE.CUSTOM || !customRange?.start || !customRange?.end) return dateRange || KGEnums.DATE_RANGE.LAST_7_DAYS;
+    if (dateRange !== KGEnums.DATE_RANGE.CUSTOM || !customRange?.start || !customRange?.end) return dateRange || KGConstants.DATE_RANGE_7D;
     const days = Math.round((customRange.end - customRange.start) / 86400000) + 1;
-    if (days <= 10) return KGEnums.DATE_RANGE.LAST_7_DAYS;
-    if (days <= 22) return KGEnums.DATE_RANGE.LAST_14_DAYS;
-    if (days <= 60) return KGEnums.DATE_RANGE.LAST_30_DAYS;
-    if (days <= 120) return KGEnums.DATE_RANGE.LAST_90_DAYS;
-    return KGEnums.DATE_RANGE.YTD;
+    if (days <= 10) return KGConstants.DATE_RANGE_7D;
+    if (days <= 22) return KGConstants.DATE_RANGE_14D;
+    if (days <= 60) return KGConstants.DATE_RANGE_30D;
+    if (days <= 120) return KGConstants.DATE_RANGE_90D;
+    return KGConstants.DATE_RANGE_YTD;
   }, [dateRange, customRange]);
   const rangeData = useMemoHome(() => buildRangeData(effectiveRange, brand), [effectiveRange, brand]);
 
@@ -711,13 +711,13 @@ function DepositActivityCard({ data, brand, total, growth, rangeLabel, deltaLabe
   const filteredCount  = playerCounts[filter];
   const avgPerPlayer   = filteredTotal / filteredCount;
 
-  // Avg minutes between deposits — faster = higher risk
-  const REDEPOSIT = {
-    all:  { '7d': 94,   '14d': 106,  '30d': 128,  '90d': 145,  ytd: 178  },
-    high: { '7d': 11,   '14d': 13,   '30d': 14,   '90d': 16,   ytd: 18   },
-    med:  { '7d': 148,  '14d': 162,  '30d': 180,  '90d': 210,  ytd: 250  },
-    low:  { '7d': 3360, '14d': 3720, '30d': 4320, '90d': 5040, ytd: 6480 },
-  };
+   // Avg minutes between deposits — faster = higher risk
+   const REDEPOSIT = {
+     all:  { [KGConstants.DATE_RANGE_7D]: 94,   [KGConstants.DATE_RANGE_14D]: 106,  [KGConstants.DATE_RANGE_30D]: 128,  [KGConstants.DATE_RANGE_90D]: 145,  [KGConstants.DATE_RANGE_YTD]: 178  },
+     high: { [KGConstants.DATE_RANGE_7D]: 11,   [KGConstants.DATE_RANGE_14D]: 13,   [KGConstants.DATE_RANGE_30D]: 14,   [KGConstants.DATE_RANGE_90D]: 16,   [KGConstants.DATE_RANGE_YTD]: 18   },
+     med:  { [KGConstants.DATE_RANGE_7D]: 148,  [KGConstants.DATE_RANGE_14D]: 162,  [KGConstants.DATE_RANGE_30D]: 180,  [KGConstants.DATE_RANGE_90D]: 210,  [KGConstants.DATE_RANGE_YTD]: 250  },
+     low:  { [KGConstants.DATE_RANGE_7D]: 3360, [KGConstants.DATE_RANGE_14D]: 3720, [KGConstants.DATE_RANGE_30D]: 4320, [KGConstants.DATE_RANGE_90D]: 5040, [KGConstants.DATE_RANGE_YTD]: 6480 },
+   };
   const speedMins = (REDEPOSIT[filter] || REDEPOSIT.all)[rangeKey] || 94;
   const fmtSpeed  = m => m < 60 ? `${Math.round(m)}m` : m < 1440 ? `${(m/60).toFixed(1)}h` : `${(m/1440).toFixed(1)}d`;
   const speedSub  = m => m < 60 ? 'minutes avg' : m < 1440 ? 'hours avg' : 'days avg';
