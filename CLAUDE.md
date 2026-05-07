@@ -1,4 +1,5 @@
 # Code style
+- always use enums to avoid repeated string literals
 
 [//]: # (TODO: Add more details about code style, e.g. naming conventions, formatting, using SOLID Principles, etc.)
 
