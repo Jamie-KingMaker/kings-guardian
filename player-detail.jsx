@@ -224,7 +224,7 @@ function PlayerDetail({ playerId, onBack }) {
             <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 6 }}>Current zone</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ padding: '3px 10px', borderRadius: 4, background: `${scoreColor}15`, color: scoreColor, fontSize: 14, fontWeight: 700 }}>{scoreZoneLabel}</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, color: '#475569' }}><TrendArrow trend={player.trend} />{player.trend ? player.trend.charAt(0).toUpperCase() + player.trend.slice(1) : '—'}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, color: '#475569' }}><TrendArrow trend={player.trend} /></span>
             </div>
           </div>
           {/* Divider */}
