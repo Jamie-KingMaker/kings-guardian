@@ -143,6 +143,7 @@ function TopBar({ brand, setBrand, country, setCountry, lastRefresh, onCustomerS
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 6 }}>
         {KGConstants.BRAND_OPTIONS.map(({ value: b }) => {
           const bt = BRAND_THEME[b];
+          if (!bt) return null;
           const active = brand === b;
           return (
             <button key={b}
