@@ -87,7 +87,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 function App() {
   const [brand, setBrand] = useState(KGEnums.BRAND.BETKING);
   const [country, setCountry] = useState(KGEnums.COUNTRY.NG);
-  const [dateRange, setDateRange] = useState(KGEnums.DATE_RANGE.LAST_24_HOURS);
+  const [dateRange, setDateRange] = useState(KGEnums.DATE_RANGE.LAST_7_DAYS);
   const [customRange, setCustomRange] = useState(null);
   const [activeView, setActiveView] = useState('home');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
