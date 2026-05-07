@@ -208,7 +208,7 @@ function PlayerDetail({ playerId, onBack }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Risk score card — full width */}
       <div style={{ ...cardStyle, padding: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24 }}>
           {/* Score number */}
           <div style={{ flexShrink: 0 }}>
             <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 4 }}>Risk score</div>
@@ -218,7 +218,7 @@ function PlayerDetail({ playerId, onBack }) {
             </div>
           </div>
           {/* Divider */}
-          <div style={{ width: 1, height: 44, background: '#E2E8F0', flexShrink: 0 }} />
+          <div style={{ width: 1, alignSelf: 'stretch', background: '#E2E8F0', flexShrink: 0 }} />
           {/* Zone + trend */}
           <div style={{ flexShrink: 0 }}>
             <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 6 }}>Current zone</div>
@@ -228,7 +228,7 @@ function PlayerDetail({ playerId, onBack }) {
             </div>
           </div>
           {/* Divider */}
-          <div style={{ width: 1, height: 44, background: '#E2E8F0', flexShrink: 0 }} />
+          <div style={{ width: 1, alignSelf: 'stretch', background: '#E2E8F0', flexShrink: 0 }} />
           {/* Bar — flex grow */}
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 10 }}>Score position</div>
