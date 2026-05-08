@@ -31,6 +31,49 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
   const betsGrowthPct = Math.round(sd * 0.71);
   const avgDepositPct = Math.max(1, Math.round(sd - depositsGrowthPct));
 
+  const rangePeriodLabel = playerRange === KGEnums.DATE_RANGE.LAST_24_HOURS ? '24h'
+    : playerRange === KGEnums.DATE_RANGE.LAST_30_DAYS ? '30d'
+    : '7d';
+  const rangeLabelFull = playerRange === KGEnums.DATE_RANGE.LAST_24_HOURS ? 'Last 24 hours'
+    : playerRange === KGEnums.DATE_RANGE.LAST_30_DAYS ? 'Last 30 days'
+    : 'Last 7 days';
+
+  // Shared activity widget used on both Overview and Behaviour tabs
+  const ActivityWidget = ({ tall }) => (
+    <div style={{ ...cardStyle }}>
+      {/* Single header with one range picker controlling all content */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 12 }}>
+        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+          Activity · {rangeLabelFull}
+        </div>
+        <PlayerRangeSelector range={playerRange} setRange={setPlayerRange} />
+      </div>
+
+      {/* Micro stats — period label updates with picker */}
+      <div id={tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID}
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
+        <MicroStat componentId={buildComponentChildId(tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.SPEND)}
+          label={`Spend / ${rangePeriodLabel}`} value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`} tone="high" />
+        <MicroStat componentId={buildComponentChildId(tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.DEPOSITS)}
+          label={`Deposits / ${rangePeriodLabel}`} value={player.deposits} delta={`+${depositsGrowthPct}%`} tone="high" />
+        <MicroStat componentId={buildComponentChildId(tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.BETS)}
+          label={`Bets / ${rangePeriodLabel}`} value={player.bets} delta={`+${betsGrowthPct}%`} tone="high" />
+        <MicroStat componentId={buildComponentChildId(tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.AVG_DEPOSIT)}
+          label="Avg deposit" value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: 1, background: '#F1F5F9', marginBottom: 16 }} />
+
+      {/* Chart — embedded so it shares this card's shell */}
+      <SpendDepositsCard
+        embedded
+        componentId={tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_SPEND_DEPOSITS_CARD : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_SPEND_DEPOSITS_CARD}
+        player={player} range={playerRange} setRange={setPlayerRange} tall={tall}
+      />
+    </div>
+  );
+
   const sevColor = {
     high: KGConstants.RISK_COLORS.high.main,
     medium: KGConstants.RISK_COLORS.medium.main,
@@ -91,14 +134,7 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div id={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-            <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.SPEND)} label="Spend / 7d" value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`} tone="high" />
-            <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.DEPOSITS)} label="Deposits / 7d" value={player.deposits} delta={`+${depositsGrowthPct}%`} tone="high" />
-            <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.BETS)} label="Bets / 7d" value={player.bets} delta={`+${betsGrowthPct}%`} tone="high" />
-            <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.AVG_DEPOSIT)} label="Avg deposit" value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
-          </div>
-
-          <SpendDepositsCard componentId={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_SPEND_DEPOSITS_CARD} player={player} range={playerRange} setRange={setPlayerRange} />
+          <ActivityWidget />
 
           <div id={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_PRODUCT_DISTRIBUTION_CARD} style={{ ...cardStyle }}>
             <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Product distribution · 30d</div>
@@ -199,14 +235,7 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
 
   const behaviourBody = (
     <div id={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_PANEL} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div id={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-        <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID, PLAYER_DETAIL_STAT_KEY.SPEND)} label="Spend / 7d" value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`} tone="high" />
-        <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID, PLAYER_DETAIL_STAT_KEY.DEPOSITS)} label="Deposits / 7d" value={player.deposits} delta={`+${depositsGrowthPct}%`} tone="high" />
-        <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID, PLAYER_DETAIL_STAT_KEY.BETS)} label="Bets / 7d" value={player.bets} delta={`+${betsGrowthPct}%`} tone="high" />
-        <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID, PLAYER_DETAIL_STAT_KEY.AVG_DEPOSIT)} label="Avg deposit" value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
-      </div>
-
-      <SpendDepositsCard componentId={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_SPEND_DEPOSITS_CARD} player={player} range={playerRange} setRange={setPlayerRange} tall />
+      <ActivityWidget tall />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div id={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_SESSION_TIMING_CARD} style={{ ...cardStyle }}>

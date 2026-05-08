@@ -6,7 +6,7 @@ const {
   PlayerRangeSelector: PlayerRangeSelectorForSpendDeposits,
 } = window;
 
-function SpendDepositsCard({ player, range, setRange, tall, componentId }) {
+function SpendDepositsCard({ player, range, setRange, tall, componentId, embedded }) {
   const { spend, dep, labels, escAt, escLabel } = getPlayerChartDataForSpendDeposits(player, range);
   const canvasRef = React.useRef(null);
   const chartRef = React.useRef(null);
@@ -137,21 +137,16 @@ function SpendDepositsCard({ player, range, setRange, tall, componentId }) {
     </div>
   );
 
-  return (
-    <div id={componentId} style={{ ...cardStyle }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12 }}>
-        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, flexShrink: 0 }}>
-          Spend &amp; Deposits · {rangeLabelMap[range]}
-        </div>
-        <PlayerRangeSelectorForSpendDeposits range={range} setRange={setRange} componentId={buildChildIdForSpendDeposits(componentId, 'range-selector')} />
-      </div>
-
+  const chartBody = (
+    <>
+      {/* Mini stat summary */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
         {miniCard('Total spend', fmtCompact(player.spend, player.brand), `+${sd}% vs prior`, '#0F172A')}
         {miniCard('Deposits', totalDep, `+${depositsGrowthPct}% vs prior`, '#DC2626')}
         {miniCard('Avg deposit', fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand), 'per transaction', null)}
       </div>
 
+      {/* Legend */}
       <div style={{ display: 'flex', gap: 14, marginBottom: 8 }}>
         {[
           { label: 'Spend', color: '#0F172A', isBar: false },
@@ -174,6 +169,21 @@ function SpendDepositsCard({ player, range, setRange, tall, componentId }) {
       <div style={{ position: 'relative', height: tall ? 260 : 220 }}>
         <canvas ref={canvasRef} />
       </div>
+    </>
+  );
+
+  // embedded = rendered inside an outer ActivityWidget card (no own card shell or header)
+  if (embedded) return <div id={componentId}>{chartBody}</div>;
+
+  return (
+    <div id={componentId} style={{ ...cardStyle }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12 }}>
+        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, flexShrink: 0 }}>
+          Spend &amp; Deposits · {rangeLabelMap[range]}
+        </div>
+        <PlayerRangeSelectorForSpendDeposits range={range} setRange={setRange} componentId={buildChildIdForSpendDeposits(componentId, 'range-selector')} />
+      </div>
+      {chartBody}
     </div>
   );
 }
