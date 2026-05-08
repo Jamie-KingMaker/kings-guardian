@@ -185,13 +185,13 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
               </div>
             ))}
           </div>
-          <div style={{ padding: '14px 16px', background: 'rgba(245,158,11,0.08)', borderTop: '2px solid rgba(245,158,11,0.35)' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0, marginTop: 1 }}>💡</span>
-              <div>
-                <div style={{ fontSize: 12, color: '#B45309', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3 }}>Suggested action</div>
-                <div style={{ fontSize: 14, color: '#0F172A', lineHeight: 1.5, fontWeight: 500 }}>Players with this signal pattern often respond well to a deposit-limit conversation.</div>
-              </div>
+          <div style={{ margin: 12, borderRadius: 8, background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', border: '1.5px solid #F59E0B', boxShadow: '0 2px 8px rgba(245,158,11,0.18)' }}>
+            <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(245,158,11,0.25)', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(245,158,11,0.12)', borderRadius: '7px 7px 0 0' }}>
+              <span style={{ fontSize: 17, lineHeight: 1 }}>💡</span>
+              <span style={{ fontSize: 12, color: '#92400E', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Suggested action</span>
+            </div>
+            <div style={{ padding: '12px 14px', fontSize: 14, color: '#0F172A', lineHeight: 1.6, fontWeight: 500 }}>
+              Players with this signal pattern often respond well to a <strong style={{ color: '#92400E' }}>deposit-limit conversation</strong>.
             </div>
           </div>
         </div>
