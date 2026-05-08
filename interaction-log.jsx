@@ -253,7 +253,7 @@ function InteractionLog({ brand, country, onPlayerClick }) {
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, marginBottom: 4 }}>
             Agent activity · {KGConstants.getDateRangeLabel(dateRange, customRange)}
@@ -263,22 +263,16 @@ function InteractionLog({ brand, country, onPlayerClick }) {
             Full audit trail of CS agent and system interactions with monitored players.
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, paddingTop: 4 }}>
-          <DateRangePicker
-            value={dateRange}
-            onChange={setDateRange}
-            custom={customRange}
-            onCustom={setCustomRange}
-            pageMode
-          />
-          <button
-            onClick={() => setShowForm(true)}
-            style={{ ...btnPrimary, display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
-          >
-            + Log interaction
-          </button>
-        </div>
+        <button
+          onClick={() => setShowForm(true)}
+          style={{ ...btnPrimary, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        >
+          + Log interaction
+        </button>
       </div>
+
+      {/* Date range picker — same position as Population Analytics */}
+      <DateRangePicker value={dateRange} onChange={setDateRange} custom={customRange} onCustom={setCustomRange} pageMode />
 
       {/* Summary stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
