@@ -195,6 +195,9 @@ function generateInteractionLog(player) {
 }
 
 function getPlayerChartData(player, range) {
+  const mockedSeries = window.KGData?.getPlayerSpendDepositsSeries?.(player, range);
+  if (mockedSeries) return mockedSeries;
+
   const n = range === '24h' ? 24 : range === '7d' ? 7 : 30;
   const seedOffset = range === '24h' ? 5 : range === '7d' ? 13 : 0;
   const rnd = pdSeeded(playerSeed(player.id) + seedOffset);

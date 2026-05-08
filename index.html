@@ -69,7 +69,7 @@ window.claude = {
 <script type="text/babel" src="home-dashboard-enums.jsx"></script>
 <script type="text/babel" src="home-dashboard-styles.jsx?v=2"></script>
 <script type="text/babel" src="range-data-api-fixtures.jsx?v=1"></script>
-<script type="text/babel" src="data.jsx?v=12"></script>
+<script type="text/babel" src="data.jsx?v=13"></script>
 <script type="text/babel" src="components/components.jsx?v=5"></script>
 <script type="text/babel" src="components/date-range-picker.jsx?v=2"></script>
 <script type="text/babel" src="components/home-dashboard-stats-cards.jsx"></script>
@@ -79,8 +79,8 @@ window.claude = {
 <script type="text/babel" src="components/home-dashboard-rg-copilot.jsx"></script>
 <script type="text/babel" src="shell.jsx?v=5"></script>
 <script type="text/babel" src="home.jsx?v=23"></script>
-<script type="text/babel" src="player-list.jsx?v=13"></script>
-<script type="text/babel" src="components/player-detail-shared.jsx?v=1"></script>
+<script type="text/babel" src="player-list.jsx?v=14"></script>
+<script type="text/babel" src="components/player-detail-shared.jsx?v=2"></script>
 <script type="text/babel" src="components/player-detail-micro-stat.jsx?v=1"></script>
 <script type="text/babel" src="components/player-detail-behaviour-chart.jsx?v=1"></script>
 <script type="text/babel" src="components/player-detail-session-timing-chart.jsx?v=1"></script>
@@ -88,8 +88,8 @@ window.claude = {
 <script type="text/babel" src="components/player-detail-spend-chart.jsx?v=1"></script>
 <script type="text/babel" src="components/player-detail-deposits-chart.jsx?v=1"></script>
 <script type="text/babel" src="components/player-detail-range-selector.jsx?v=1"></script>
-<script type="text/babel" src="components/player-detail-spend-deposits-card.jsx?v=1"></script>
-<script type="text/babel" src="components/player-detail-player-detail.jsx?v=1"></script>
+<script type="text/babel" src="components/player-detail-spend-deposits-card.jsx?v=2"></script>
+<script type="text/babel" src="components/player-detail-player-detail.jsx?v=2"></script>
 <script type="text/babel" src="population-risk.jsx?v=3"></script>
 <script type="text/babel" src="interaction-log.jsx?v=2"></script>
 <script type="text/babel" src="tweaks-panel.jsx"></script>
@@ -173,14 +173,27 @@ function App() {
   const validViews = Object.values(KGEnums.VIEW);
   const savedView   = sessionStorage.getItem('kg_activeView');
   const savedPlayer = sessionStorage.getItem('kg_selectedPlayer');
+  const savedPlayerPayload = sessionStorage.getItem('kg_selectedPlayerPayload');
+  let savedPlayerSnapshot = null;
+  try {
+    savedPlayerSnapshot = savedPlayerPayload ? JSON.parse(savedPlayerPayload) : null;
+  } catch (error) {
+    savedPlayerSnapshot = null;
+  }
   const [activeView, setActiveView]       = useState(savedView && validViews.includes(savedView) ? savedView : KGEnums.VIEW.HOME);
-  const [selectedPlayer, setSelectedPlayer] = useState(savedPlayer || null);
+  const [selectedPlayer, setSelectedPlayer] = useState(savedPlayerSnapshot || savedPlayer || null);
+  const selectedPlayerId = typeof selectedPlayer === 'string' ? selectedPlayer : selectedPlayer?.id || null;
 
   useEffect(() => { sessionStorage.setItem('kg_activeView', activeView); }, [activeView]);
   useEffect(() => {
-    if (selectedPlayer) sessionStorage.setItem('kg_selectedPlayer', selectedPlayer);
+    if (selectedPlayerId) sessionStorage.setItem('kg_selectedPlayer', selectedPlayerId);
     else sessionStorage.removeItem('kg_selectedPlayer');
-  }, [selectedPlayer]);
+    if (selectedPlayer && typeof selectedPlayer === 'object') {
+      sessionStorage.setItem('kg_selectedPlayerPayload', JSON.stringify(selectedPlayer));
+    } else {
+      sessionStorage.removeItem('kg_selectedPlayerPayload');
+    }
+  }, [selectedPlayer, selectedPlayerId]);
 
   // Sync country with brand
   useEffect(() => {
@@ -188,9 +201,11 @@ function App() {
     if (brand === KGEnums.BRAND.SUPERSPORTBET && country === KGEnums.COUNTRY.NG) setCountry(KGEnums.COUNTRY.ZA);
   }, [brand]);
 
-  const handlePlayerClick = (id) => {
-    setSelectedPlayer(id);
+  const handlePlayerClick = (playerOrId) => {
+    const resolvedPlayerId = typeof playerOrId === 'object' && playerOrId !== null ? playerOrId.id : playerOrId;
+    setSelectedPlayer(playerOrId);
     setActiveView(KGEnums.VIEW.PLAYER_DETAIL);
+    return resolvedPlayerId;
   };
 
   const handleCustomerSearch = (rawCustomerId) => {
@@ -213,7 +228,7 @@ function App() {
   } else if (activeView === KGEnums.VIEW.PLAYERS) {
     body = <PlayerList brand={brand} country={country} range={dateRange} onPlayerClick={handlePlayerClick} />;
   } else if (activeView === KGEnums.VIEW.PLAYER_DETAIL) {
-    body = <PlayerDetail playerId={selectedPlayer} onBack={() => setActiveView(KGEnums.VIEW.PLAYERS)} />;
+    body = <PlayerDetail playerId={selectedPlayerId} player={typeof selectedPlayer === 'object' ? selectedPlayer : null} onBack={() => setActiveView(KGEnums.VIEW.PLAYERS)} />;
   } else if (activeView === KGEnums.VIEW.POPULATION) {
     body = <PopulationRisk brand={brand} country={country} dateRange={dateRange} />;
   } else if (activeView === KGEnums.VIEW.LOG) {

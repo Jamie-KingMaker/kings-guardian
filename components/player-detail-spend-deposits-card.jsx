@@ -8,34 +8,121 @@ const {
 
 function SpendDepositsCard({ player, range, setRange, tall, componentId }) {
   const { spend, dep, labels, escAt, escLabel } = getPlayerChartDataForSpendDeposits(player, range);
+  const canvasRef = React.useRef(null);
+  const chartRef = React.useRef(null);
 
-  const W = 600;
-  const H = tall ? 240 : 180;
-  const PAD_L = 36;
-  const PAD_B = 24;
-  const PAD_T = 10;
-  const PAD_R = 8;
-  const iW = W - PAD_L - PAD_R;
-  const iH = H - PAD_T - PAD_B;
+  const fmtY = (v) => (v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`);
 
-  const maxSpend = Math.max(...spend);
-  const minSpend = Math.min(...spend);
-  const spendRng = maxSpend - minSpend || 1;
-  const xStep = iW / (spend.length - 1);
+  React.useEffect(() => {
+    if (!canvasRef.current || !window.Chart) return undefined;
 
-  const spendPts = spend.map((v, i) => [
-    PAD_L + i * xStep,
-    PAD_T + iH - ((v - minSpend) / spendRng) * iH,
-  ]);
-  const spendLine = spendPts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
-  const spendArea = `${spendLine} L${spendPts[spendPts.length - 1][0].toFixed(1)},${PAD_T + iH} L${PAD_L},${PAD_T + iH}Z`;
+    const spendDataset = {
+      type: 'line',
+      label: 'Spend',
+      data: spend,
+      yAxisID: 'ySpend',
+      borderColor: '#0F172A',
+      backgroundColor: 'rgba(15, 23, 42, 0.08)',
+      borderWidth: 2,
+      tension: 0.35,
+      fill: true,
+      pointRadius: 2,
+      pointHoverRadius: 4,
+      pointBackgroundColor: '#0F172A',
+      pointBorderColor: '#FFFFFF',
+      pointBorderWidth: 1.5,
+      order: 1,
+    };
 
-  const maxDep = Math.max(...dep, 1);
-  const barMaxH = iH * 0.30;
-  const barW = Math.max(4, xStep * 0.52);
+    const depositDataset = {
+      type: 'bar',
+      label: 'Deposits',
+      data: dep,
+      yAxisID: 'yDeposits',
+      backgroundColor: dep.map((value, index) => {
+        if (!value) return 'rgba(148, 163, 184, 0.28)';
+        return index >= escAt ? 'rgba(220, 38, 38, 0.88)' : 'rgba(148, 163, 184, 0.85)';
+      }),
+      borderRadius: 4,
+      barPercentage: range === '24h' ? 0.88 : 0.62,
+      categoryPercentage: range === '24h' ? 0.92 : 0.8,
+      order: 2,
+    };
 
-  const gridVals = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(minSpend + spendRng * (1 - t)));
-  const fmtY = v => (v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`);
+    const chartConfig = {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [spendDataset, depositDataset],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            titleFont: { family: "'Roboto Mono', monospace", size: 11, weight: '600' },
+            bodyFont: { size: 12 },
+            padding: 10,
+            callbacks: {
+              label(context) {
+                if (context.dataset.label === 'Spend') {
+                  return `Spend: ${fmtCompact(Math.round(context.parsed.y || 0), player.brand)}`;
+                }
+                return `Deposits: ${context.parsed.y || 0}`;
+              },
+            },
+          },
+        },
+        scales: {
+          ySpend: {
+            type: 'linear',
+            position: 'left',
+            beginAtZero: true,
+            grid: { color: '#E2E8F0', drawBorder: false },
+            ticks: {
+              color: '#94A3B8',
+              font: { family: "'Roboto Mono', monospace", size: 11 },
+              callback: (value) => fmtY(value),
+            },
+          },
+          yDeposits: {
+            type: 'linear',
+            position: 'right',
+            beginAtZero: true,
+            grid: { drawOnChartArea: false, drawBorder: false },
+            ticks: {
+              precision: 0,
+              stepSize: 1,
+              color: '#CBD5E1',
+              font: { family: "'Roboto Mono', monospace", size: 10 },
+            },
+          },
+          x: {
+            grid: { display: false, drawBorder: false },
+            ticks: {
+              color: '#94A3B8',
+              maxRotation: 0,
+              autoSkip: false,
+              font: { family: "'Roboto Mono', monospace", size: 11 },
+            },
+          },
+        },
+      },
+    };
+
+    if (chartRef.current) chartRef.current.destroy();
+    chartRef.current = new window.Chart(canvasRef.current, chartConfig);
+
+    return () => {
+      if (chartRef.current) chartRef.current.destroy();
+    };
+  }, [player.id, player.brand, range, tall, labels, spend, dep, escAt]);
 
   const rangeLabelMap = { '24h': 'Last 24 hours', '7d': 'Last 7 days', '30d': 'Last 30 days' };
   const sd = player.spendDelta || 0;
@@ -80,41 +167,13 @@ function SpendDepositsCard({ player, range, setRange, tall, componentId }) {
         ))}
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
-        {gridVals.map((v, i) => {
-          const y = PAD_T + iH - ((v - minSpend) / spendRng) * iH;
-          return (
-            <g key={i}>
-              <line x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#E2E8F0" strokeWidth="1" />
-              <text x={PAD_L - 4} y={y + 4} fontSize="11" textAnchor="end" fill="#94A3B8" fontFamily="'Roboto Mono', monospace">{fmtY(v)}</text>
-            </g>
-          );
-        })}
+      <div style={{ marginBottom: 10, fontSize: 12, color: '#D97706', fontWeight: 600 }}>
+        {escLabel} around {labels[escAt] || 'current window'}
+      </div>
 
-        <path d={spendArea} fill="#0F172A" fillOpacity="0.06" />
-        <path d={spendLine} fill="none" stroke="#0F172A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx={spendPts[spendPts.length - 1][0]} cy={spendPts[spendPts.length - 1][1]} r="3" fill="#0F172A" stroke="#fff" strokeWidth="1.5" />
-
-        {dep.map((d, i) => d > 0 && (
-          <rect
-            key={i}
-            x={PAD_L + i * xStep - barW / 2}
-            y={PAD_T + iH - (d / maxDep) * barMaxH}
-            width={barW}
-            height={(d / maxDep) * barMaxH}
-            fill={i > escAt ? '#DC2626' : '#94A3B8'}
-            rx="2"
-            fillOpacity="0.85"
-          />
-        ))}
-
-        <line x1={PAD_L + escAt * xStep} y1={PAD_T} x2={PAD_L + escAt * xStep} y2={PAD_T + iH} stroke="#D97706" strokeWidth="1" strokeDasharray="3,3" />
-        <text x={PAD_L + escAt * xStep + 4} y={PAD_T + 10} fontSize="10" fill="#D97706" fontWeight="600">{escLabel}</text>
-
-        {labels.map((l, i) => l && (
-          <text key={i} x={PAD_L + i * xStep} y={H - 6} fontSize="11" textAnchor={i === 0 ? 'start' : i === spend.length - 1 ? 'end' : 'middle'} fill="#94A3B8">{l}</text>
-        ))}
-      </svg>
+      <div style={{ position: 'relative', height: tall ? 260 : 220 }}>
+        <canvas ref={canvasRef} />
+      </div>
     </div>
   );
 }

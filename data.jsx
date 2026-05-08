@@ -275,14 +275,65 @@ const PLAYERS = [
     status: null },
 ];
 
+const SYNTHETIC_PLAYER_CACHE = {};
+
 const PLAYER_MAP = PLAYERS.reduce((acc, player) => {
   acc[player.id] = player;
   return acc;
 }, {});
 
 function getPlayerById(playerId) {
-  return PLAYER_MAP[playerId] || null;
+  return PLAYER_MAP[playerId] || SYNTHETIC_PLAYER_CACHE[playerId] || null;
 }
+
+const PLAYER_SPEND_DEPOSITS_PROFILE_FIXTURES = Object.freeze([
+  { playerId: 'BK-4827193', profile: { spendBias: 12, spendAmplitude: 8, spikeIndexOffset: 3, depositBias: 2, cadenceBias: 1 } },
+  { playerId: 'SS-7283910', profile: { spendBias: 17, spendAmplitude: 11, spikeIndexOffset: 4, depositBias: 3, cadenceBias: 2 } },
+  { playerId: 'BK-3918274', profile: { spendBias: 22, spendAmplitude: 14, spikeIndexOffset: 5, depositBias: 4, cadenceBias: 3 } },
+  { playerId: 'BK-5621847', profile: { spendBias: 27, spendAmplitude: 17, spikeIndexOffset: 6, depositBias: 2, cadenceBias: 4 } },
+  { playerId: 'SS-9012384', profile: { spendBias: 32, spendAmplitude: 20, spikeIndexOffset: 3, depositBias: 3, cadenceBias: 1 } },
+  { playerId: 'SS-1928374', profile: { spendBias: 37, spendAmplitude: 8, spikeIndexOffset: 4, depositBias: 4, cadenceBias: 2 } },
+  { playerId: 'BK-2847362', profile: { spendBias: 42, spendAmplitude: 11, spikeIndexOffset: 5, depositBias: 2, cadenceBias: 3 } },
+  { playerId: 'BK-7382910', profile: { spendBias: 12, spendAmplitude: 14, spikeIndexOffset: 6, depositBias: 3, cadenceBias: 4 } },
+  { playerId: 'BK-9374821', profile: { spendBias: 17, spendAmplitude: 17, spikeIndexOffset: 3, depositBias: 4, cadenceBias: 1 } },
+  { playerId: 'SS-2647193', profile: { spendBias: 22, spendAmplitude: 20, spikeIndexOffset: 4, depositBias: 2, cadenceBias: 2 } },
+  { playerId: 'BK-1738294', profile: { spendBias: 27, spendAmplitude: 8, spikeIndexOffset: 5, depositBias: 3, cadenceBias: 3 } },
+  { playerId: 'SS-4291837', profile: { spendBias: 32, spendAmplitude: 11, spikeIndexOffset: 6, depositBias: 4, cadenceBias: 4 } },
+  { playerId: 'BK-8273619', profile: { spendBias: 37, spendAmplitude: 14, spikeIndexOffset: 3, depositBias: 2, cadenceBias: 1 } },
+  { playerId: 'SS-6182937', profile: { spendBias: 42, spendAmplitude: 17, spikeIndexOffset: 4, depositBias: 3, cadenceBias: 2 } },
+  { playerId: 'BK-3927461', profile: { spendBias: 12, spendAmplitude: 20, spikeIndexOffset: 5, depositBias: 4, cadenceBias: 3 } },
+  { playerId: 'SS-5183746', profile: { spendBias: 17, spendAmplitude: 8, spikeIndexOffset: 6, depositBias: 2, cadenceBias: 4 } },
+  { playerId: 'BK-4729183', profile: { spendBias: 22, spendAmplitude: 11, spikeIndexOffset: 3, depositBias: 3, cadenceBias: 1 } },
+  { playerId: 'SS-4738291', profile: { spendBias: 27, spendAmplitude: 14, spikeIndexOffset: 4, depositBias: 4, cadenceBias: 2 } },
+  { playerId: 'BK-1029384', profile: { spendBias: 32, spendAmplitude: 17, spikeIndexOffset: 5, depositBias: 2, cadenceBias: 3 } },
+  { playerId: 'BK-6172839', profile: { spendBias: 37, spendAmplitude: 20, spikeIndexOffset: 6, depositBias: 3, cadenceBias: 4 } },
+  { playerId: 'SS-3829104', profile: { spendBias: 42, spendAmplitude: 8, spikeIndexOffset: 3, depositBias: 4, cadenceBias: 1 } },
+  { playerId: 'BK-2918374', profile: { spendBias: 12, spendAmplitude: 11, spikeIndexOffset: 4, depositBias: 2, cadenceBias: 2 } },
+  { playerId: 'SS-7361928', profile: { spendBias: 17, spendAmplitude: 14, spikeIndexOffset: 5, depositBias: 3, cadenceBias: 3 } },
+  { playerId: 'BK-8472913', profile: { spendBias: 22, spendAmplitude: 17, spikeIndexOffset: 6, depositBias: 4, cadenceBias: 4 } },
+  { playerId: 'BK-5804359', profile: { spendBias: 27, spendAmplitude: 20, spikeIndexOffset: 3, depositBias: 2, cadenceBias: 1 } },
+  { playerId: 'BK-9188862', profile: { spendBias: 32, spendAmplitude: 8, spikeIndexOffset: 4, depositBias: 3, cadenceBias: 2 } },
+  { playerId: 'BK-4873494', profile: { spendBias: 37, spendAmplitude: 11, spikeIndexOffset: 5, depositBias: 4, cadenceBias: 3 } },
+  { playerId: 'BK-8287974', profile: { spendBias: 42, spendAmplitude: 14, spikeIndexOffset: 6, depositBias: 2, cadenceBias: 4 } },
+  { playerId: 'BK-9838926', profile: { spendBias: 12, spendAmplitude: 17, spikeIndexOffset: 3, depositBias: 3, cadenceBias: 1 } },
+  { playerId: 'BK-6735223', profile: { spendBias: 17, spendAmplitude: 20, spikeIndexOffset: 4, depositBias: 4, cadenceBias: 2 } },
+  { playerId: 'BK-1736294', profile: { spendBias: 22, spendAmplitude: 8, spikeIndexOffset: 5, depositBias: 2, cadenceBias: 3 } },
+  { playerId: 'BK-1769791', profile: { spendBias: 27, spendAmplitude: 11, spikeIndexOffset: 6, depositBias: 3, cadenceBias: 4 } },
+  { playerId: 'BK-2398779', profile: { spendBias: 32, spendAmplitude: 14, spikeIndexOffset: 3, depositBias: 4, cadenceBias: 1 } },
+  { playerId: 'BK-7382918', profile: { spendBias: 37, spendAmplitude: 17, spikeIndexOffset: 4, depositBias: 2, cadenceBias: 2 } },
+  { playerId: 'BK-7336219', profile: { spendBias: 42, spendAmplitude: 20, spikeIndexOffset: 5, depositBias: 3, cadenceBias: 3 } },
+  { playerId: 'BK-4252587', profile: { spendBias: 12, spendAmplitude: 8, spikeIndexOffset: 6, depositBias: 4, cadenceBias: 4 } },
+  { playerId: 'BK-7882145', profile: { spendBias: 17, spendAmplitude: 11, spikeIndexOffset: 3, depositBias: 2, cadenceBias: 1 } },
+  { playerId: 'BK-3321643', profile: { spendBias: 22, spendAmplitude: 14, spikeIndexOffset: 4, depositBias: 3, cadenceBias: 2 } },
+  { playerId: 'BK-9182734', profile: { spendBias: 27, spendAmplitude: 17, spikeIndexOffset: 5, depositBias: 4, cadenceBias: 3 } },
+  { playerId: 'SS-2837461', profile: { spendBias: 32, spendAmplitude: 20, spikeIndexOffset: 6, depositBias: 2, cadenceBias: 4 } },
+  { playerId: 'BK-7361825', profile: { spendBias: 37, spendAmplitude: 8, spikeIndexOffset: 3, depositBias: 3, cadenceBias: 1 } },
+]);
+
+const PLAYER_SPEND_DEPOSITS_PROFILE_MAP = PLAYER_SPEND_DEPOSITS_PROFILE_FIXTURES.reduce((acc, entry) => {
+  acc[entry.playerId] = entry.profile;
+  return acc;
+}, {});
 
  const AGENTS = [
   { id: 'amaka-n', label: 'Amaka N.', initials: 'AN', kind: 'agent', selectable: true },
@@ -361,6 +412,109 @@ const RANGE_CONFIG = {
 function seeded(seed) {
   let s = seed;
   return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+}
+
+const PLAYER_DETAIL_SERIES_RANGE_META = Object.freeze({
+  [KGEnums.DATE_RANGE.LAST_24_HOURS]: { points: 24, totalSpendMultiplier: 0.2, totalDepositsMultiplier: 0.35, labelFormatter: (_, i) => i % 4 === 0 ? `${String(i).padStart(2, '0')}:00` : '', escLabel: 'Risk spike' },
+  [KGEnums.DATE_RANGE.LAST_7_DAYS]: { points: 7, totalSpendMultiplier: 1, totalDepositsMultiplier: 1, labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'], escLabel: 'Risk score: med → high' },
+  [KGEnums.DATE_RANGE.LAST_30_DAYS]: { points: 30, totalSpendMultiplier: 3.9, totalDepositsMultiplier: 3.6, labelFormatter: (_, i, points) => i === 0 ? '30d ago' : i === 7 ? 'D-22' : i === 14 ? 'D-15' : i === 21 ? 'D-8' : i === points - 1 ? 'Today' : '', escLabel: 'Risk score: med → high' },
+});
+
+const PLAYER_SPEND_DEPOSITS_SERIES_CACHE = new Map();
+
+function buildPlayerDetailSeriesSeed(playerId, rangeKey) {
+  const source = `${playerId}|${rangeKey}`;
+  return source.split('').reduce((acc, char) => ((acc * 33) + char.charCodeAt(0)) >>> 0, 17);
+}
+
+function buildPlayerDetailRangeLabels(rangeKey) {
+  const meta = PLAYER_DETAIL_SERIES_RANGE_META[rangeKey] || PLAYER_DETAIL_SERIES_RANGE_META[RANGE_7D];
+  if (meta.labels) return meta.labels.slice();
+  return Array.from({ length: meta.points }, (_, i) => meta.labelFormatter(rangeKey, i, meta.points));
+}
+
+function distributeSeriesTotal(total, points, options) {
+  const { rnd, startBias, amplitude, spikeIndex, spikeWeight, floor = 0 } = options;
+  const weights = Array.from({ length: points }, (_, index) => {
+    const drift = 1 + startBias * (index / Math.max(points - 1, 1));
+    const seasonal = 1 + Math.sin((index + 1) * 0.75 + rnd()) * amplitude;
+    const noise = 0.9 + rnd() * 0.25;
+    const spikeBoost = index >= spikeIndex ? 1 + spikeWeight * ((index - spikeIndex + 1) / Math.max(points - spikeIndex, 1)) : 1;
+    return Math.max(0.08, drift * seasonal * noise * spikeBoost);
+  });
+  const weightTotal = weights.reduce((sum, value) => sum + value, 0) || 1;
+  const series = weights.map(weight => Math.max(floor, Math.round((total * weight) / weightTotal)));
+  const delta = total - series.reduce((sum, value) => sum + value, 0);
+  if (series.length) series[series.length - 1] += delta;
+  return series.map(value => Math.max(floor, value));
+}
+
+function buildGeneratedPlayerSpendDepositsSeries(player, rangeKey, profile = {}) {
+  const resolvedRangeKey = PLAYER_DETAIL_SERIES_RANGE_META[rangeKey] ? rangeKey : RANGE_7D;
+  const meta = PLAYER_DETAIL_SERIES_RANGE_META[resolvedRangeKey];
+  const labels = buildPlayerDetailRangeLabels(resolvedRangeKey);
+  const seed = buildPlayerDetailSeriesSeed(player.id, resolvedRangeKey);
+  const rnd = seeded(seed || 1);
+  const points = meta.points;
+  const riskEscalationIndex = Math.max(1, Math.min(points - 2, points - 1 - (profile.spikeIndexOffset || 4)));
+  const spendBaseTotal = Math.max(1, Math.round((player.spend || 1000) * meta.totalSpendMultiplier));
+  const spendTrendBias = ((player.spendDelta || 0) / 100) + ((profile.spendBias || 20) / 100);
+  const spendAmplitude = 0.06 + ((profile.spendAmplitude || 10) / 200);
+  const depositTotal = Math.max(1, Math.round((player.deposits || 1) * meta.totalDepositsMultiplier + (profile.depositBias || 0)));
+  const depositBias = 0.08 + ((profile.cadenceBias || 1) * 0.04);
+  const depositSpikeWeight = player.risk === KGEnums.RISK.HIGH ? 1.15 : player.risk === KGEnums.RISK.MEDIUM ? 0.7 : 0.35;
+
+  const spend = distributeSeriesTotal(spendBaseTotal, points, {
+    rnd,
+    startBias: Math.max(0.05, spendTrendBias),
+    amplitude: spendAmplitude,
+    spikeIndex: riskEscalationIndex,
+    spikeWeight: player.risk === KGEnums.RISK.HIGH ? 1.5 : player.risk === KGEnums.RISK.MEDIUM ? 0.9 : 0.4,
+    floor: 1,
+  });
+
+  const dep = distributeSeriesTotal(depositTotal, points, {
+    rnd,
+    startBias: depositBias,
+    amplitude: 0.04 + ((profile.depositBias || 0) * 0.02),
+    spikeIndex: riskEscalationIndex,
+    spikeWeight: depositSpikeWeight,
+    floor: 0,
+  });
+
+  return {
+    labels,
+    spend,
+    dep,
+    escAt: riskEscalationIndex,
+    escLabel: meta.escLabel,
+  };
+}
+
+function getPlayerSpendDepositsSeries(playerOrId, rangeKey) {
+  const player = typeof playerOrId === 'string' ? getPlayerById(playerOrId) : playerOrId;
+  if (!player) return null;
+  const resolvedRangeKey = PLAYER_DETAIL_SERIES_RANGE_META[rangeKey] ? rangeKey : RANGE_7D;
+  const cacheKey = `${player.id}|${resolvedRangeKey}`;
+  if (PLAYER_SPEND_DEPOSITS_SERIES_CACHE.has(cacheKey)) {
+    const cached = PLAYER_SPEND_DEPOSITS_SERIES_CACHE.get(cacheKey);
+    return {
+      labels: cached.labels.slice(),
+      spend: cached.spend.slice(),
+      dep: cached.dep.slice(),
+      escAt: cached.escAt,
+      escLabel: cached.escLabel,
+    };
+  }
+  const series = buildGeneratedPlayerSpendDepositsSeries(player, resolvedRangeKey, PLAYER_SPEND_DEPOSITS_PROFILE_MAP[player.id]);
+  PLAYER_SPEND_DEPOSITS_SERIES_CACHE.set(cacheKey, series);
+  return {
+    labels: series.labels.slice(),
+    spend: series.spend.slice(),
+    dep: series.dep.slice(),
+    escAt: series.escAt,
+    escLabel: series.escLabel,
+  };
 }
 
 const RANGE_DATA_SOURCE_IDS = Object.freeze({
@@ -624,7 +778,9 @@ function getPlayerPopulation(brandKey, rangeKey) {
         if (!cache.has(cacheKey)) {
           // Seed includes brand+bucket+rangeKey so synthetic IDs are stable
           const seed = (o.seg.brand.charCodeAt(0) * 7919 + o.seg.bucket.charCodeAt(0) * 31 + rangeKey.charCodeAt(0)) * 100000 + synthIdx;
-          cache.set(cacheKey, synthPlayer(o.seg.brand, o.seg.bucket, synthIdx, seed));
+          const syntheticPlayer = synthPlayer(o.seg.brand, o.seg.bucket, synthIdx, seed);
+          cache.set(cacheKey, syntheticPlayer);
+          SYNTHETIC_PLAYER_CACHE[syntheticPlayer.id] = syntheticPlayer;
         }
         return cache.get(cacheKey);
       }
@@ -651,4 +807,5 @@ window.KGData = {
   PLAYERS, PLAYER_MAP, getPlayerById,
   AGENTS, AGENT_MAP, getAgentById, getSelectableAgents,
   buildRangeData, RANGE_CONFIG, MAU, MAU_TOTALS, getPlayerPopulation, bucketCountsForBrand,
+  PLAYER_SPEND_DEPOSITS_PROFILE_FIXTURES, getPlayerSpendDepositsSeries,
 };

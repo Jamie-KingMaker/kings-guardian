@@ -16,10 +16,10 @@ const {
   SessionTimingChart,
 } = window;
 
-function PlayerDetail({ playerId, onBack }) {
+function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
   const COMPONENT_ID = KGEnums.COMPONENT_ID;
   const { getPlayerById, PLAYERS } = window.KGData;
-  const player = getPlayerById(playerId) || PLAYERS[0];
+  const player = selectedPlayer || getPlayerById(playerId) || PLAYERS[0];
   const [tab, setTab] = useStatePD(PLAYER_DETAIL_TAB.OVERVIEW);
   const [playerRange, setPlayerRange] = useStatePD(KGEnums.DATE_RANGE.LAST_7_DAYS);
 

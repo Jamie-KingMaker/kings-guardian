@@ -413,7 +413,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
             {rows.page.map((p, i) => <PlayerRow
               key={p.id + '|' + i} p={p}
               isMover={moverIds.has(p.id)} isQueue={queueIds.has(p.id)}
-              onClick={() => onPlayerClick && onPlayerClick(p.id)}
+              onClick={() => onPlayerClick && onPlayerClick(p)}
               effectiveStatus={effectiveStatus(p)}
               onStatusUpdate={(s) => updateStatus(p.id, s)}
             />)}
