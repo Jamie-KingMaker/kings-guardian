@@ -168,7 +168,7 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
           <ActivityWidget />
         </div>
 
-        <div id={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_EXPLAINABILITY_CARD} style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+        <div id={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_EXPLAINABILITY_CARD} style={{ ...cardStyle, padding: 0, overflow: 'hidden', alignSelf: 'flex-start' }}>
           <div style={{ padding: '14px 16px', borderBottom: '1px solid #E2E8F0' }}>
             <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Why this player is flagged</div>
             <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginTop: 2 }}>Risk insights · explainability</div>
