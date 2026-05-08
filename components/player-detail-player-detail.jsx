@@ -23,6 +23,8 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
   const player = selectedPlayer || getPlayerById(playerId) || PLAYERS[0];
   const [tab, setTab] = useStatePD(PLAYER_DETAIL_TAB.OVERVIEW);
   const [playerRange, setPlayerRange] = useStatePD(KGEnums.DATE_RANGE.LAST_7_DAYS);
+  const [flaggedMonitor, setFlaggedMonitor] = useStatePD(false);
+  const [flaggedOutreach, setFlaggedOutreach] = useStatePD(false);
 
   const insights = generatePlayerInsights(player);
   const interactionLog = generateInteractionLog(player);
@@ -350,8 +352,26 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button id={COMPONENT_ID.PLAYER_DETAIL_ACTION_ADD_NOTE_BUTTON} style={btnSecondary}><Icon name="note" size={14} /> Add note</button>
-            <button id={COMPONENT_ID.PLAYER_DETAIL_ACTION_MONITOR_BUTTON} style={{ ...btnSecondary, color: '#D97706', borderColor: 'rgba(217,119,6,0.3)' }}><Icon name="flag" size={14} /> Flag for monitor</button>
-            <button id={COMPONENT_ID.PLAYER_DETAIL_ACTION_OUTREACH_BUTTON} style={{ ...btnPrimary, background: '#DC2626' }}><Icon name="flag" size={14} /> Mark for outreach</button>
+            <button
+              id={COMPONENT_ID.PLAYER_DETAIL_ACTION_MONITOR_BUTTON}
+              onClick={() => setFlaggedMonitor(v => !v)}
+              style={flaggedMonitor
+                ? { ...btnSecondary, background: '#D97706', color: '#FFFFFF', borderColor: '#D97706', fontWeight: 700 }
+                : { ...btnSecondary, background: 'transparent', color: '#D97706', borderColor: '#D97706' }
+              }
+            >
+              <Icon name="flag" size={14} /> {flaggedMonitor ? '✓ Flagged for monitor' : 'Flag for monitor'}
+            </button>
+            <button
+              id={COMPONENT_ID.PLAYER_DETAIL_ACTION_OUTREACH_BUTTON}
+              onClick={() => setFlaggedOutreach(v => !v)}
+              style={flaggedOutreach
+                ? { ...btnSecondary, background: '#DC2626', color: '#FFFFFF', borderColor: '#DC2626', fontWeight: 700 }
+                : { ...btnSecondary, background: 'transparent', color: '#DC2626', borderColor: '#DC2626' }
+              }
+            >
+              <Icon name="flag" size={14} /> {flaggedOutreach ? '✓ Flagged for outreach' : 'Flag for outreach'}
+            </button>
           </div>
         </div>
       </div>
