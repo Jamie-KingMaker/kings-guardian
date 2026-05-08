@@ -159,8 +159,14 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
               </div>
             ))}
           </div>
-          <div style={{ padding: '12px 16px', background: 'rgba(245,158,11,0.06)', borderTop: '1px solid #E2E8F0', fontSize: 14, color: '#475569' }}>
-            <strong style={{ color: '#0F172A' }}>Suggested action:</strong> Players with this signal pattern often respond well to a deposit-limit conversation.
+          <div style={{ padding: '14px 16px', background: 'rgba(245,158,11,0.08)', borderTop: '2px solid rgba(245,158,11,0.35)' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0, marginTop: 1 }}>💡</span>
+              <div>
+                <div style={{ fontSize: 12, color: '#B45309', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3 }}>Suggested action</div>
+                <div style={{ fontSize: 14, color: '#0F172A', lineHeight: 1.5, fontWeight: 500 }}>Players with this signal pattern often respond well to a deposit-limit conversation.</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -224,10 +230,13 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
         ))}
       </div>
 
-      <div id={COMPONENT_ID.PLAYER_DETAIL_INSIGHTS_ACTION_CARD} style={{ ...cardStyle, padding: 16, background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.2)' }}>
-        <div style={{ fontSize: 13, color: '#D97706', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Suggested action</div>
-        <div style={{ fontSize: 15, color: '#0F172A', lineHeight: 1.6 }}>
-          Players with this signal pattern often respond well to a <strong>deposit-limit conversation</strong>. Consider a proactive outreach call to discuss responsible gambling tools. If no contact in 72h, escalate to senior RG officer.
+      <div id={COMPONENT_ID.PLAYER_DETAIL_INSIGHTS_ACTION_CARD} style={{ ...cardStyle, padding: 0, background: 'rgba(245,158,11,0.06)', border: '1.5px solid rgba(245,158,11,0.4)', overflow: 'hidden' }}>
+        <div style={{ padding: '10px 16px', background: 'rgba(245,158,11,0.12)', borderBottom: '1px solid rgba(245,158,11,0.25)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 16, lineHeight: 1 }}>💡</span>
+          <div style={{ fontSize: 13, color: '#92400E', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Suggested action</div>
+        </div>
+        <div style={{ padding: '14px 16px', fontSize: 15, color: '#0F172A', lineHeight: 1.65, fontWeight: 500 }}>
+          Players with this signal pattern often respond well to a <strong style={{ color: '#92400E' }}>deposit-limit conversation</strong>. Consider a proactive outreach call to discuss responsible gambling tools. If no contact in 72h, escalate to senior RG officer.
         </div>
       </div>
     </div>
