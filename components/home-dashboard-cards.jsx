@@ -1,10 +1,11 @@
 // Home Dashboard Card Components
 // Supplementary cards: Risk Distribution, Top Movers, Attention, etc.
 
-const { KGEnums, RISK_COLORS, RiskDot, Icon } = window;
+const { KGEnums, KGConstants, RISK_COLORS, RiskDot, Icon } = window;
 const { HOME_DASHBOARD_STYLES, HOME_DASHBOARD_COMPONENT_IDS } = window;
 
 const { CARD: cardStyle } = HOME_DASHBOARD_STYLES;
+const { getRiskTierLabel } = KGConstants;
 
 /**
  * RiskDistributionCard Component - Shows distribution snapshot
@@ -16,9 +17,9 @@ function RiskDistributionCard({
   component_id = HOME_DASHBOARD_COMPONENT_IDS.RISK_DISTRIBUTION_SNAPSHOT
 }) {
   const items = [
-    { label: 'High risk', count: dist.high, color: '#DC2626', level: 'high' },
-    { label: 'Medium risk', count: dist.med, color: '#D97706', level: 'medium' },
-    { label: 'Low risk', count: dist.low, color: '#16A34A', level: 'low' },
+    { label: getRiskTierLabel('high'), count: dist.high, color: '#DC2626', level: 'high' },
+    { label: getRiskTierLabel('medium'), count: dist.med, color: '#D97706', level: 'medium' },
+    { label: getRiskTierLabel('low'), count: dist.low, color: '#16A34A', level: 'low' },
     { label: 'Insufficient data', count: dist.unrated, color: '#94A3B8', level: 'unrated' }
   ];
 

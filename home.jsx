@@ -11,6 +11,7 @@ const { DateRangePicker } = window;
 const { calculateCountryShare, formatMAU, calcPercentage } = window;
 
 const FILTER_ALL = KGEnums.FILTER.ALL;
+const { getRiskTierLabel } = KGConstants;
 
 /**
  * HomeDashboard Component - Main orchestrator
@@ -55,7 +56,7 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
     },
     {
       id: HOME_DASHBOARD_COMPONENT_IDS.STAT_CARD_HIGH_RISK,
-      label: 'High risk',
+      label: getRiskTierLabel(KGEnums.RISK.HIGH),
       value: dist.high.toLocaleString(),
       subtext: `${calcPercentage(dist.high, total)}% of base`,
       delta: `${sd.high} ${sd.dailyVs}`,
@@ -64,7 +65,7 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
     },
     {
       id: HOME_DASHBOARD_COMPONENT_IDS.STAT_CARD_MEDIUM_RISK,
-      label: 'Medium risk',
+      label: getRiskTierLabel(KGEnums.RISK.MEDIUM),
       value: dist.med.toLocaleString(),
       subtext: `${calcPercentage(dist.med, total)}% of base`,
       delta: `${sd.med} ${sd.dailyVs}`,
@@ -73,7 +74,7 @@ function HomeDashboard({ brand, country, dateRange, customRange, setDateRange, s
     },
     {
       id: HOME_DASHBOARD_COMPONENT_IDS.STAT_CARD_LOW_RISK,
-      label: 'Low risk',
+      label: getRiskTierLabel(KGEnums.RISK.LOW),
       value: dist.low.toLocaleString(),
       subtext: `${calcPercentage(dist.low, total)}% of base`,
       delta: `${sd.low} ${sd.dailyVs}`,

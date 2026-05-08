@@ -10,6 +10,7 @@ const RISK_ORDER = KGConstants.RISK_ORDER;
 const FILTER_ALL = KGEnums.FILTER.ALL;
 const STATUS_FILTER_NEEDS_ACTION = KGEnums.FILTER.NEEDS_ACTION;
 const STATUS_FILTER_ANY_SET = KGEnums.FILTER.ANY_SET;
+const { getRiskTierLabel } = KGConstants;
 const SHORTCUT_MOVERS = KGEnums.PLAYER_LIST.SHORTCUT_MOVERS;
 const SHORTCUT_QUEUE = KGEnums.PLAYER_LIST.SHORTCUT_QUEUE;
 const SORT_PRIORITY = KGEnums.PLAYER_LIST.SORT_PRIORITY;
@@ -270,9 +271,9 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
       {/* Population stat cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
         <StatCard label="Active base"       value={fmtBase(baseCounts.all)}     subtext={`${baseCounts.all.toLocaleString()} ${data.activeUnit}`} delta="" tone="unrated" />
-        <StatCard label="High risk"         value={baseCounts.high.toLocaleString()}    subtext={`${(baseCounts.high / baseCounts.all * 100).toFixed(1)}% of base`}   delta="" tone="high" />
-        <StatCard label="Medium risk"       value={baseCounts.medium.toLocaleString()}  subtext={`${(baseCounts.medium / baseCounts.all * 100).toFixed(1)}% of base`} delta="" tone="medium" />
-        <StatCard label="Low risk"          value={baseCounts.low.toLocaleString()}     subtext={`${(baseCounts.low / baseCounts.all * 100).toFixed(1)}% of base`}    delta="" tone="low" />
+        <StatCard label={getRiskTierLabel(KGEnums.RISK.HIGH)}   value={baseCounts.high.toLocaleString()}    subtext={`${(baseCounts.high / baseCounts.all * 100).toFixed(1)}% of base`}   delta="" tone="high" />
+        <StatCard label={getRiskTierLabel(KGEnums.RISK.MEDIUM)} value={baseCounts.medium.toLocaleString()}  subtext={`${(baseCounts.medium / baseCounts.all * 100).toFixed(1)}% of base`} delta="" tone="medium" />
+        <StatCard label={getRiskTierLabel(KGEnums.RISK.LOW)}    value={baseCounts.low.toLocaleString()}     subtext={`${(baseCounts.low / baseCounts.all * 100).toFixed(1)}% of base`}    delta="" tone="low" />
         <StatCard label="Insufficient data" value={baseCounts.unrated.toLocaleString()} subtext="<7 days history"                                                      delta="" tone="unrated" />
       </div>
 
@@ -313,7 +314,7 @@ function PlayerList({ brand, country, onPlayerClick, range = KGConstants.DATE_RA
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>Risk</span>
-            <Segment value={riskFilter} setValue={setRiskFilter} options={[[FILTER_ALL, 'Active base'], [KGEnums.RISK.HIGH, 'High risk'], [KGEnums.RISK.MEDIUM, 'Medium risk'], [KGEnums.RISK.LOW, 'Low risk'], [KGEnums.RISK.UNRATED, 'Insufficient data']]} colors={{ [KGEnums.RISK.HIGH]: '#DC2626', [KGEnums.RISK.MEDIUM]: '#D97706', [KGEnums.RISK.LOW]: '#16A34A' }} />
+            <Segment value={riskFilter} setValue={setRiskFilter} options={[[FILTER_ALL, 'Active base'], [KGEnums.RISK.HIGH, getRiskTierLabel(KGEnums.RISK.HIGH)], [KGEnums.RISK.MEDIUM, getRiskTierLabel(KGEnums.RISK.MEDIUM)], [KGEnums.RISK.LOW, getRiskTierLabel(KGEnums.RISK.LOW)], [KGEnums.RISK.UNRATED, 'Insufficient data']]} colors={{ [KGEnums.RISK.HIGH]: '#DC2626', [KGEnums.RISK.MEDIUM]: '#D97706', [KGEnums.RISK.LOW]: '#16A34A' }} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>Sort by</span>

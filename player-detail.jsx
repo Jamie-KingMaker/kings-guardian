@@ -202,7 +202,7 @@ function PlayerDetail({ playerId, onBack }) {
   // Determine zone info for the player's score
   const score = player.riskScore ?? 0;
   const scoreZone = score >= 70 ? 'high' : score >= 40 ? 'medium' : 'low';
-  const scoreZoneLabel = scoreZone === 'high' ? 'High risk' : scoreZone === 'medium' ? 'Medium risk' : 'Low risk';
+  const scoreZoneLabel = KGConstants.getRiskTierLabel(scoreZone);
   const scoreColor = scoreZone === 'high' ? '#DC2626' : scoreZone === 'medium' ? '#D97706' : '#16A34A';
 
   const overviewBody = (
@@ -324,7 +324,7 @@ function PlayerDetail({ playerId, onBack }) {
             <div style={{ height: '100%', width: `${player.riskScore ?? 0}%`, background: player.riskScore >= 70 ? '#DC2626' : player.riskScore >= 40 ? '#D97706' : '#16A34A', borderRadius: 3 }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#94A3B8', marginTop: 4 }}>
-            <span>0 — Low risk</span><span>40 — Medium risk</span><span>70 — High risk</span><span>100</span>
+            <span>{`0 — ${KGConstants.getRiskTierLabel(KGEnums.RISK.LOW)}`}</span><span>{`40 — ${KGConstants.getRiskTierLabel(KGEnums.RISK.MEDIUM)}`}</span><span>{`70 — ${KGConstants.getRiskTierLabel(KGEnums.RISK.HIGH)}`}</span><span>100</span>
           </div>
         </div>
       </div>

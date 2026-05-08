@@ -129,6 +129,17 @@ const RISK_LABELS = Object.freeze({
   [KGEnums.RISK.UNRATED]: 'Unrated',
 });
 
+const RISK_TIER_LABELS = Object.freeze({
+  [KGEnums.RISK.HIGH]: 'High risk',
+  [KGEnums.RISK.MEDIUM]: 'Medium risk',
+  [KGEnums.DASHBOARD_VIEW.MEDIUM]: 'Medium risk',
+  [KGEnums.RISK.LOW]: 'Low risk',
+});
+
+function getRiskTierLabel(riskKey) {
+  return RISK_TIER_LABELS[riskKey] || 'Insufficient data';
+}
+
 const RISK_ORDER = Object.freeze({
   [KGEnums.RISK.HIGH]: 0,
   [KGEnums.RISK.MEDIUM]: 1,
@@ -361,6 +372,8 @@ window.KGConstants = {
   DATE_RANGE_30D,
   RISK_COLORS,
   RISK_LABELS,
+  RISK_TIER_LABELS,
+  getRiskTierLabel,
   RISK_ORDER,
   BRAND_ACCENTS,
   BRAND_THEME,

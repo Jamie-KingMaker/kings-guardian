@@ -280,7 +280,7 @@ function PopulationRisk({ brand, dateRange: dateRangeProp = KGConstants.DATE_RAN
               <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 16 }}>
                 {/* Low box */}
                 <div style={{ flex: 1, padding: '12px 10px', background: 'rgba(22,163,74,0.07)', border: '1px solid rgba(22,163,74,0.2)', borderRadius: 8, textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: '#16A34A', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Low risk</div>
+                  <div style={{ fontSize: 11, color: '#16A34A', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{KGConstants.getRiskTierLabel('low')}</div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", lineHeight: 1.3 }}>{fmtK(dist.low)}</div>
                 </div>
 
@@ -299,7 +299,7 @@ function PopulationRisk({ brand, dateRange: dateRangeProp = KGConstants.DATE_RAN
 
                 {/* Medium box */}
                 <div style={{ flex: 1, padding: '12px 10px', background: 'rgba(217,119,6,0.07)', border: '1px solid rgba(217,119,6,0.2)', borderRadius: 8, textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: '#D97706', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Medium risk</div>
+                  <div style={{ fontSize: 11, color: '#D97706', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{KGConstants.getRiskTierLabel('medium')}</div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", lineHeight: 1.3 }}>{fmtK(dist.med)}</div>
                 </div>
 
@@ -318,7 +318,7 @@ function PopulationRisk({ brand, dateRange: dateRangeProp = KGConstants.DATE_RAN
 
                 {/* High box */}
                 <div style={{ flex: 1, padding: '12px 10px', background: 'rgba(220,38,38,0.07)', border: '1px solid rgba(220,38,38,0.2)', borderRadius: 8, textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: '#DC2626', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>High risk</div>
+                  <div style={{ fontSize: 11, color: '#DC2626', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{KGConstants.getRiskTierLabel('high')}</div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", lineHeight: 1.3 }}>{fmtK(dist.high)}</div>
                 </div>
               </div>

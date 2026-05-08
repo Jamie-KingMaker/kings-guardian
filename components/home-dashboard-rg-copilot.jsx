@@ -59,9 +59,9 @@ Generate exactly 5 short callouts tailored to the time window "${rangeLabel}" an
 - Operator: ${brandLabel} (${countryLabel})
 - Active base: ${mau.toLocaleString()} ${rangeData.activeUnitFull}
 - Risk-monitored: ${total.toLocaleString()}
-- High risk: ${dist.high.toLocaleString()} (${pct(dist.high)}%) — ${sd.high} ${sd.dailyVs}
-- Medium risk: ${dist.med.toLocaleString()} (${pct(dist.med)}%) — ${sd.med} ${sd.dailyVs}
-- Low risk: ${dist.low.toLocaleString()} (${pct(dist.low)}%) — ${sd.low} ${sd.dailyVs}
+- ${KGConstants.getRiskTierLabel(KGEnums.RISK.HIGH)}: ${dist.high.toLocaleString()} (${pct(dist.high)}%) — ${sd.high} ${sd.dailyVs}
+- ${KGConstants.getRiskTierLabel(KGEnums.RISK.MEDIUM)}: ${dist.med.toLocaleString()} (${pct(dist.med)}%) — ${sd.med} ${sd.dailyVs}
+- ${KGConstants.getRiskTierLabel(KGEnums.RISK.LOW)}: ${dist.low.toLocaleString()} (${pct(dist.low)}%) — ${sd.low} ${sd.dailyVs}
 - Insufficient data: ${dist.unrated.toLocaleString()} (${pct(dist.unrated)}%)
 - Deposit volume ${rangeLabel}: ${depositTotal.toLocaleString()} (${rangeData.depositGrowth}% ${rangeData.deltaLabel})
 - Risk-trend growth: ${rangeData.trendGrowthPct}% ${rangeLabel}

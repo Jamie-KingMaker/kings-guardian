@@ -9,6 +9,7 @@ const { formatRedepositsSpeed, generateDateLabels, calculateDataScale, hashStrin
 const { CARD: cardStyle, TAB_CONTAINER, TAB_BUTTON_ACTIVE, TAB_BUTTON_INACTIVE } = HOME_DASHBOARD_STYLES;
 const { DEPOSIT_SHARES, REDEPOSIT_TIME } = HOME_DASHBOARD_DEPOSIT_CONFIG;
 const FILTER_ALL = KGEnums.FILTER.ALL;
+const { getRiskTierLabel } = KGConstants;
 
 const DASHBOARD_TAB_SETS = Object.freeze({
   RISK: Object.freeze([
@@ -78,7 +79,7 @@ function RiskTrendCard({ data, rangeLabel, growth, component_id = HOME_DASHBOARD
       chartRef.current = new window.Chart(canvasRef.current, chartConfig);
     } else {
       const tierBucket = view === KGEnums.DASHBOARD_VIEW.HIGH ? 'high' : view === KGEnums.DASHBOARD_VIEW.MEDIUM ? 'med' : 'low';
-      const tierLabel = tierBucket === 'high' ? 'High risk' : tierBucket === 'med' ? 'Medium risk' : 'Low risk';
+      const tierLabel = getRiskTierLabel(tierBucket);
       const tierColor = colorByTier[tierBucket];
       const chartConfig = {
         type: 'line',
@@ -177,9 +178,9 @@ function DepositActivityCard({
         data: {
           labels: dateLabels,
           datasets: [
-            { label: 'High risk', data: buildSeries('high'), borderColor: '#DC2626', backgroundColor: 'rgba(220, 38, 38, 0.08)', borderWidth: 2, tension: 0.3, fill: true, pointRadius: 2, pointBackgroundColor: '#DC2626' },
-            { label: 'Medium risk', data: buildSeries('med'), borderColor: '#D97706', backgroundColor: 'rgba(217, 119, 6, 0.08)', borderWidth: 2, tension: 0.3, fill: true, pointRadius: 2, pointBackgroundColor: '#D97706' },
-            { label: 'Low risk', data: buildSeries('low'), borderColor: '#16A34A', backgroundColor: 'rgba(22, 163, 74, 0.08)', borderWidth: 2, tension: 0.3, fill: true, pointRadius: 2, pointBackgroundColor: '#16A34A' },
+            { label: getRiskTierLabel('high'), data: buildSeries('high'), borderColor: '#DC2626', backgroundColor: 'rgba(220, 38, 38, 0.08)', borderWidth: 2, tension: 0.3, fill: true, pointRadius: 2, pointBackgroundColor: '#DC2626' },
+            { label: getRiskTierLabel('med'), data: buildSeries('med'), borderColor: '#D97706', backgroundColor: 'rgba(217, 119, 6, 0.08)', borderWidth: 2, tension: 0.3, fill: true, pointRadius: 2, pointBackgroundColor: '#D97706' },
+            { label: getRiskTierLabel('low'), data: buildSeries('low'), borderColor: '#16A34A', backgroundColor: 'rgba(22, 163, 74, 0.08)', borderWidth: 2, tension: 0.3, fill: true, pointRadius: 2, pointBackgroundColor: '#16A34A' },
           ],
         },
         options: {
@@ -201,7 +202,7 @@ function DepositActivityCard({
                     :                   1 - Math.sin(i * 0.3) * 0.05;
         return Math.max(3, Math.round(v * DEPOSIT_SHARES[tier] * shape));
       });
-      const tierLabel = filter === 'high' ? 'High risk' : filter === 'med' ? 'Medium risk' : 'Low risk';
+      const tierLabel = getRiskTierLabel(filter);
       const tierColor = TIER_COLORS[filter];
       const chartConfig = {
         type: 'line',
@@ -251,7 +252,7 @@ function DepositActivityCard({
 
       {filter === FILTER_ALL && (
         <div style={{ display: 'flex', gap: 14, marginBottom: 8 }}>
-          {[['high','High risk','#DC2626'],['med','Medium risk','#D97706'],['low','Low risk','#16A34A']].map(([t, lbl, c]) => (
+          {[['high', getRiskTierLabel('high'), '#DC2626'], ['med', getRiskTierLabel('med'), '#D97706'], ['low', getRiskTierLabel('low'), '#16A34A']].map(([t, lbl, c]) => (
             <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <div style={{ width: 18, height: 2, background: c, borderRadius: 1 }}/>
               <span style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>{lbl}</span>

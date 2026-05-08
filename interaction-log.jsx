@@ -278,9 +278,9 @@ function InteractionLog({ brand, country, onPlayerClick }) {
           fontSize: 13, fontWeight: 600, color: '#475569', fontFamily: 'inherit', cursor: 'pointer',
         }}>
           <option value="all">All risk tiers</option>
-          <option value="high">High risk</option>
-          <option value="medium">Medium risk</option>
-          <option value="low">Low risk</option>
+          <option value="high">{KGConstants.getRiskTierLabel(KGEnums.RISK.HIGH)}</option>
+          <option value="medium">{KGConstants.getRiskTierLabel(KGEnums.RISK.MEDIUM)}</option>
+          <option value="low">{KGConstants.getRiskTierLabel(KGEnums.RISK.LOW)}</option>
         </select>
 
         <div style={{ flex: 1 }} />
