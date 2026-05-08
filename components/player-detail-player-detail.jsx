@@ -86,11 +86,21 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
         {/* Divider */}
         <div style={{ height: 1, background: '#F1F5F9', margin: '16px 0' }} />
 
-        {/* Product distribution */}
-        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>
-          Product distribution · {rangeLabelFull}
+        {/* Two-column row: product distribution + session timing */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div>
+            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>
+              Product distribution
+            </div>
+            <ProductDistribution player={player} />
+          </div>
+          <div>
+            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>
+              Session times
+            </div>
+            <SessionTimingChart player={player} />
+          </div>
         </div>
-        <ProductDistribution player={player} />
       </div>
     );
   };
