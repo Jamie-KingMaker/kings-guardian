@@ -3,6 +3,31 @@
 const { useState: useStatePD } = React;
 const { KGEnums, KGConstants } = window;
 
+const PLAYER_DETAIL_TAB = Object.freeze({
+  OVERVIEW: 'overview',
+  INSIGHTS: 'insights',
+  BEHAVIOUR: 'behaviour',
+  LOG: 'log',
+});
+
+const PLAYER_DETAIL_TAB_BUTTON_IDS = Object.freeze({
+  [PLAYER_DETAIL_TAB.OVERVIEW]: KGEnums.COMPONENT_ID.PLAYER_DETAIL_TAB_OVERVIEW_BUTTON,
+  [PLAYER_DETAIL_TAB.INSIGHTS]: KGEnums.COMPONENT_ID.PLAYER_DETAIL_TAB_INSIGHTS_BUTTON,
+  [PLAYER_DETAIL_TAB.BEHAVIOUR]: KGEnums.COMPONENT_ID.PLAYER_DETAIL_TAB_BEHAVIOUR_BUTTON,
+  [PLAYER_DETAIL_TAB.LOG]: KGEnums.COMPONENT_ID.PLAYER_DETAIL_TAB_LOG_BUTTON,
+});
+
+const PLAYER_DETAIL_STAT_KEY = Object.freeze({
+  SPEND: 'spend',
+  DEPOSITS: 'deposits',
+  BETS: 'bets',
+  AVG_DEPOSIT: 'avg-deposit',
+});
+
+function buildComponentChildId(baseId, suffix) {
+  return baseId ? `${baseId}-${suffix}` : undefined;
+}
+
 // Tiny seeded RNG — mirrors the one in data.jsx so charts are stable per player.
 function pdSeeded(seed) {
   let s = seed | 0;
@@ -171,10 +196,11 @@ function generateInteractionLog(player) {
 }
 
 function PlayerDetail({ playerId, onBack }) {
+  const COMPONENT_ID = KGEnums.COMPONENT_ID;
   const { getPlayerById, PLAYERS } = window.KGData;
   const player = getPlayerById(playerId) || PLAYERS[0];
-  const [tab, setTab] = useStatePD('overview');
-  const [playerRange, setPlayerRange] = useStatePD('7d');
+  const [tab, setTab] = useStatePD(PLAYER_DETAIL_TAB.OVERVIEW);
+  const [playerRange, setPlayerRange] = useStatePD(KGEnums.DATE_RANGE.LAST_7_DAYS);
 
   const insights = generatePlayerInsights(player);
   const interactionLog = generateInteractionLog(player);
@@ -191,10 +217,10 @@ function PlayerDetail({ playerId, onBack }) {
   };
 
   const TABS = [
-    ['overview',  'Overview'],
-    ['insights',  `Risk insights · ${insights.length}`],
-    ['behaviour', 'Behaviour'],
-    ['log',       `Interaction log · ${interactionLog.length}`],
+    [PLAYER_DETAIL_TAB.OVERVIEW,  'Overview'],
+    [PLAYER_DETAIL_TAB.INSIGHTS,  `Risk insights · ${insights.length}`],
+    [PLAYER_DETAIL_TAB.BEHAVIOUR, 'Behaviour'],
+    [PLAYER_DETAIL_TAB.LOG,       `Interaction log · ${interactionLog.length}`],
   ];
 
   // ── Tab bodies ────────────────────────────────────────────────────────────
@@ -206,9 +232,9 @@ function PlayerDetail({ playerId, onBack }) {
   const scoreColor = scoreZone === 'high' ? '#DC2626' : scoreZone === 'medium' ? '#D97706' : '#16A34A';
 
   const overviewBody = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div id={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_PANEL} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Risk score card — full width */}
-      <div style={{ ...cardStyle, padding: 20 }}>
+      <div id={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_RISK_SCORE_CARD} style={{ ...cardStyle, padding: 20 }}>
         {/* 2-row grid: labels row 1, values row 2. Dividers explicitly placed to span both rows. */}
         <div style={{ display: 'grid', gridTemplateColumns: 'auto 1px auto 1px 1fr', gridTemplateRows: 'auto auto', columnGap: 24, rowGap: 8 }}>
           {/* Dividers — placed first with explicit coords so they span both rows */}
@@ -257,21 +283,21 @@ function PlayerDetail({ playerId, onBack }) {
     <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16 }}>
       {/* Left */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-          <MicroStat label="Spend / 7d"    value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`}               tone="high" />
-          <MicroStat label="Deposits / 7d" value={player.deposits}                        delta={`+${depositsGrowthPct}%`} tone="high" />
-          <MicroStat label="Bets / 7d"     value={player.bets}                            delta={`+${betsGrowthPct}%`}     tone="high" />
-          <MicroStat label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
+        <div id={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.SPEND)} label="Spend / 7d"    value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`}               tone="high" />
+          <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.DEPOSITS)} label="Deposits / 7d" value={player.deposits}                        delta={`+${depositsGrowthPct}%`} tone="high" />
+          <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.BETS)} label="Bets / 7d"     value={player.bets}                            delta={`+${betsGrowthPct}%`}     tone="high" />
+          <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.AVG_DEPOSIT)} label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
         </div>
         {/* Combined spend + deposits chart */}
-        <SpendDepositsCard player={player} range={playerRange} setRange={setPlayerRange} />
-        <div style={{ ...cardStyle }}>
+        <SpendDepositsCard componentId={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_SPEND_DEPOSITS_CARD} player={player} range={playerRange} setRange={setPlayerRange} />
+        <div id={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_PRODUCT_DISTRIBUTION_CARD} style={{ ...cardStyle }}>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Product distribution · 30d</div>
           <ProductDistribution player={player} />
         </div>
       </div>
       {/* Right: insights summary */}
-      <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+      <div id={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_EXPLAINABILITY_CARD} style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
         <div style={{ padding: '14px 16px', borderBottom: '1px solid #E2E8F0' }}>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Why this player is flagged</div>
           <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginTop: 2 }}>Risk insights · explainability</div>
@@ -297,9 +323,9 @@ function PlayerDetail({ playerId, onBack }) {
   );
 
   const insightsBody = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div id={COMPONENT_ID.PLAYER_DETAIL_INSIGHTS_PANEL} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Score context bar */}
-      <div style={{ ...cardStyle, padding: 16 }}>
+      <div id={COMPONENT_ID.PLAYER_DETAIL_INSIGHTS_CONTEXT_CARD} style={{ ...cardStyle, padding: 16 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
           <div>
             <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 4 }}>Risk score</div>
@@ -331,7 +357,7 @@ function PlayerDetail({ playerId, onBack }) {
 
       {/* Signal summary */}
       {(player.signals || []).length > 0 && (
-        <div style={{ ...cardStyle, padding: 16 }}>
+        <div id={COMPONENT_ID.PLAYER_DETAIL_INSIGHTS_SIGNALS_CARD} style={{ ...cardStyle, padding: 16 }}>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Active signals</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {(player.signals || []).map((s, i) => (
@@ -342,7 +368,7 @@ function PlayerDetail({ playerId, onBack }) {
       )}
 
       {/* Full insight cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div id={COMPONENT_ID.PLAYER_DETAIL_INSIGHTS_GRID} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {insights.map((ins, idx) => (
           <div key={idx} style={{ ...cardStyle, padding: 0, overflow: 'hidden', borderLeft: `4px solid ${sevColor[ins.sev]}` }}>
             <div style={{ padding: '14px 16px' }}>
@@ -358,7 +384,7 @@ function PlayerDetail({ playerId, onBack }) {
       </div>
 
       {/* Suggested action */}
-      <div style={{ ...cardStyle, padding: 16, background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.2)' }}>
+      <div id={COMPONENT_ID.PLAYER_DETAIL_INSIGHTS_ACTION_CARD} style={{ ...cardStyle, padding: 16, background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.2)' }}>
         <div style={{ fontSize: 13, color: '#D97706', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Suggested action</div>
         <div style={{ fontSize: 15, color: '#0F172A', lineHeight: 1.6 }}>
           Players with this signal pattern often respond well to a <strong>deposit-limit conversation</strong>. Consider a proactive outreach call to discuss responsible gambling tools. If no contact in 72h, escalate to senior RG officer.
@@ -368,27 +394,27 @@ function PlayerDetail({ playerId, onBack }) {
   );
 
   const behaviourBody = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div id={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_PANEL} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Micro stats row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-        <MicroStat label="Spend / 7d"    value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`}               tone="high" />
-        <MicroStat label="Deposits / 7d" value={player.deposits}                        delta={`+${depositsGrowthPct}%`} tone="high" />
-        <MicroStat label="Bets / 7d"     value={player.bets}                            delta={`+${betsGrowthPct}%`}     tone="high" />
-        <MicroStat label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
+      <div id={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+        <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID, PLAYER_DETAIL_STAT_KEY.SPEND)} label="Spend / 7d"    value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`}               tone="high" />
+        <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID, PLAYER_DETAIL_STAT_KEY.DEPOSITS)} label="Deposits / 7d" value={player.deposits}                        delta={`+${depositsGrowthPct}%`} tone="high" />
+        <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID, PLAYER_DETAIL_STAT_KEY.BETS)} label="Bets / 7d"     value={player.bets}                            delta={`+${betsGrowthPct}%`}     tone="high" />
+        <MicroStat componentId={buildComponentChildId(COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID, PLAYER_DETAIL_STAT_KEY.AVG_DEPOSIT)} label="Avg deposit"   value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
       </div>
 
       {/* Combined spend + deposits chart */}
-      <SpendDepositsCard player={player} range={playerRange} setRange={setPlayerRange} tall />
+      <SpendDepositsCard componentId={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_SPEND_DEPOSITS_CARD} player={player} range={playerRange} setRange={setPlayerRange} tall />
 
       {/* Session timing + product split side by side */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {/* Session timing */}
-        <div style={{ ...cardStyle }}>
+        <div id={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_SESSION_TIMING_CARD} style={{ ...cardStyle }}>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>Session timing distribution</div>
           <SessionTimingChart player={player} />
         </div>
         {/* Product distribution */}
-        <div style={{ ...cardStyle }}>
+        <div id={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_PRODUCT_DISTRIBUTION_CARD} style={{ ...cardStyle }}>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Product distribution · 30d</div>
           <ProductDistribution player={player} />
         </div>
@@ -397,13 +423,13 @@ function PlayerDetail({ playerId, onBack }) {
   );
 
   const logBody = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, ...cardStyle, padding: 0, overflow: 'hidden' }}>
-      <div style={{ padding: '14px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div id={COMPONENT_ID.PLAYER_DETAIL_LOG_PANEL} style={{ display: 'flex', flexDirection: 'column', gap: 0, ...cardStyle, padding: 0, overflow: 'hidden' }}>
+      <div id={COMPONENT_ID.PLAYER_DETAIL_LOG_HEADER} style={{ padding: '14px 20px', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Interaction log</div>
           <div style={{ fontSize: 16, color: '#0F172A', fontWeight: 600, marginTop: 2 }}>All recorded actions for this player</div>
         </div>
-        <button style={btnPrimary}><Icon name="note" size={14}/> Add note</button>
+        <button id={COMPONENT_ID.PLAYER_DETAIL_LOG_ADD_NOTE_BUTTON} style={btnPrimary}><Icon name="note" size={14}/> Add note</button>
       </div>
 
       {interactionLog.map((entry, idx) => {
@@ -449,21 +475,21 @@ function PlayerDetail({ playerId, onBack }) {
     </div>
   );
 
-  const tabContent = tab === 'overview' ? overviewBody
-    : tab === 'insights'  ? insightsBody
-    : tab === 'behaviour' ? behaviourBody
+  const tabContent = tab === PLAYER_DETAIL_TAB.OVERVIEW ? overviewBody
+    : tab === PLAYER_DETAIL_TAB.INSIGHTS  ? insightsBody
+    : tab === PLAYER_DETAIL_TAB.BEHAVIOUR ? behaviourBody
     : logBody;
 
   return (
-    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <button onClick={onBack} style={{
+    <div id={COMPONENT_ID.PLAYER_DETAIL_PAGE} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <button id={COMPONENT_ID.PLAYER_DETAIL_BACK_BUTTON} onClick={onBack} style={{
         background: 'transparent', border: 'none', padding: 0, color: '#64748B',
         fontSize: 14, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
         fontFamily: 'inherit', alignSelf: 'flex-start',
       }}>← Back to player list</button>
 
       {/* Player header */}
-      <div style={{ ...cardStyle, padding: 20 }}>
+      <div id={COMPONENT_ID.PLAYER_DETAIL_HEADER_CARD} style={{ ...cardStyle, padding: 20 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20 }}>
           <div style={{
             width: 56, height: 56, borderRadius: 8,
@@ -487,11 +513,11 @@ function PlayerDetail({ playerId, onBack }) {
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button style={btnSecondary}><Icon name="note" size={14}/> Add note</button>
-            <button style={{ ...btnSecondary, color: '#D97706', borderColor: 'rgba(217,119,6,0.3)' }}>
+            <button id={COMPONENT_ID.PLAYER_DETAIL_ACTION_ADD_NOTE_BUTTON} style={btnSecondary}><Icon name="note" size={14}/> Add note</button>
+            <button id={COMPONENT_ID.PLAYER_DETAIL_ACTION_MONITOR_BUTTON} style={{ ...btnSecondary, color: '#D97706', borderColor: 'rgba(217,119,6,0.3)' }}>
               <Icon name="flag" size={14}/> Flag for monitor
             </button>
-            <button style={{ ...btnPrimary, background: '#DC2626' }}>
+            <button id={COMPONENT_ID.PLAYER_DETAIL_ACTION_OUTREACH_BUTTON} style={{ ...btnPrimary, background: '#DC2626' }}>
               <Icon name="flag" size={14}/> Mark for outreach
             </button>
           </div>
@@ -499,13 +525,13 @@ function PlayerDetail({ playerId, onBack }) {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #E2E8F0' }}>
-        {TABS.map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)} style={{
+      <div id={COMPONENT_ID.PLAYER_DETAIL_TAB_LIST} style={{ display: 'flex', gap: 0, borderBottom: '1px solid #E2E8F0' }}>
+        {TABS.map(([tabId, label]) => (
+          <button id={PLAYER_DETAIL_TAB_BUTTON_IDS[tabId]} key={tabId} onClick={() => setTab(tabId)} style={{
             padding: '10px 16px', background: 'transparent', border: 'none',
-            borderBottom: tab === id ? '2px solid #0F172A' : '2px solid transparent',
-            color: tab === id ? '#0F172A' : '#64748B',
-            fontSize: 15, fontWeight: tab === id ? 600 : 500, cursor: 'pointer', fontFamily: 'inherit',
+            borderBottom: tab === tabId ? '2px solid #0F172A' : '2px solid transparent',
+            color: tab === tabId ? '#0F172A' : '#64748B',
+            fontSize: 15, fontWeight: tab === tabId ? 600 : 500, cursor: 'pointer', fontFamily: 'inherit',
             marginBottom: -1,
           }}>{label}</button>
         ))}
@@ -516,10 +542,10 @@ function PlayerDetail({ playerId, onBack }) {
   );
 }
 
-function MicroStat({ label, value, delta, tone }) {
+function MicroStat({ label, value, delta, tone, componentId }) {
   const c = RISK_COLORS[tone];
   return (
-    <div style={{ ...cardStyle, padding: 12 }}>
+    <div id={componentId} style={{ ...cardStyle, padding: 12 }}>
       <div style={{ fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 6 }}>{label}</div>
       <div style={{ fontSize: 20, fontWeight: 600, color: '#0F172A', fontFamily: "'Roboto Mono', monospace", letterSpacing: '-0.01em', marginBottom: 4 }}>{value}</div>
       <div style={{ fontSize: 13, fontWeight: 600, color: c.main }}>{delta} w/w</div>
@@ -588,7 +614,7 @@ function SessionTimingChart({ player }) {
   const lateIdx = [4, 5];
 
   return (
-    <div>
+    <div id={KGEnums.COMPONENT_ID.PLAYER_DETAIL_SESSION_TIMING_CHART}>
       {bands.map((b, i) => (
         <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <span style={{ fontSize: 12, color: '#64748B', minWidth: 40, fontFamily: "'Roboto Mono', monospace" }}>{b}</span>
@@ -638,7 +664,7 @@ function ProductDistribution({ player }) {
   const latestVirtuals = data[data.length - 1].virtuals;
 
   return (
-    <div>
+    <div id={KGEnums.COMPONENT_ID.PLAYER_DETAIL_PRODUCT_DISTRIBUTION_CHART}>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 90, marginBottom: 8 }}>
         {data.map(d => (
           <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column-reverse', height: '100%', borderRadius: 2, overflow: 'hidden' }}>
@@ -754,13 +780,22 @@ function DepositsChart({ player, range, tall }) {
 }
 
 // ── PlayerRangeSelector ───────────────────────────────────────────────────────
-function PlayerRangeSelector({ range, setRange }) {
+function PlayerRangeSelector({ range, setRange, componentId }) {
   const S = HOME_DASHBOARD_STYLES;
-  const opts = [['24h','Last 24 hours'], ['7d','Last 7 days'], ['30d','Last 30 days']];
+  const opts = [
+    [KGEnums.DATE_RANGE.LAST_24_HOURS, 'Last 24 hours'],
+    [KGEnums.DATE_RANGE.LAST_7_DAYS, 'Last 7 days'],
+    [KGEnums.DATE_RANGE.LAST_30_DAYS, 'Last 30 days'],
+  ];
   return (
-    <div style={S.TAB_CONTAINER}>
+    <div id={componentId} style={S.TAB_CONTAINER}>
       {opts.map(([v, label]) => (
-        <button key={v} style={range === v ? S.TAB_BUTTON_ACTIVE() : S.TAB_BUTTON_INACTIVE} onClick={() => setRange(v)}>
+        <button
+          id={buildComponentChildId(componentId, v)}
+          key={v}
+          style={range === v ? S.TAB_BUTTON_ACTIVE() : S.TAB_BUTTON_INACTIVE}
+          onClick={() => setRange(v)}
+        >
           {label}
         </button>
       ))}
@@ -769,7 +804,7 @@ function PlayerRangeSelector({ range, setRange }) {
 }
 
 // ── SpendDepositsCard — DepositActivityCard-style combined chart for a single player ──
-function SpendDepositsCard({ player, range, setRange, tall }) {
+function SpendDepositsCard({ player, range, setRange, tall, componentId }) {
   const { spend, dep, labels, escAt, escLabel } = getPlayerChartData(player, range);
 
   const W = 600, H = tall ? 240 : 180;
@@ -814,13 +849,13 @@ function SpendDepositsCard({ player, range, setRange, tall }) {
   );
 
   return (
-    <div style={{ ...cardStyle }}>
+    <div id={componentId} style={{ ...cardStyle }}>
       {/* Header — mirrors DepositActivityCard exactly */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12 }}>
         <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, flexShrink: 0 }}>
           Spend &amp; Deposits · {rangeLabelMap[range]}
         </div>
-        <PlayerRangeSelector range={range} setRange={setRange} />
+        <PlayerRangeSelector range={range} setRange={setRange} componentId={buildComponentChildId(componentId, 'range-selector')} />
       </div>
 
       {/* Mini stat summary — same pattern as DepositActivityCard */}
