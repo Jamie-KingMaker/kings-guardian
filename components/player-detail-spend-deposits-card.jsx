@@ -139,12 +139,14 @@ function SpendDepositsCard({ player, range, setRange, tall, componentId, embedde
 
   const chartBody = (
     <>
-      {/* Mini stat summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
-        {miniCard('Total spend', fmtCompact(player.spend, player.brand), `+${sd}% vs prior`, '#0F172A')}
-        {miniCard('Deposits', totalDep, `+${depositsGrowthPct}% vs prior`, '#DC2626')}
-        {miniCard('Avg deposit', fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand), 'per transaction', null)}
-      </div>
+      {/* Mini stat summary — hidden when embedded (parent widget has its own stat row) */}
+      {!embedded && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
+          {miniCard('Total spend', fmtCompact(player.spend, player.brand), `+${sd}% vs prior`, '#0F172A')}
+          {miniCard('Deposits', totalDep, `+${depositsGrowthPct}% vs prior`, '#DC2626')}
+          {miniCard('Avg deposit', fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand), 'per transaction', null)}
+        </div>
+      )}
 
       {/* Legend */}
       <div style={{ display: 'flex', gap: 14, marginBottom: 8 }}>
