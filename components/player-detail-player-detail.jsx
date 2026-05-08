@@ -71,6 +71,15 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
         componentId={tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_SPEND_DEPOSITS_CARD : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_SPEND_DEPOSITS_CARD}
         player={player} range={playerRange} setRange={setPlayerRange} tall={tall}
       />
+
+      {/* Divider */}
+      <div style={{ height: 1, background: '#F1F5F9', margin: '16px 0' }} />
+
+      {/* Product distribution */}
+      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>
+        Product distribution · {rangeLabelFull}
+      </div>
+      <ProductDistribution player={player} />
     </div>
   );
 
@@ -135,11 +144,6 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <ActivityWidget />
-
-          <div id={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_PRODUCT_DISTRIBUTION_CARD} style={{ ...cardStyle }}>
-            <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Product distribution · 30d</div>
-            <ProductDistribution player={player} />
-          </div>
         </div>
 
         <div id={COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_EXPLAINABILITY_CARD} style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
@@ -246,15 +250,9 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
     <div id={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_PANEL} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <ActivityWidget tall />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div id={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_SESSION_TIMING_CARD} style={{ ...cardStyle }}>
-          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>Session timing distribution</div>
-          <SessionTimingChart player={player} />
-        </div>
-        <div id={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_PRODUCT_DISTRIBUTION_CARD} style={{ ...cardStyle }}>
-          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>Product distribution · 30d</div>
-          <ProductDistribution player={player} />
-        </div>
+      <div id={COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_SESSION_TIMING_CARD} style={{ ...cardStyle }}>
+        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 14 }}>Session timing distribution</div>
+        <SessionTimingChart player={player} />
       </div>
     </div>
   );
