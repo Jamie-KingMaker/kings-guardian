@@ -925,4 +925,16 @@ function SpendDepositsCard({ player, range, setRange, tall, componentId }) {
   );
 }
 
-Object.assign(window, { PlayerDetail });
+Object.assign(window, {
+  PlayerDetail,
+  MicroStat,
+  BehaviourChart,
+  SessionTimingChart,
+  ProductDistribution,
+  SpendChart,
+  DepositsChart,
+  PlayerRangeSelector,
+  SpendDepositsCard,
+});
+
+
