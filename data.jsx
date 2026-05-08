@@ -457,10 +457,53 @@ function buildGeneratedPlayerSpendDepositsSeries(player, rangeKey, profile = {})
   const rnd = seeded(seed || 1);
   const points = meta.points;
   const riskEscalationIndex = Math.max(1, Math.min(points - 2, points - 1 - (profile.spikeIndexOffset || 4)));
-  const spendBaseTotal = Math.max(1, Math.round((player.spend || 1000) * meta.totalSpendMultiplier));
   const spendTrendBias = ((player.spendDelta || 0) / 100) + ((profile.spendBias || 20) / 100);
   const spendAmplitude = 0.06 + ((profile.spendAmplitude || 10) / 200);
-  const depositTotal = Math.max(1, Math.round((player.deposits || 1) * meta.totalDepositsMultiplier + (profile.depositBias || 0)));
+  const activityTotal = Math.max(
+    points * 6,
+    Math.round(
+      (player.deposits || 1) * (24 + (profile.depositBias || 0) * 8) * (resolvedRangeKey === RANGE_24H ? 0.35 : resolvedRangeKey === RANGE_30D ? 3.4 : 1)
+      + (profile.spendBias || 0) * 6
+      + Math.max(0, player.spendDelta || 0) * 0.9
+      + rnd() * 20
+    )
+  );
+
+  const isHighRisk = player.risk === KGEnums.RISK.HIGH;
+  const isMediumRisk = player.risk === KGEnums.RISK.MEDIUM;
+  let depositShare;
+
+  if (isHighRisk) {
+    // High risk: frequently near parity and occasionally spend-led.
+    const spendCanExceed = rnd() < 0.32;
+    if (spendCanExceed) {
+      depositShare = 0.34 + rnd() * 0.14;
+    } else {
+      depositShare = 0.48 + rnd() * 0.12;
+    }
+  } else if (isMediumRisk) {
+    // Medium risk: mostly deposit-led but less extreme than low/unrated.
+    depositShare = 0.72 + rnd() * 0.14;
+  } else {
+    // Low/unrated: strongly deposit-led.
+    depositShare = 0.78 + rnd() * 0.16;
+  }
+
+  let depositTotal = Math.max(1, Math.round(activityTotal * depositShare));
+  let spendBaseTotal = Math.max(1, activityTotal - depositTotal);
+
+  // Keep non-high cohorts deposit-dominant for the majority profile.
+  if (!isHighRisk && spendBaseTotal >= depositTotal) {
+    depositTotal = Math.max(depositTotal, Math.round(activityTotal * 0.8));
+    spendBaseTotal = Math.max(1, activityTotal - depositTotal);
+  }
+
+  // Extra high-risk pressure when trajectory is steep.
+  if (isHighRisk && (player.spendDelta || 0) >= 100 && rnd() < 0.35) {
+    spendBaseTotal = Math.round(spendBaseTotal * 1.12);
+    depositTotal = Math.max(1, activityTotal - spendBaseTotal);
+  }
+
   const depositBias = 0.08 + ((profile.cadenceBias || 1) * 0.04);
   const depositSpikeWeight = player.risk === KGEnums.RISK.HIGH ? 1.15 : player.risk === KGEnums.RISK.MEDIUM ? 0.7 : 0.35;
 
