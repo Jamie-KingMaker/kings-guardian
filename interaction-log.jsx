@@ -179,6 +179,16 @@ function enrichLogEntry(entry, playerMap, agentMap) {
   };
 }
 
+const IL_NOW = new Date('2026-05-08T12:00:00');
+
+function getDateRangeCutoff(dateRange, customRange) {
+  if (dateRange === KGEnums.DATE_RANGE.CUSTOM && customRange?.start && customRange?.end) return null; // handled separately
+  if (dateRange === KGEnums.DATE_RANGE.LAST_24_HOURS) return new Date(IL_NOW.getTime() - 24 * 60 * 60 * 1000);
+  if (dateRange === KGEnums.DATE_RANGE.LAST_30_DAYS) return new Date(IL_NOW.getTime() - 30 * 24 * 60 * 60 * 1000);
+  // default: 7d
+  return new Date(IL_NOW.getTime() - 7 * 24 * 60 * 60 * 1000);
+}
+
 function InteractionLog({ brand, country, onPlayerClick }) {
   const [typeFilter, setTypeFilter]   = useStateIL('all');
   const [agentFilter, setAgentFilter] = useStateIL('all');
@@ -186,6 +196,8 @@ function InteractionLog({ brand, country, onPlayerClick }) {
   const [search, setSearch]           = useStateIL('');
   const [showForm, setShowForm]       = useStateIL(false);
   const [showAll, setShowAll]         = useStateIL(false);
+  const [dateRange, setDateRange]     = useStateIL(KGEnums.DATE_RANGE.LAST_7_DAYS);
+  const [customRange, setCustomRange] = useStateIL(null);
 
   // Enrich seed data once: merge risk + tier from PLAYERS by player ID.
   const playerMap = useMemoIL(() => buildPlayerMap(), []);
@@ -196,16 +208,21 @@ function InteractionLog({ brand, country, onPlayerClick }) {
   const agents = useMemoIL(() => ((window.KGData && window.KGData.getSelectableAgents && window.KGData.getSelectableAgents()) || (window.KGData && window.KGData.AGENTS) || []), []);
 
   const filtered = useMemoIL(() => {
+    const cutoff = getDateRangeCutoff(dateRange, customRange);
     return entries.filter(e => {
       const searchValue = search.toLowerCase();
       const matchesSearch = !searchValue || e.player.toLowerCase().includes(searchValue) || e.desc.toLowerCase().includes(searchValue);
-
-      return (typeFilter === 'all' || e.type === typeFilter) &&
+      const ts = new Date(e.ts);
+      const matchesDate = dateRange === KGEnums.DATE_RANGE.CUSTOM && customRange?.start && customRange?.end
+        ? ts >= customRange.start && ts <= new Date(customRange.end.getTime() + 86400000)
+        : ts >= cutoff;
+      return matchesDate &&
+        (typeFilter === 'all' || e.type === typeFilter) &&
         (agentFilter === 'all' || e.agentId === agentFilter) &&
         (riskFilter === 'all' || e.risk === riskFilter) &&
         matchesSearch;
     });
-  }, [entries, typeFilter, agentFilter, riskFilter, search]);
+  }, [entries, typeFilter, agentFilter, riskFilter, search, dateRange, customRange]);
 
   const displayed = showAll ? filtered : filtered.slice(0, 20);
 
@@ -236,22 +253,31 @@ function InteractionLog({ brand, country, onPlayerClick }) {
   return (
     <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
         <div>
           <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, marginBottom: 4 }}>
-            Agent activity · Last 7 days
+            Agent activity · {KGConstants.getDateRangeLabel(dateRange, customRange)}
           </div>
           <h1 style={{ fontSize: 25, fontWeight: 600, color: '#0F172A', margin: 0, letterSpacing: '-0.01em' }}>Interaction Log</h1>
           <p style={{ fontSize: 15, color: '#64748B', margin: '4px 0 0' }}>
             Full audit trail of CS agent and system interactions with monitored players.
           </p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          style={{ ...btnPrimary, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-        >
-          + Log interaction
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, paddingTop: 4 }}>
+          <DateRangePicker
+            value={dateRange}
+            onChange={setDateRange}
+            custom={customRange}
+            onCustom={setCustomRange}
+            pageMode
+          />
+          <button
+            onClick={() => setShowForm(true)}
+            style={{ ...btnPrimary, display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
+          >
+            + Log interaction
+          </button>
+        </div>
       </div>
 
       {/* Summary stats */}
