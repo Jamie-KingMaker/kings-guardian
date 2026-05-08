@@ -10,6 +10,7 @@ const {
   buildComponentChildId,
   generatePlayerInsights,
   generateInteractionLog,
+  getPlayerChartData,
   MicroStat,
   SpendDepositsCard,
   ProductDistribution,
@@ -39,49 +40,60 @@ function PlayerDetail({ playerId, player: selectedPlayer, onBack }) {
     : 'Last 7 days';
 
   // Shared activity widget used on both Overview and Behaviour tabs
-  const ActivityWidget = ({ tall }) => (
-    <div style={{ ...cardStyle }}>
-      {/* Single header with one range picker controlling all content */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 12 }}>
-        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
-          Activity · {rangeLabelFull}
+  const ActivityWidget = ({ tall }) => {
+    // Derive range-accurate totals from the same chart data the graph uses
+    const { spend: spendSeries, dep: depSeries } = getPlayerChartData(player, rangePeriodLabel);
+    const scale = rangePeriodLabel === '24h' ? 0.12 : rangePeriodLabel === '7d' ? 0.85 : 1;
+    const rangeSpend = Math.round(player.spend * scale);
+    const rangeDep   = depSeries.reduce((s, d) => s + d, 0);
+    const rangeBets  = Math.round(player.bets * scale);
+    const rangeAvgDep = Math.round(rangeSpend / Math.max(rangeDep, 1));
+
+    const gridId = tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID;
+
+    return (
+      <div style={{ ...cardStyle }}>
+        {/* Single header with one range picker controlling all content */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 12 }}>
+          <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+            Activity · {rangeLabelFull}
+          </div>
+          <PlayerRangeSelector range={playerRange} setRange={setPlayerRange} />
         </div>
-        <PlayerRangeSelector range={playerRange} setRange={setPlayerRange} />
+
+        {/* Micro stats — values and labels update with the range picker */}
+        <div id={gridId} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
+          <MicroStat componentId={buildComponentChildId(gridId, PLAYER_DETAIL_STAT_KEY.SPEND)}
+            label={`Spend / ${rangePeriodLabel}`} value={fmtCompact(rangeSpend, player.brand)} delta={`+${sd}%`} tone="high" />
+          <MicroStat componentId={buildComponentChildId(gridId, PLAYER_DETAIL_STAT_KEY.DEPOSITS)}
+            label={`Deposits / ${rangePeriodLabel}`} value={rangeDep} delta={`+${depositsGrowthPct}%`} tone="high" />
+          <MicroStat componentId={buildComponentChildId(gridId, PLAYER_DETAIL_STAT_KEY.BETS)}
+            label={`Bets / ${rangePeriodLabel}`} value={rangeBets} delta={`+${betsGrowthPct}%`} tone="high" />
+          <MicroStat componentId={buildComponentChildId(gridId, PLAYER_DETAIL_STAT_KEY.AVG_DEPOSIT)}
+            label="Avg deposit" value={fmtCompact(rangeAvgDep, player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: '#F1F5F9', marginBottom: 16 }} />
+
+        {/* Chart — embedded so it shares this card's shell */}
+        <SpendDepositsCard
+          embedded
+          componentId={tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_SPEND_DEPOSITS_CARD : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_SPEND_DEPOSITS_CARD}
+          player={player} range={playerRange} setRange={setPlayerRange} tall={tall}
+        />
+
+        {/* Divider */}
+        <div style={{ height: 1, background: '#F1F5F9', margin: '16px 0' }} />
+
+        {/* Product distribution */}
+        <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>
+          Product distribution · {rangeLabelFull}
+        </div>
+        <ProductDistribution player={player} />
       </div>
-
-      {/* Micro stats — period label updates with picker */}
-      <div id={tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID}
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 16 }}>
-        <MicroStat componentId={buildComponentChildId(tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.SPEND)}
-          label={`Spend / ${rangePeriodLabel}`} value={fmtCompact(player.spend, player.brand)} delta={`+${sd}%`} tone="high" />
-        <MicroStat componentId={buildComponentChildId(tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.DEPOSITS)}
-          label={`Deposits / ${rangePeriodLabel}`} value={player.deposits} delta={`+${depositsGrowthPct}%`} tone="high" />
-        <MicroStat componentId={buildComponentChildId(tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.BETS)}
-          label={`Bets / ${rangePeriodLabel}`} value={player.bets} delta={`+${betsGrowthPct}%`} tone="high" />
-        <MicroStat componentId={buildComponentChildId(tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_STATS_GRID : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_STATS_GRID, PLAYER_DETAIL_STAT_KEY.AVG_DEPOSIT)}
-          label="Avg deposit" value={fmtCompact(Math.round(player.spend / Math.max(player.deposits, 1)), player.brand)} delta={`+${avgDepositPct}%`} tone="medium" />
-      </div>
-
-      {/* Divider */}
-      <div style={{ height: 1, background: '#F1F5F9', marginBottom: 16 }} />
-
-      {/* Chart — embedded so it shares this card's shell */}
-      <SpendDepositsCard
-        embedded
-        componentId={tall ? COMPONENT_ID.PLAYER_DETAIL_BEHAVIOUR_SPEND_DEPOSITS_CARD : COMPONENT_ID.PLAYER_DETAIL_OVERVIEW_SPEND_DEPOSITS_CARD}
-        player={player} range={playerRange} setRange={setPlayerRange} tall={tall}
-      />
-
-      {/* Divider */}
-      <div style={{ height: 1, background: '#F1F5F9', margin: '16px 0' }} />
-
-      {/* Product distribution */}
-      <div style={{ fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: 12 }}>
-        Product distribution · {rangeLabelFull}
-      </div>
-      <ProductDistribution player={player} />
-    </div>
-  );
+    );
+  };
 
   const sevColor = {
     high: KGConstants.RISK_COLORS.high.main,
